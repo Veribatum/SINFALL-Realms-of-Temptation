@@ -18,11 +18,8 @@ Deploy GitHub Pages from **main / (root)**. Open `index.html` directly or browse
 - Original hand-authored SVG fantasy character and dungeon environment art
 - Mobile-responsive layout, installable PWA manifest
 
-## Generated art installation
-
-The HTML/CSS/JS references images under `assets/` but the GitHub connector available to this chat cannot upload binary files. **Those generated images have not yet been committed.** Download the provided `sinfall-generated-assets.zip`, extract its `assets` folder, and upload all five JPG files into the repository's `assets/` directory on the `main` branch. Once uploaded, GitHub Pages will display the art automatically. Do not assume the art is live before the files exist.
-
-Files: `splash.jpg`, `scene-gate.jpg`, `scene-hall.jpg`, `scene-crypt.jpg`, `scene-throne.jpg`.
+## Artwork update (60 assets)
+The application now references 60 generated assets in `assets/`: four dungeon scenes, the main splash, class roster, four class portraits, 16 consumable icons, 16 equipment icons, 16 skill icons, companions, and bestiary. The source code is committed, but these JPEG/PNG **binary images still must be uploaded** to `assets/` on the `main` branch. The connected GitHub text-file tools do not accept a local image file reference. Extract `sinfall-art-update.zip`, open GitHub `assets/`, and drag the contents of the extracted assets folder into the GitHub upload interface. Do not commit the ZIP itself as a substitute. 
 
 ## AI roadmap
 
