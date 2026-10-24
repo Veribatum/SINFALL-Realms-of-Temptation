@@ -18,6 +18,12 @@ Deploy GitHub Pages from **main / (root)**. Open `index.html` directly or browse
 - Original hand-authored SVG fantasy character and dungeon environment art
 - Mobile-responsive layout, installable PWA manifest
 
+## Generated art installation
+
+The HTML/CSS/JS references images under `assets/` but the GitHub connector available to this chat cannot upload binary files. **Those generated images have not yet been committed.** Download the provided `sinfall-generated-assets.zip`, extract its `assets` folder, and upload all five JPG files into the repository's `assets/` directory on the `main` branch. Once uploaded, GitHub Pages will display the art automatically. Do not assume the art is live before the files exist.
+
+Files: `splash.jpg`, `scene-gate.jpg`, `scene-hall.jpg`, `scene-crypt.jpg`, `scene-throne.jpg`.
+
 ## AI roadmap
 
 **AI is NOT yet connected.** The story engine currently runs offline using authored encounters. The freeform intent input records actions but does not generate AI responses. Do not market it as live AI.
@@ -33,4 +39,4 @@ Proposed architecture:
 
 ## Security and limitations
 
-No API credentials should be committed or stored in public client JavaScript. Saves are stored per-browser/device unless exported. All characters depicted and future romance options are adults. Artwork is currently custom SVG, not AI-generated imagery.
+No API credentials should be committed or stored in public client JavaScript. Saves are stored per-browser/device unless exported. All characters depicted and future romance options are adults. Generated artwork is referenced in the UI but needs binary asset upload as explained above.
