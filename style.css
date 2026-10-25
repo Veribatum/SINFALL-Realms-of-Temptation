@@ -26,3 +26,5 @@
 .battle{margin-top:16px;padding:15px;background:linear-gradient(#491f32,#211728);border:1px solid #ba5e74;border-radius:10px}.battle h3{color:#ffaf9e;margin:0 0 8px}.battle-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.battle-actions button{font:12px system-ui;padding:12px 3px}.enemy-vitals{height:10px;border:1px solid #7d5360;border-radius:7px;background:#140e19;overflow:hidden}.enemy-vitals div{height:100%;width:100%;background:linear-gradient(90deg,#982a45,#eb646d)}.battle p{font-size:13px}
 .splash-art{background:radial-gradient(circle at 50% 28%,#824b65 0%,#321d36 32%,#100c1a 74%)}.splash-art:has(img[hidden])::after{content:"✦ SINFALL ✦";display:grid;place-items:center;height:100%;font-size:33px;letter-spacing:.1em;color:#e7a769;text-shadow:0 0 25px #ef5d9a}
 .class-preview[hidden],.class-roster img[hidden],.character-portrait[hidden],.art-sheet[hidden],.inventory-banner img[hidden],.item-icon[hidden]{display:none!important}
+
+.scene-art .scene-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.scene-art svg{position:absolute;inset:0}
