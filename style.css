@@ -12,3 +12,17 @@
 .inventory-banner{display:flex;align-items:center;gap:12px;background:#14101c;border:1px solid #3b2d40;border-radius:9px;padding:7px 12px;margin:13px 0;color:#d9b39f;font:12px system-ui}
 .inventory-banner img{height:63px;width:63px;object-fit:contain}
 @media(min-width:700px){.class-preview{height:310px}}
+
+.dungeon-card{background:linear-gradient(145deg,#24162b,#111321);border-color:#8b5666;margin-top:14px}
+.dungeon-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.dungeon-head h2{font-size:22px;margin:5px 0 13px}
+#floorLabel{font:11px system-ui;color:#edbc7a;white-space:nowrap}
+.dungeon-map{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;aspect-ratio:1/1;background:#080811;padding:5px;border:2px solid #71505b;border-radius:12px;box-shadow:inset 0 0 30px #000b,0 8px 26px #0007;max-width:500px;margin:auto}
+.tile{display:grid;place-items:center;border-radius:4px;min-width:0;font-size:clamp(14px,5vw,30px);font-weight:bold;transition:background .15s}
+.tile.shrouded{background:repeating-linear-gradient(45deg,#12101c,#12101c 5px,#181422 5px,#181422 10px)}
+.tile.stone.revealed{background:linear-gradient(145deg,#3b303c,#221c2e);box-shadow:inset 0 0 0 2px #15121f}
+.tile.path.revealed{background:radial-gradient(#483145,#261b2c);color:#e6b47f}
+.tile.current{background:radial-gradient(#bd637c,#48283c)!important;color:#fff6da;font-size:clamp(22px,7vw,38px);box-shadow:inset 0 0 0 2px #e9a96e,0 0 12px #d44c8a}
+.dpad{text-align:center;margin:10px auto 2px}.dpad button{width:65px;height:46px;margin:2px;border-color:#aa6875;background:#392335;font-size:20px;touch-action:manipulation}.dpad>div{display:flex;justify-content:center;gap:5px}.dpad #interact{color:#f4c68c}
+.battle{margin-top:16px;padding:15px;background:linear-gradient(#491f32,#211728);border:1px solid #ba5e74;border-radius:10px}.battle h3{color:#ffaf9e;margin:0 0 8px}.battle-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.battle-actions button{font:12px system-ui;padding:12px 3px}.enemy-vitals{height:10px;border:1px solid #7d5360;border-radius:7px;background:#140e19;overflow:hidden}.enemy-vitals div{height:100%;width:100%;background:linear-gradient(90deg,#982a45,#eb646d)}.battle p{font-size:13px}
+.splash-art{background:radial-gradient(circle at 50% 28%,#824b65 0%,#321d36 32%,#100c1a 74%)}.splash-art:has(img[hidden])::after{content:"✦ SINFALL ✦";display:grid;place-items:center;height:100%;font-size:33px;letter-spacing:.1em;color:#e7a769;text-shadow:0 0 25px #ef5d9a}
+.class-preview[hidden],.class-roster img[hidden],.character-portrait[hidden],.art-sheet[hidden],.inventory-banner img[hidden],.item-icon[hidden]{display:none!important}
