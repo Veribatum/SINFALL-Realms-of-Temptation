@@ -1,39 +1,28 @@
 # SINFALL — Realms of Temptation
 
-A mobile-first, adult-themed dark fantasy RPG prototype.
+## Playable alpha v0.3
 
-## Play
+The live game is launched from `index.html` and uses `v3.css` plus `sinfall-v3.js`. Previous `game.js`, `dungeon.js`, and `style.css` are legacy files **not loaded by the new game**.
 
-Deploy GitHub Pages from **main / (root)**. Open `index.html` directly or browse the Pages URL. Add to Home Screen on iPhone for a standalone view.
+### Implemented
 
-## Implemented
+- Single-screen, mobile-first 9×9 dungeon crawler with fog of war and touch movement
+- Random floors, treasure, traps, shrines, NPCs, monsters, stairs, and repeated descents
+- D20 checks, melee combat, spells, damage, defeats, retreat, rewards
+- Four classes, upgrades, XP, skill tree, gold, healing and inventory
+- Companion relationship counters, chronicle, bestiary and saves (localStorage)
+- Save export/import, mobile-friendly UI, safe image fallbacks
 
-- Multiple hero classes and portrait archetype selection
-- Four atmospheric locations, each with three branching skill-based checks
-- Genuine random D20 rolls, DCs, class bonuses, natural 1/20 handling
-- HP/MP, XP, level progression, unlockable skill tree
-- Loot, equippable weapons/armor, consumable healing potions, gold
-- Quest tracker, companion rapport, chronicle history
-- Local autosave, manual save, JSON export/import
-- Original hand-authored SVG fantasy character and dungeon environment art
-- Mobile-responsive layout, installable PWA manifest
+### Artwork issue
 
-## Artwork update (60 assets)
-The application now references 60 generated assets in `assets/`: four dungeon scenes, the main splash, class roster, four class portraits, 16 consumable icons, 16 equipment icons, 16 skill icons, companions, and bestiary. The source code is committed, but these JPEG/PNG **binary images still must be uploaded** to `assets/` on the `main` branch. The connected GitHub text-file tools do not accept a local image file reference. Extract `sinfall-art-update.zip`, open GitHub `assets/`, and drag the contents of the extracted assets folder into the GitHub upload interface. Do not commit the ZIP itself as a substitute. 
+**IMPORTANT: The current GitHub repository still has no `assets/` directory.** The generated image files were previously delivered as `sinfall-art-update.zip`, but GitHub's available connector accepts text and cannot read the image file bytes from the local image-generation runtime. As a result, the live GitHub Pages site will display fallback colors where the artwork should go. The code references those image paths correctly, but they will not render until assets are actually uploaded. Upload the **contents** of the extracted `assets/` directory to `main/assets/` through the GitHub web upload UI.
 
-## AI roadmap
+Required images include `assets/splash.jpg`, `assets/class-shadowblade.jpg`, `assets/class-spellbinder.jpg`, `assets/class-oathbreaker.jpg`, `assets/class-ranger.jpg`, `assets/scene-crypt.jpg`, `assets/scene-throne.jpg`, `assets/companions.jpg`, `assets/bestiary.jpg`, plus skill/item icons.
 
-**AI is NOT yet connected.** The story engine currently runs offline using authored encounters. The freeform intent input records actions but does not generate AI responses. Do not market it as live AI.
+### AI
 
-Official [Sign in with ChatGPT](https://developers.openai.com/siwc/quickstart) allows eligible users to authorize plan usage, but hosted web deployments have different onboarding requirements than local open-source applications. GitHub Pages cannot safely host OAuth server callbacks or store persistent authentication tokens. A secure, policy-compliant integration must be completed separately before enabling live AI, and model usage is subject to plan limits.
+Live AI narration and Sign in with ChatGPT are **not** included in this alpha. The offline encounters are deterministic and immediately playable. Do not commit API tokens to GitHub Pages.
 
-Proposed architecture:
-1. Structured immutable game state tracked by a deterministic local rules engine.
-2. Authenticated AI narration returns strictly validated JSON of narration and suggested world-state actions; the rules engine alone mutates stats, loot and dice.
-3. Story summaries + journal and companion affinity persist between sessions.
-4. Auth and entitlement handling through a supported OpenAI sign-in integration, with tokens stored only in an authorized local user-controlled runtime where required.
-5. Optional generated scene art only with appropriate image service access and user permission.
+### Deployment
 
-## Security and limitations
-
-No API credentials should be committed or stored in public client JavaScript. Saves are stored per-browser/device unless exported. All characters depicted and future romance options are adults. Generated artwork is referenced in the UI but needs binary asset upload as explained above.
+GitHub Settings → Pages → Deploy from branch → main → /(root).
