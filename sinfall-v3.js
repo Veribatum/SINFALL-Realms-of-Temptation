@@ -42,7 +42,36 @@ function start(){migrate();$("start").hidden=true;$("play").hidden=false;documen
 function reveal(){for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){let x=g.x+dx,y=g.y+dy;if(x>=0&&x<N&&y>=0&&y<N)g.seen.push(y*N+x)}g.seen=[...new Set(g.seen)]}
 function log(s){g.journal.unshift(s);g.journal=g.journal.slice(0,60);$("message").textContent=s}
 function img(src,cls="",alt=""){const i=document.createElement("img");i.src=src;i.className=cls;i.alt=alt;i.onerror=()=>i.hidden=true;return i}
-function paint(){let m=$("map");m.replaceChildren();for(let y=0;y<N;y++)for(let x=0;x<N;x++){let t=document.createElement("div"),n=y*N+x,known=g.seen.includes(n),v=g.map[n];t.className="tile "+(!known?"hidden-tile":v==="#"?"rock":"floor-tile");if(known){if(x===g.x&&y===g.y){t.classList.add("player");t.textContent="♟"}else{t.textContent=({"#":"","E":"☠","C":"◆","S":"✧","X":"⇩","N":"♛","T":"⚠",".":"·"})[v]||"·";if(v!=="#"&&v!==".")t.classList.add("special")}}m.append(t)}$("floor").textContent="FLOOR "+g.floor;$("objective").textContent="☠ "+g.kills+" slain · find ⇩"}
+
+const roomNames=["The Fallen Gate","The Velvet Hall","The Obsidian Crypt","The Ashen Sanctum","The Witching Galleries","The Shattered Court","The Hollow Chapel","The Bloodrose Vault"];
+const roomDescriptions=[
+"Moonlight strikes ancient stone. A rusted gate groans in the wind, and footsteps echo somewhere beyond.",
+"Tattered banners drift above the remains of a grand ballroom. Every mirror reflects a different shadow.",
+"Black water gathers beneath carved statues. The cold air smells of candle wax and forbidden magic.",
+"Embers float through a cavernous throne hall. Something beneath the stone still remembers its sovereign.",
+"The corridors bend around impossible corners. Whispering portraits follow your every movement.",
+"A ruined audience chamber is lined with silent, armored figures. A distant bell tolls only once.",
+"Vines wrap a chapel whose altar glows with deep crimson light. The air tastes of rain and roses.",
+"A locked vault trembles with power. Behind its doors, riches and dangerous promises await."
+];
+function renderRoom(){
+if(!g)return;
+const stage=$("roomBackdrop"),title=$("roomTitle"),description=$("roomDescription"),type=$("roomType"),choices=$("roomChoices");
+if(!stage||!choices)return;
+const index=((g.floor-1)*2+Math.floor((g.x+g.y)/3))%roomNames.length;
+const t=tile(g.x,g.y),room=roomNames[index];
+title.textContent=room;
+type.textContent=["CHAPTER OF SHADOWS","THE CRIMSON COURT","SECRETS BELOW","REALM OF ASH"][(g.floor-1)%4]+" · FLOOR "+g.floor;
+const specialized={E:"You hear claws scraping the flagstones. Something hungry lies in wait.",C:"A treasure coffer rests beneath a dust-covered tapestry.",S:"An altar shines with moonlight. Its magic beckons you closer.",N:"An unfamiliar silhouette watches you from the darkness.",T:"A strange clicking noise betrays a concealed trap.",X:"A spiral staircase descends beyond a half-open iron door."};
+description.textContent=specialized[t]||roomDescriptions[index];
+stage.style.backgroundImage='linear-gradient(0deg,rgba(10,6,16,.9),transparent 64%),url("assets/scene-'+["gate","hall","crypt","throne"][index%4]+'.jpg")';
+stage.className="room-backdrop realm-"+index%4;
+choices.replaceChildren();
+const dirs=[["Venture north",0,-1],["Explore east",1,0],["Travel south",0,1],["Go west",-1,0]];
+for(const [name,dx,dy] of dirs){const x=g.x+dx,y=g.y+dy;if(x<0||x>=N||y<0||y>=N||g.map[y*N+x]==="#")continue;const b=document.createElement("button");const symbols={C:"◈",E:"⚔",S:"✧",N:"♛",X:"⇩",T:"!"};const next=g.map[y*N+x];b.textContent=(symbols[next]||"➤")+" "+name+(next==="C"?" · treasure":next==="E"?" · danger":next==="X"?" · stairs":next==="N"?" · stranger":"");b.onclick=()=>move(dx,dy);choices.append(b)}
+if(!choices.children.length){const p=document.createElement("p");p.textContent="A dead end. Retrace your steps.";choices.append(p)}
+}
+function paint(){renderRoom();let m=$("map");m.replaceChildren();for(let y=0;y<N;y++)for(let x=0;x<N;x++){let t=document.createElement("div"),n=y*N+x,known=g.seen.includes(n),v=g.map[n];t.className="tile "+(!known?"hidden-tile":v==="#"?"rock":"floor-tile");if(known){if(x===g.x&&y===g.y){t.classList.add("player");t.textContent="♟"}else{t.textContent=({"#":"","E":"☠","C":"◆","S":"✧","X":"⇩","N":"♛","T":"⚠",".":"·"})[v]||"·";if(v!=="#"&&v!==".")t.classList.add("special")}}m.append(t)}$("floor").textContent="FLOOR "+g.floor;$("objective").textContent="☠ "+g.kills+" slain · find ⇩"}
 function show(title,body,kind,actions,imgurl){event={kind};$("eventType").textContent=kind.toUpperCase();$("eventTitle").textContent=title;$("eventText").textContent=body;$("rollResult").hidden=true;$("enemybar").hidden=true;$("eventArt").replaceChildren();if(imgurl)$("eventArt").append(img(imgurl));const a=$("eventActions");a.replaceChildren();actions.forEach(([name,callback])=>{let b=document.createElement("button");b.textContent=name;b.onclick=callback;a.append(b)});$("overlay").hidden=false;save()}
 function close(){$("overlay").hidden=true;event=null;render()}
 function gained(x){g.xp+=x;while(g.xp>=g.level*75){g.xp-=g.level*75;g.level++;g.sp++;g.maxHp+=5;g.maxMp+=2;g.hp=Math.min(g.maxHp,g.hp+8);toast("LEVEL UP! +1 skill point")}}
