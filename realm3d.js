@@ -19,6 +19,26 @@ villager(-2,-12,0x9b5e83);villager(2,-21,0x6a8b91);villager(-1,-33,0xa79068);vil
 function chicken(x,z){const g=new THREE.Group();scene.add(g);sphere(g,.23,white,0,.30,0);sphere(g,.14,white,.18,.47,0);cone(g,.1,.17,yellow,.32,.44,0);cube(g,.035,.2,.03,yellow,-.11,.1,0);cube(g,.035,.2,.03,yellow,.11,.1,0);birds.push({g,x,z,seed:Math.random()*6.28})}
 chicken(-1,-9);chicken(2,-19);chicken(-3,-30);chicken(1,-38);
 for(let i=0;i<16;i++){let x=(i%2?1:-1)*(13+i%3*2),z=-4-i*3;const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);cube(g,.42,2,.42,wood,0,1,0);sphere(g,1.2,mat(0x526b58),0,2.6,0)}
+
+// The dungeon uses the same WebGL renderer with a separate maze scene.
+const crypt=new THREE.Scene();crypt.background=new THREE.Color(0x110c19);crypt.fog=new THREE.FogExp2(0x160f20,.055);
+crypt.add(new THREE.HemisphereLight(0xb2a0bd,0x16101c,1.3));
+const torch=new THREE.PointLight(0xf58c5c,32,19);torch.position.set(2,2,2);crypt.add(torch);
+const walls=new THREE.Group();crypt.add(walls);let dungeonSignature="";
+const wallMaterial=new THREE.MeshLambertMaterial({color:0x5d5162}),floorMaterial=new THREE.MeshLambertMaterial({color:0x39303e}),ceilingMaterial=new THREE.MeshLambertMaterial({color:0x2a2230});
+function syncDungeon(){
+if(!hero||hero.mode!=="dungeon"||!hero.dungeonState)return false;
+const d=hero.dungeonState,signature=JSON.stringify(d.grid);
+if(signature!==dungeonSignature){
+while(walls.children.length){const a=walls.children.pop();a.geometry?.dispose();walls.remove(a)}
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(13,13),floorMaterial);floor.rotation.x=-Math.PI/2;floor.position.set(6.5,0,6.5);walls.add(floor);
+const roof=new THREE.Mesh(new THREE.PlaneGeometry(13,13),ceilingMaterial);roof.rotation.x=Math.PI/2;roof.position.set(6.5,3.4,6.5);walls.add(roof);
+d.grid.forEach((row,z)=>row.forEach((v,x)=>{if(!v)return;const block=new THREE.Mesh(new THREE.BoxGeometry(1,3.4,1),wallMaterial);block.position.set(x+.5,1.7,z+.5);walls.add(block)}));
+dungeonSignature=signature;
+}
+camera.position.set(d.x+.5,1.55,d.y+.5);camera.rotation.set(0,-d.dir*Math.PI/2,0,"YXZ");torch.position.set(d.x+.5,2,d.y+.5);return true
+}
+
 const position=new THREE.Vector3(0,1.7,5);let yaw=0,active=false;const keys={};let last=performance.now();
 const controls=document.createElement("div");controls.className="village-controls";controls.innerHTML='<button data-move="left">↶ Turn</button><button data-move="forward">▲ Walk</button><button data-move="right">Turn ↷</button><button data-move="back">▼ Back</button><button data-move="talk">✦ Talk / Enter</button>';document.getElementById("dungeonControls").before(controls);
 function current(){return typeof hero!=="undefined"&&hero&&hero.mode==="town"&&!document.getElementById("world").hidden&&!document.getElementById("adventure").hidden}
@@ -29,6 +49,6 @@ const buttons=new Set();controls.addEventListener("pointerdown",e=>{const v=e.ta
 document.addEventListener("keydown",e=>{if(["INPUT","SELECT","TEXTAREA"].includes(document.activeElement?.tagName))return;keys[e.key.toLowerCase()]=true});document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
 let dragX=null;canvas.addEventListener("pointerdown",e=>{if(!current())return;dragX=e.clientX});canvas.addEventListener("pointermove",e=>{if(dragX===null||!current())return;yaw-=(e.clientX-dragX)*.005;dragX=e.clientX});canvas.addEventListener("pointerup",()=>dragX=null);
 const nativeDraw=typeof drawView==="function"?drawView:null;
-function frame(t){const dt=Math.min(2,(t-last)/33);last=t;active=current();controls.hidden=!active;canvas.hidden=!active;oldCanvas.hidden=active;if(active){if(keys.arrowup||keys.w||buttons.has("forward"))stepMove("forward",dt);if(keys.arrowdown||keys.s||buttons.has("back"))stepMove("back",dt);if(keys.arrowleft||keys.a||buttons.has("left"))stepMove("left",dt);if(keys.arrowright||keys.d||buttons.has("right"))stepMove("right",dt);camera.position.copy(position);camera.rotation.set(0,yaw,0,"YXZ");people.forEach((p,i)=>{p.g.position.set(p.x+Math.sin(t*.00055+p.seed)*1.5,0,p.z+Math.cos(t*.0003+p.seed));p.g.rotation.y=Math.sin(t*.001+p.seed)*.4});birds.forEach(p=>{p.g.position.set(p.x+Math.sin(t*.001+p.seed)*1.2,Math.max(0,Math.sin(t*.002+p.seed))*.025,p.z+Math.cos(t*.0008+p.seed))});renderer.render(scene,camera)}requestAnimationFrame(frame)}
+function frame(t){const dt=Math.min(2,(t-last)/33);last=t;active=current();const inCrypt=typeof hero!=="undefined"&&hero&&hero.mode==="dungeon"&&!document.getElementById("world").hidden&&!document.getElementById("adventure").hidden;controls.hidden=!active;canvas.hidden=!(active||inCrypt);oldCanvas.hidden=(active||inCrypt);if(active){if(keys.arrowup||keys.w||buttons.has("forward"))stepMove("forward",dt);if(keys.arrowdown||keys.s||buttons.has("back"))stepMove("back",dt);if(keys.arrowleft||keys.a||buttons.has("left"))stepMove("left",dt);if(keys.arrowright||keys.d||buttons.has("right"))stepMove("right",dt);camera.position.copy(position);camera.rotation.set(0,yaw,0,"YXZ");people.forEach((p,i)=>{p.g.position.set(p.x+Math.sin(t*.00055+p.seed)*1.5,0,p.z+Math.cos(t*.0003+p.seed));p.g.rotation.y=Math.sin(t*.001+p.seed)*.4});birds.forEach(p=>{p.g.position.set(p.x+Math.sin(t*.001+p.seed)*1.2,Math.max(0,Math.sin(t*.002+p.seed))*.025,p.z+Math.cos(t*.0008+p.seed))});renderer.render(scene,camera)}else if(inCrypt&&syncDungeon()){renderer.render(crypt,camera)}requestAnimationFrame(frame)}
 requestAnimationFrame(frame);
 window.SINFALL_REALM3D={renderVillage:()=>{}, reset:()=>{position.set(0,1.7,5);yaw=0}};
