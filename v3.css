@@ -40,7 +40,7 @@ main{width:100%;flex:1}
 /* Illustrated adventure mode — the map is now a secondary tactical view */
 .room-stage{height:min(57dvh,455px);min-height:340px;max-width:570px;margin:0 auto 12px;border:1px solid #996179;border-radius:17px;position:relative;overflow:hidden;background:radial-gradient(circle at 58% 20%,#954364,#33243e 56%,#130e1d);box-shadow:0 15px 30px #000a,inset 0 0 0 3px #d39c5420}
 .room-backdrop{position:absolute;inset:0;background-size:cover;background-position:center;filter:saturate(1.1)}
-.room-backdrop.realm-0{background-color:#422036;background-image:radial-gradient(circle at 72% 19%,#ba537c,#37223c 59%,#100d1a)!important}
+.room-backdrop.realm-0{background-color:#422036;background-color:#422036}
 .room-backdrop.realm-1{background-color:#38203d}
 .room-backdrop.realm-2{background-color:#182b3a}
 .room-backdrop.realm-3{background-color:#563045}
