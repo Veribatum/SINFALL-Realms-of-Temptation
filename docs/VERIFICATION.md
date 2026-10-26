@@ -4,7 +4,7 @@ The player story is: create a separate hero → investigate a village mystery �
 
 ## Automated verification
 
-21 tests cover the following behavior:
+29 tests cover the following behavior:
 
 - 200 generated undercrypt seeds have reachable objectives and encounters.
 - Seed reproducibility and variation, complete campaign progression, no premature ending rewards, no repeated reward claims, and use of all mystery frameworks before repeating one.
@@ -14,7 +14,11 @@ The player story is: create a separate hero → investigate a village mystery �
 - Auth PKCE/state/nonce and issued-client handling; signed identity validation and rejection of mismatched claims; SSE chunking and Unicode; usage-limit and interrupted-stream failures.
 - Town, road and crypt scene construction, finite mesh transforms/vertices, and approachable interaction positions. A tree-placement collision found during verification was corrected by reserving space around interactable entities.
 
-The source check verifies syntax, module imports, required images and graphics dependencies, and checks first-party modules for credential-shaped values.
+The expansion adds coverage for all five interiors, repeat-discovery prevention, save validation inside a building, return positions, the main investigation and quest turn-in indoors, seeded encounter variety, insufficient funds, repeat-reward prevention, faction favors, bounded discounts, finite room geometry, approachable interaction anchors, and camera collision. All four actual GLB files are parsed with the vendored loader, cloned into independent skeletons and driven through idle/walking/running; bone transforms must change. Only texture decoding is stubbed in Node. The atlas palette shader’s uniforms and source are also checked, but compiling it still needs WebGL.
+
+The source check verifies syntax, module imports, required images, all four local models and graphics dependencies, and checks first-party modules for credential-shaped values.
+
+Scenery batching benchmark (seed 239, high quality): town removes 792 individual static meshes into 15 batches, saving 777 draw submissions; road saves 338; archive saves 302. These are scene-structure counts, not measured GPU frame rates.
 
 ## Browser verification
 
@@ -29,6 +33,10 @@ Verified in the managed browser, using normal UI controls:
 7. A new campaign starts with Raven still at level 3 and retaining learned talents, rewards, and prior history.
 8. A second character, Ash, is created independently through a 390px phone viewport. Load Game displays Ash at level 1 and Raven at level 3 with separate portraits, classes and saves.
 9. The phone title screen, character creation, appearance choices, dialogs, joystick/navigation layout and load screen are inspected at a real 390px iframe viewport.
+
+## Expansion browser check
+
+A new Moon Elf Spellbinder, Mara, was created through the normal UI. Entering the archive changed the location and exposed its scholar, exit and book discovery. Reading the book removed the one-time interaction. Reload → Continue resumed Mara inside the archive without restoring that reward. Leaving returned to the village. The market encounter accepted a paid search party, displayed its result and removed the encounter from available interactions.
 
 ## Verification limits
 

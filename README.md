@@ -8,7 +8,7 @@ The GitHub Pages edition runs from the repository root. Choose **New Game**, **L
 
 Desktop controls: WASD/arrows to move, drag to look, E to interact, Shift to run, V to switch the dungeon camera. C/I/J/M open character, inventory, journal, and map. Escape closes a panel or opens the pause menu. On a phone, use the left joystick, drag the view, and use the contextual interaction button on the right.
 
-Follow the gold quest marker to the witness in the village square. Ask other people about rumors, read the notice board, buy supplies, gather silverleaf, and investigate the old road. Take evidence to the scholar before deciding whom to trust. In combat, guard against heavy attacks, use class abilities to interrupt or heal, and equip the armor you find.
+Follow the gold quest marker to the witness in the village square. Ask other people about rumors, read the notice board, buy supplies, gather silverleaf, and investigate the old road. Enter the archive to take evidence to the scholar before deciding whom to trust. Buildings have marked doors; you can walk inside, talk to their inhabitants, and investigate objects. In combat, guard against heavy attacks, use class abilities to interrupt or heal, and equip the armor you find.
 
 ## What is implemented
 
@@ -23,7 +23,9 @@ Follow the gold quest marker to the witness in the village square. Ask other peo
 
 The procedural edition draws from six authored mystery frameworks and seeded world/encounter variation. It is not live AI. The ChatGPT-connected local edition can write original campaign scenes and respond to freeform actions. Manually imported ChatGPT campaign packs also work in the browser edition.
 
-The current 3D characters and buildings are procedural stylized geometry. The new painted menu, portrait atlas, and revelation art are committed in `assets/`; the live world is rendered geometry, not a painted screenshot.
+The live world now uses four locally stored, rigged KayKit fantasy characters with idle, walking and running animations, class equipment, ancestry proportions, and palette customization. Characters start with a lightweight fallback while their model loads. The inn, forge, archive, apothecary and chapel have furnished, walkable interiors with their inhabitants and one-time discoveries. Static scenery is combined into material batches; the town benchmark removes 777 separate scenery draw calls. Camera collision keeps walls between the camera and the player. Daylight follows the world clock.
+
+Seven seeded town and road encounters offer checks, paid interventions and faction consequences. Travelers can approach the hero. Completed meetings remain resolved after saving; reputation unlocks additional favors and merchant discounts. Existing schema-4 heroes remain compatible.
 
 ## Connect your ChatGPT plan
 
@@ -54,4 +56,4 @@ Official implementation references:
 
 The entry point is `index.html`, with the rebuilt implementation under `src/`, local ChatGPT support under `server/`, and the graphics dependency under `vendor/`. The older campaign/v3 scripts remain in Git history and the repository but are not loaded by the new entry point.
 
-Third-party dependency: Three.js r170, MIT; see `vendor/LICENSE-THREE.txt`. New artwork was generated for this project using the built-in Image Generation tool and encoded as WebP without changing its dimensions. Asset briefs: a twilight riverside village beneath an eclipsed moon; eight adult fantasy character portraits; four painted enemy portraits; and an impossible sanctuary with an inverted cathedral beyond the Veil.
+Third-party dependencies: Three.js r170 and its matching loaders/utilities, MIT; see `vendor/LICENSE-THREE.txt`. Character models: KayKit Adventurers Character Pack 1.0 by Kay Lousberg, CC0; source and license are in `assets/models/CREDITS.md` and `assets/models/LICENSE-KAYKIT.txt`. New artwork was generated for this project using the built-in Image Generation tool and encoded as WebP without changing its dimensions. Asset briefs: a twilight riverside village beneath an eclipsed moon; eight adult fantasy character portraits; four painted enemy portraits; and an impossible sanctuary with an inverted cathedral beyond the Veil.
