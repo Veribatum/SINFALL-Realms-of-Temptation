@@ -199,6 +199,7 @@ export function validateHero(h){
  if(!h.world.towns.every(t=>typeof t.name==='string'&&t.npcs&&t.dungeon?.grid?.length===17&&t.dungeon.grid.every(row=>Array.isArray(row)&&row.length===17&&row.every(v=>v===0||v===1))&&Array.isArray(t.dungeon.entities)&&t.dungeon.end?.length===2))return false;
  if(!h.items.every(i=>i&&typeof i.id==='string'&&typeof i.name==='string'&&['weapon','armor','trinket','potion','mana','quest'].includes(i.type)))return false;
  const str=(s,n=200)=>typeof s==='string'&&s.length<=n;
+ if(h.world.outcomes!==undefined&&(!h.world.outcomes||typeof h.world.outcomes!=='object'||Array.isArray(h.world.outcomes)||!Object.entries(h.world.outcomes).every(([key,o])=>str(key,100)&&o&&str(o.choice,100)&&['town','scholars','veil','none'].includes(o.faction)&&typeof o.success==='boolean')))return false;
  const validItem=i=>!!i&&str(i.id,100)&&str(i.name,200)&&(['weapon','armor','trinket'].includes(i.type)?Number.isFinite(i.power)&&i.power>=0&&i.power<=100000:['potion','mana'].includes(i.type)?Number.isFinite(i.qty)&&i.qty>0&&i.qty<=9999:i.type==='quest');
  if(!h.items.every(validItem)||!Object.entries(h.equipment).every(([slot,i])=>['weapon','armor','trinket'].includes(slot)&&validItem(i)&&i.type===slot))return false;
  if(!h.history.every(e=>e&&str(e.id,100)&&str(e.text,2000)&&Number.isFinite(e.day))||!h.legacy.every(e=>e&&str(e.title,150)&&str(e.text,5000)&&Array.isArray(e.decisions)))return false;

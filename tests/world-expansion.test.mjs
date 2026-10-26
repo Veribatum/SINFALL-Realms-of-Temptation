@@ -21,7 +21,7 @@ test('meetings vary by seed, remember alliances, and cannot pay twice',()=>{
  assert.equal(titles.size,7);const h=make();h.campaign.flags.alliance='veil';assert.match(M.encounterFor(h).text,/shadow turns/);h.campaign.flags.alliance='wardens';M.changeLocation(h,'wilds');assert.match(M.encounterFor(h).text,/watch-blue/);
 });
 test('unaffordable choices do not mutate the encounter or spend resources',()=>{
- const h=make(0),e=M.encounterFor(h),o=e.options.find(o=>o.cost);assert(o);h.gold=0;const before=JSON.stringify(h);assert(!M.resolveEncounter(h,e.id,o.id).ok);assert.equal(JSON.stringify(h),before);assert(!M.resolveEncounter(h,e.id,'made-up').ok);
+ const h=make(0),e=M.encounterFor(h),o=e.options.find(o=>o.cost);assert(o);h.gold=0;const before=JSON.stringify(h);assert(!M.resolveEncounter(h,e.id,o.id).ok);assert.equal(JSON.stringify(h),before);assert(!M.resolveEncounter(h,e.id,'made-up').ok);h.world.outcomes='invalid';assert(!M.validateHero(h));h.world.outcomes={bad:{choice:'help',faction:'unknown',success:true}};assert(!M.validateHero(h));
 });
 test('earned reputation unlocks favors and merchants offer bounded discounts',()=>{
  const h=make(5);assert(!M.encounterFor(h).options.some(o=>o.id==='watch-favor'));assert.equal(M.tradePrice(h,100),100);h.factions.town=3;assert(M.encounterFor(h).options.some(o=>o.id==='watch-favor'));assert(M.tradePrice(h,100)<100);h.relationships.Friend=100;assert(M.tradePrice(h,100,'smith','Friend')<M.tradePrice(h,100));h.factions.town=999;assert.equal(M.tradePrice(h,100,'smith','Friend'),75);h.hp=5;const e=M.encounterFor(h);assert(M.resolveEncounter(h,e.id,'watch-favor').ok);assert.equal(h.hp,19);assert(!M.encounterFor(h));assert(M.validateHero(h));

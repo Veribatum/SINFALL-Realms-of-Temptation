@@ -36,7 +36,7 @@ Verified in the managed browser, using normal UI controls:
 
 ## Expansion browser check
 
-A new Moon Elf Spellbinder, Mara, was created through the normal UI. Entering the archive changed the location and exposed its scholar, exit and book discovery. Reading the book removed the one-time interaction. Reload → Continue resumed Mara inside the archive without restoring that reward. Leaving returned to the village. The market encounter accepted a paid search party, displayed its result and removed the encounter from available interactions.
+A new Moon Elf Spellbinder, Mara, was created through the normal UI. Entering the archive changed the location and exposed its scholar, exit and book discovery. Reading the book removed the one-time interaction. Reload → Continue resumed Mara inside the archive without restoring that reward. Leaving returned to the village. The market encounter accepted a paid search party, displayed its result and removed the encounter from available interactions. The main investigation then proceeded from the witness to road evidence and back to the scholar inside the archive, where all three alliance choices were available. See `sinfall-archive-branch.jpg` for the tested decision UI.
 
 ## Verification limits
 
