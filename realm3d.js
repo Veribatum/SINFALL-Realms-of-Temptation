@@ -30,7 +30,7 @@ function syncDungeon(){
 if(!hero||hero.mode!=="dungeon"||!hero.dungeonState)return false;
 const d=hero.dungeonState,signature=JSON.stringify(d.grid);
 if(signature!==dungeonSignature){
-while(walls.children.length){const a=walls.children.pop();a.geometry?.dispose();walls.remove(a)}
+while(walls.children.length){const a=walls.children[0];walls.remove(a);a.geometry?.dispose()}
 const floor=new THREE.Mesh(new THREE.PlaneGeometry(13,13),floorMaterial);floor.rotation.x=-Math.PI/2;floor.position.set(6.5,0,6.5);walls.add(floor);
 const roof=new THREE.Mesh(new THREE.PlaneGeometry(13,13),ceilingMaterial);roof.rotation.x=Math.PI/2;roof.position.set(6.5,3.4,6.5);walls.add(roof);
 d.grid.forEach((row,z)=>row.forEach((v,x)=>{if(!v)return;const block=new THREE.Mesh(new THREE.BoxGeometry(1,3.4,1),wallMaterial);block.position.set(x+.5,1.7,z+.5);walls.add(block)}));
