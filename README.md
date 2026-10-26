@@ -52,7 +52,7 @@ Official implementation references:
 
 `npm test` runs the game, save, geometry, OAuth-validation, and SSE tests. `npm run check` checks source syntax, imports, required assets, and public-source hygiene.
 
-`npm run dev` serves the preview with AI authorization disabled. The preview-only `/__qa/mobile` page embeds a 390px phone viewport for layout verification. Production local mode does not expose this page.
+`npm run dev` serves the preview with AI authorization disabled. The preview-only `/__qa/mobile` page embeds a 390px phone viewport for layout verification. `/__qa/models` verifies browser model downloads, embedded texture decoding, independent rigs and animation startup without requiring WebGL. Production local mode does not expose these pages.
 
 The entry point is `index.html`, with the rebuilt implementation under `src/`, local ChatGPT support under `server/`, and the graphics dependency under `vendor/`. The older campaign/v3 scripts remain in Git history and the repository but are not loaded by the new entry point.
 
