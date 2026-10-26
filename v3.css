@@ -36,3 +36,23 @@ main{width:100%;flex:1}
 .skill-node button:disabled{background:#2e2432}
 .modal{padding-bottom:max(16px,env(safe-area-inset-bottom))}
 @media(max-width:370px){.skill-tree{gap:7px}.skill-node{padding:10px 6px}.vitals{gap:6px;font-size:11px}}
+
+/* Illustrated adventure mode — the map is now a secondary tactical view */
+.room-stage{height:min(57dvh,455px);min-height:340px;max-width:570px;margin:0 auto 12px;border:1px solid #996179;border-radius:17px;position:relative;overflow:hidden;background:radial-gradient(circle at 58% 20%,#954364,#33243e 56%,#130e1d);box-shadow:0 15px 30px #000a,inset 0 0 0 3px #d39c5420}
+.room-backdrop{position:absolute;inset:0;background-size:cover;background-position:center;filter:saturate(1.1)}
+.room-backdrop.realm-0{background-color:#422036;background-image:radial-gradient(circle at 72% 19%,#ba537c,#37223c 59%,#100d1a)!important}
+.room-backdrop.realm-1{background-color:#38203d}
+.room-backdrop.realm-2{background-color:#182b3a}
+.room-backdrop.realm-3{background-color:#563045}
+.room-caption{position:absolute;bottom:0;left:0;right:0;padding:65px 18px 18px;background:linear-gradient(transparent,#0e0a18e8 52%,#0e0a18)}
+.room-caption h2{font-size:clamp(26px,7vw,36px);line-height:1.04;margin:9px 0;text-shadow:0 2px 15px #000}
+.room-caption p{font:14px/1.45 Georgia,serif;color:#eed8cd;margin:8px 0 0}
+.room-choices{max-width:570px;margin:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.room-choices button{padding:15px 10px;text-align:left;min-height:56px;background:linear-gradient(140deg,#4c2b42,#24182c);border:1px solid #9a6276;border-radius:12px;font:13px/1.25 system-ui;color:#fbe2d0;box-shadow:inset 0 1px #ffcd9a1a}
+.map-drawer{max-width:570px;margin:14px auto 2px;border:1px solid #5b3f52;border-radius:12px;background:#191120;padding:10px}
+.map-drawer summary{font:13px system-ui;color:#ddb68e;text-align:center;cursor:pointer;padding:5px}
+.map-drawer .dungeonframe{margin:12px auto 3px;max-width:390px}
+.map-drawer .map{aspect-ratio:1}
+.controls{display:none}
+#dungeon.page{padding-bottom:38px}
+@media(max-width:390px){.room-stage{height:400px;min-height:315px}.room-choices button{font-size:12px;padding:12px 8px}}
