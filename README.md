@@ -1,28 +1,57 @@
-# SINFALL — Realms of Temptation
+# SINFALL · Realms of Temptation
 
-## Playable alpha v0.3
+A rebuilt dark fantasy browser RPG about an enduring hero, living settlements, and decisions with a price.
 
-The live game is launched from `index.html` and uses `v3.css` plus `sinfall-v3.js`. Previous `game.js`, `dungeon.js`, and `style.css` are legacy files **not loaded by the new game**.
+## Play
 
-### Implemented
+The GitHub Pages edition runs from the repository root. Choose **New Game**, **Load Game**, or **Continue**. Each hero has a separate save, equipment, talents, world, and chronicle. Saves are local to the browser; use Settings → Export all heroes to move a collection between devices.
 
-- Single-screen, mobile-first 9×9 dungeon crawler with fog of war and touch movement
-- Random floors, treasure, traps, shrines, NPCs, monsters, stairs, and repeated descents
-- D20 checks, melee combat, spells, damage, defeats, retreat, rewards
-- Four classes, upgrades, XP, skill tree, gold, healing and inventory
-- Companion relationship counters, chronicle, bestiary and saves (localStorage)
-- Save export/import, mobile-friendly UI, safe image fallbacks
+Desktop controls: WASD/arrows to move, drag to look, E to interact, Shift to run, V to switch the dungeon camera. C/I/J/M open character, inventory, journal, and map. Escape closes a panel or opens the pause menu. On a phone, use the left joystick, drag the view, and use the contextual interaction button on the right.
 
-### Artwork issue
+Follow the gold quest marker to the witness in the village square. Ask other people about rumors, read the notice board, buy supplies, gather silverleaf, and investigate the old road. Take evidence to the scholar before deciding whom to trust. In combat, guard against heavy attacks, use class abilities to interrupt or heal, and equip the armor you find.
 
-**IMPORTANT: The current GitHub repository still has no `assets/` directory.** The generated image files were previously delivered as `sinfall-art-update.zip`, but GitHub's available connector accepts text and cannot read the image file bytes from the local image-generation runtime. As a result, the live GitHub Pages site will display fallback colors where the artwork should go. The code references those image paths correctly, but they will not render until assets are actually uploaded. Upload the **contents** of the extracted `assets/` directory to `main/assets/` through the GitHub web upload UI.
+## What is implemented
 
-Required images include `assets/splash.jpg`, `assets/class-shadowblade.jpg`, `assets/class-spellbinder.jpg`, `assets/class-oathbreaker.jpg`, `assets/class-ranger.jpg`, `assets/scene-crypt.jpg`, `assets/scene-throne.jpg`, `assets/companions.jpg`, `assets/bestiary.jpg`, plus skill/item icons.
+- Main menu, four-step character creation, eight ancestries, ten classes, original painted portrait choices, colors, origin, omen, and a personal backstory.
+- Separate hero slots, automatic saves, three manual checkpoints per hero, save export/import, recovery copy, and migration of the previous campaign-v1 hero without deleting the old save.
+- A walkable third-person village, moving citizens and chickens, shops, inn, archive, chapel, notice board, contextual interaction, and a minimap. Three settlements with roads, differing biomes, names, and inhabitants are generated for each campaign.
+- Connected, seeded undercrypts with exploration fog, visible encounters, coffers, inscriptions, shrines, a guardian, and an artifact. Graphics use a vendored Three.js module, with no CDN dependency.
+- Main investigation, three alliances with different mechanical effects, side quests from NPCs and overheard rumors, travel decisions, relationships, reputation, and three consequential endings per campaign.
+- Turn-based D20 combat with visible enemy intentions, distinct class abilities, mana, blocking, interruption, poison, healing, equipment defense, critical hits, and recoverable defeat.
+- Real talent effects, equipment swapping, buying, selling, weapon improvements, consumables, XP, levels, and legacy rewards.
+- After an ending, begin another campaign with the same character. Level, gear, talents, factions, history, prior relationships and endings persist; the new adventure has a new world and mystery.
 
-### AI
+The procedural edition draws from six authored mystery frameworks and seeded world/encounter variation. It is not live AI. The ChatGPT-connected local edition can write original campaign scenes and respond to freeform actions. Manually imported ChatGPT campaign packs also work in the browser edition.
 
-Live AI narration and Sign in with ChatGPT are **not** included in this alpha. The offline encounters are deterministic and immediately playable. Do not commit API tokens to GitHub Pages.
+The current 3D characters and buildings are procedural stylized geometry. The new painted menu, portrait atlas, and revelation art are committed in `assets/`; the live world is rendered geometry, not a painted screenshot.
 
-### Deployment
+## Connect your ChatGPT plan
 
-GitHub Settings → Pages → Deploy from branch → main → /(root).
+OpenAI’s documented open-source sign-in flow currently uses an HTTP loopback callback. For that reason, live ChatGPT plan sign-in belongs to the **local edition**, not the public GitHub Pages page.
+
+1. Download this repository and install Node.js 22 or later if needed.
+2. On Windows, open **start-sinfall.cmd**. Or run `npm start` from the project folder.
+3. Open `http://127.0.0.1:8787`, then Dungeon Master & Settings → **Continue with ChatGPT**.
+4. Sign in and authorize eligible ChatGPT plan usage. Select an available model in Settings.
+
+There is no dependency installation and no API key field. AI usage counts toward the connected ChatGPT plan’s limits. Eligibility and successful consent are determined by OpenAI. No fallback to paid API billing is configured.
+
+The app generates a stable installation host ID, registers a dynamic client, uses fresh state/nonce/PKCE, verifies the ID token signature/issuer/audience/expiry/nonce, checks the granted plan scopes, and refreshes credentials when needed. Credentials are written atomically to `~/.sinfall/` with owner-only Unix permissions. They are never sent to the browser, included in saves, logged, or stored in the repository. The local server binds to 127.0.0.1 and rejects other Host/Origin values on sensitive routes.
+
+For mobile play without a local AI connection: open Dungeon Master in the game, copy a campaign request into ChatGPT, then paste the JSON reply into Import story pack. Do this at the beginning of a new adventure; active stories are protected from replacement. This manual route creates a playable AI-written campaign but is not a live chat connection.
+
+Official implementation references:
+
+- https://developers.openai.com/siwc/token-sharing-open-source/sign-in
+- https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference
+- https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations
+
+## Development and checks
+
+`npm test` runs the game, save, geometry, OAuth-validation, and SSE tests. `npm run check` checks source syntax, imports, required assets, and public-source hygiene.
+
+`npm run dev` serves the preview with AI authorization disabled. The preview-only `/__qa/mobile` page embeds a 390px phone viewport for layout verification. Production local mode does not expose this page.
+
+The entry point is `index.html`, with the rebuilt implementation under `src/`, local ChatGPT support under `server/`, and the graphics dependency under `vendor/`. The older campaign/v3 scripts remain in Git history and the repository but are not loaded by the new entry point.
+
+Third-party dependency: Three.js r170, MIT; see `vendor/LICENSE-THREE.txt`. New artwork was generated for this project using the built-in Image Generation tool and encoded as WebP without changing its dimensions. Asset briefs: a twilight riverside village beneath an eclipsed moon; eight adult fantasy character portraits; four painted enemy portraits; and an impossible sanctuary with an inverted cathedral beyond the Veil.
