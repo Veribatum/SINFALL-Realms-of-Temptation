@@ -16,3 +16,9 @@
 .preview-frame:has(.character-model-preview[hidden]) .preview-painted{opacity:1}
 
 .realm-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:24px 0}.realm-metrics>div{padding:16px;border:1px solid #abc2b52b;background:#b6c7ba05}.realm-metrics strong{display:block;font:28px/1.2 Georgia,serif;color:var(--gold);white-space:nowrap}.realm-metrics span{display:block;margin-top:8px;font-size:12px;color:var(--muted)}#waypoint-distance{display:block;max-width:150px;color:var(--gold);font-size:10px}
+
+/* Geographic atlas and continuous character proportions. */
+.bust-control input{width:100%;accent-color:#d1b477;min-height:36px}.bust-control output{color:#dfc690;font:12px system-ui}.bust-control[hidden]{display:none}
+.quest-guide{font:11px/1.5 system-ui;color:#ffda8c;margin:6px 0 10px;max-width:290px}
+.quest-hud #quest-map{margin-right:12px}.atlas-panel{width:min(850px,calc(100vw - 30px))}.atlas-panel #panel-body{padding:16px}.realm-atlas{display:block;width:100%;height:auto;border:1px solid #c2b28799;border-radius:5px;box-shadow:0 8px 30px #0004}.atlas-tabs{display:flex;gap:6px;margin-bottom:12px}.atlas-tabs button{flex:1;min-width:0;padding:10px 7px;font:12px system-ui}.atlas-tabs button[aria-pressed=true]{background:#bca16d;color:#16292b}.atlas-target{padding:12px;border-left:3px solid #e4bb72;background:#102125;color:#f0dba6;line-height:1.6}
+@media(max-width:700px){.atlas-panel{left:10px;right:10px;max-width:calc(100vw - 20px);width:auto}.atlas-panel #panel-body{padding:10px}.quest-guide{font-size:10px;max-width:220px}.quest-hud{padding-bottom:10px}}

@@ -1,14 +1,15 @@
 import * as T from '../vendor/three.module.js';
-import {seeded,entitiesFor,locationId,townOf,visitState,objective,syncRealm} from './model.js?v=8';
-import {loadActor,createActor,animateActor,disposeActor} from './actors.js?v=8';
-import {batchScenery,cameraPosition} from './scene-utils.js?v=8';
-import {buildInterior} from './interiors.js?v=8';
-import {appearanceKey,townWardrobe} from './appearance.js?v=8';
-import {styleActor} from './actor-style.js?v=8';
-import {BOUNDS,regionOf,frontierSites,roadLinks} from './frontier.js?v=8';
-import {buildFrontier,buildOutskirts} from './landscape.js?v=8';
-import {surfaceHeight,navigable,centerOf} from './atlas.js?v=8';
-import {buildOpenWorld,updateOpenWorld} from './overworld.js?v=8';
+import {trackedTarget,targetDistance,directionTo} from './navigation.js?v=9';
+import {seeded,entitiesFor,locationId,townOf,visitState,objective,syncRealm} from './model.js?v=9';
+import {loadActor,createActor,animateActor,disposeActor} from './actors.js?v=9';
+import {batchScenery,cameraPosition} from './scene-utils.js?v=9';
+import {buildInterior} from './interiors.js?v=9';
+import {appearanceKey,townWardrobe} from './appearance.js?v=9';
+import {styleActor} from './actor-style.js?v=9';
+import {BOUNDS,regionOf,frontierSites,roadLinks} from './frontier.js?v=9';
+import {buildFrontier,buildOutskirts} from './landscape.js?v=9';
+import {surfaceHeight,navigable,centerOf} from './atlas.js?v=9';
+import {buildOpenWorld,updateOpenWorld} from './overworld.js?v=9';
 const sceneKey=h=>h.world.seed+':'+(h.location.type==='realm'?'realm':locationId(h));
 
 const TAU=Math.PI*2;
@@ -151,6 +152,7 @@ export class Realm {
   for(const entity of this.entities.filter(e=>!ids.has(e.id))){entity.g.removeFromParent();this.people=this.people.filter(p=>p.g!==entity.g);this.particles=this.particles.filter(p=>p.g!==entity.g);if(entity.g.userData.rig){disposeActor(entity.g.userData.rig);this.actors=this.actors.filter(a=>a!==entity.g.userData.rig)}entity.g.traverse(o=>o.geometry?.dispose())}
   this.entities=this.entities.filter(e=>ids.has(e.id));
   for(const state of states){let e=this.entities.find(v=>v.id===state.id);if(!e){e={...state,g:this.entityModel(state)};this.entities.push(e)}e.marker=state.marker;if(state.marker&&!e.g.userData.marker)e.g.userData.marker=this.mesh(new T.OctahedronGeometry(.15),this.material('#f5cf79',{emissive:'#977137',emissiveIntensity:.8}),e.g,0,3,0);if(e.g.userData.marker)e.g.userData.marker.visible=!!state.marker}
+  const target=trackedTarget(this.hero);for(const e of this.entities){if(e.id===target?.id&&!e.g.userData.questMarker)e.g.userData.questMarker=this.mesh(new T.OctahedronGeometry(.24),this.material('#ffe092',{emissive:'#a77d31',emissiveIntensity:1}),e.g,0,3.5,0);if(e.g.userData.questMarker)e.g.userData.questMarker.visible=e.id===target?.id}
   this.entitySignature=states.map(e=>e.id).join(',');
  }
  resize(){if(!this.renderer)return;const rect=this.canvas.getBoundingClientRect(),w=Math.max(1,rect.width),h=Math.max(1,rect.height);this.renderer.setSize(w,h,false);this.camera.aspect=w/h;this.camera.updateProjectionMatrix()}
@@ -170,7 +172,7 @@ export class Realm {
   else{project=this.open?(x,z)=>[(x-p.x)/190*w+w/2,(z-p.z)/190*h+h/2]:this.indoor?(x,z)=>[(x/16+.5)*w,(z/18+.5)*h]:(x,z)=>{const b=BOUNDS[this.wild?'wilds':'town'];return[(x-b.minX)/(b.maxX-b.minX)*w,(z-b.minZ)/(b.maxZ-b.minZ)*h]};ctx.fillStyle='#6b6d58';const[a,b]=project(this.indoor?-6.5:-3,this.indoor?-7.4:-44),[aa,bb]=project(this.indoor?6.5:3,this.indoor?7.4:36);ctx.fillRect(a,b,aa-a,bb-b);for(const c of this.colliders.filter(c=>c.w)){const[x,y]=project(c.x-c.w,c.z-c.d),[xx,yy]=project(c.x+c.w,c.z+c.d);ctx.fillStyle='#657776';ctx.fillRect(x,y,xx-x,yy-y)}}
   if(this.wild&&!this.open){ctx.strokeStyle='#7b7963';ctx.lineWidth=2;const draw=(a,b)=>{const[x,y]=project(...a),[xx,yy]=project(...b);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(xx,yy);ctx.stroke()};draw([-132,5],[132,5]);draw([0,111],[0,-154]);for(const site of frontierSites(townOf(this.hero)))draw([0,5],[site.x,site.z])}
   for(const e of this.entities){if(this.crypt&&!visitState(this.hero).discovered.includes(Math.floor(e.z/4)*17+Math.floor(e.x/4)))continue;if(e.type==='enemy'||e.type==='boss')ctx.fillStyle='#c07766';else if(e.marker)ctx.fillStyle='#e7c17c';else if(['exit','gate','travel','route','landmark'].includes(e.type))ctx.fillStyle='#9ac2b3';else continue;const[x,y]=project(e.g.position.x,e.g.position.z);ctx.beginPath();ctx.arc(x,y,2.3,0,TAU);ctx.fill()}
-  if(this.waypoint){const[x,y]=project(this.waypoint.x,this.waypoint.z);ctx.strokeStyle='#e5b866';ctx.beginPath();ctx.arc(x,y,4,0,TAU);ctx.stroke()}
+  const target=this.waypoint||trackedTarget(this.hero);if(target){let[x,y]=project(target.x,target.z);x=Math.max(8,Math.min(w-8,x));y=Math.max(8,Math.min(h-8,y));ctx.fillStyle='#ffe095';ctx.strokeStyle='#3f3321';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y-6);ctx.lineTo(x+5,y);ctx.lineTo(x,y+6);ctx.lineTo(x-5,y);ctx.closePath();ctx.fill();ctx.stroke()}
   const[x,y]=project(p.x,p.z);ctx.save();ctx.translate(x,y);ctx.rotate(-this.yaw);ctx.fillStyle='#faf0cb';ctx.beginPath();ctx.moveTo(0,5);ctx.lineTo(-3,-3);ctx.lineTo(3,-3);ctx.closePath();ctx.fill();ctx.restore();
  }
  addParticles(){const count=this.quality==='high'?130:45,positions=new Float32Array(count*3);for(let i=0;i<count;i++){positions[i*3]=this.r()*(this.crypt?68:70)-(this.crypt?0:35);positions[i*3+1]=this.r()*(this.crypt?4:9);positions[i*3+2]=this.r()*(this.crypt?68:100)-(this.crypt?0:55)}const geo=new T.BufferGeometry();geo.setAttribute('position',new T.BufferAttribute(positions,3));const mat=new T.PointsMaterial({color:this.crypt?'#84c2b9':'#eee0a5',size:.055,transparent:true,opacity:.65,depthWrite:false});this.materials.push(mat);this.motes=new T.Points(geo,mat);this.root.add(this.motes)}
@@ -191,7 +193,7 @@ export class Realm {
   for(const a of this.animals){a.g.position.x=a.x+Math.sin(this.elapsed*.45+a.seed)*1.6;a.g.position.z=a.z+Math.cos(this.elapsed*.36+a.seed)*1.1;a.g.rotation.y=Math.atan2(Math.cos(this.elapsed*.45+a.seed),-Math.sin(this.elapsed*.36+a.seed));a.g.position.y=this.groundAt(a.g.position.x,a.g.position.z)+Math.max(0,Math.sin(this.elapsed*5+a.seed))*.035}
   for(const q of this.particles)if(q.spin)q.g.rotation.y+=dt*.2;
   for(const e of this.entities){if(e.g.userData.marker){e.g.userData.marker.rotation.y+=dt;e.g.userData.marker.position.y=3+Math.sin(this.elapsed*2)*.15}if(e.g.userData.float)e.g.position.y=this.groundAt(e.g.position.x,e.g.position.z)+.15+Math.sin(this.elapsed*2)*.12}
-  if(this.elapsed-(this.lastNear||0)>.12){this.lastNear=this.elapsed;const nearest=this.entities.map(e=>({e,d:Math.hypot(e.g.position.x-p.x,e.g.position.z-p.z)})).filter(v=>v.d<(v.e.type==='gate'?4.8:3.2)).sort((a,b)=>a.d-b.d)[0]?.e||null;this.near=nearest;if(nearest?.id!==this.lastNearId){this.lastNearId=nearest?.id;this.callbacks.onNear(nearest)}this.drawMinimap();const distance=document.getElementById('waypoint-distance');if(distance)distance.textContent=this.waypoint?Math.ceil(Math.hypot(this.waypoint.x-p.x,this.waypoint.z-p.z))+' m · '+this.waypoint.name:'';const compass=document.getElementById('compass-heading');if(compass)compass.textContent=['S','SW','W','NW','N','NE','E','SE'][((Math.round(this.yaw/(Math.PI/4))%8)+8)%8]}
+  if(this.elapsed-(this.lastNear||0)>.12){this.lastNear=this.elapsed;const nearest=this.entities.map(e=>({e,d:Math.hypot(e.g.position.x-p.x,e.g.position.z-p.z)})).filter(v=>v.d<(v.e.type==='gate'?4.8:3.2)).sort((a,b)=>a.d-b.d)[0]?.e||null;this.near=nearest;if(nearest?.id!==this.lastNearId){this.lastNearId=nearest?.id;this.callbacks.onNear(nearest)}this.drawMinimap();const distance=document.getElementById('waypoint-distance');const target=this.waypoint||trackedTarget(this.hero);if(distance)distance.textContent=target?targetDistance(this.hero,target)+' m · '+directionTo(p,target):'';const guide=document.getElementById('quest-guide');if(guide)guide.textContent=target?'◆ '+targetDistance(this.hero,target)+' m · '+directionTo(p,target)+' · '+target.name:'';const compass=document.getElementById('compass-heading');if(compass)compass.textContent=['S','SW','W','NW','N','NE','E','SE'][((Math.round(this.yaw/(Math.PI/4))%8)+8)%8]}
   if(!paused&&!this.crypt&&!this.wild&&!this.indoor&&this.elapsed>12&&this.elapsed-this.lastRumor>100){this.lastRumor=this.elapsed;this.callbacks.onRumor?.()}
   if(!this.crypt&&!this.indoor){const daylight=Math.max(.04,Math.sin((h.world.hour-6)/12*Math.PI));this.sun.intensity=.12+daylight*3.1;this.ambient.intensity=.5+daylight*1.3;this.sun.color.set(daylight<.4?'#f7b77e':'#ffe0ae');const angle=(h.world.hour-6)/12*Math.PI;this.sun.position.set(p.x+Math.cos(angle)*35,ground+Math.max(8,Math.sin(angle)*40),p.z+15);this.sun.target.position.set(p.x,ground,p.z);this.scene.background.copy(this.nightSky).lerp(this.daySky,Math.min(1,daylight*1.9));this.scene.fog.color.copy(this.scene.background)}
   for(const light of this.fires)light.intensity=3.2+Math.sin(now*.004+light.id)*.25;

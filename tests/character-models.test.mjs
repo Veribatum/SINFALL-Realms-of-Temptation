@@ -56,3 +56,14 @@ test('elf ears sweep behind the skull and remain attached to the animated head',
  const s=await source('female'),a=createActor(s,{hero:hero('female'),race:'elf'}),ears=[];a.updateMatrixWorld(true);a.traverse(o=>{if(o.userData.elfEar)ears.push(o)});assert.equal(ears.length,2);
  for(const ear of ears){assert.equal(ear.parent.parent.name.toLowerCase(),'head');const positions=ear.geometry.attributes.position,tip=new T.Vector3().fromBufferAttribute(positions,positions.count-1),root=new T.Vector3().fromBufferAttribute(positions,0);assert(tip.z<root.z-.08);assert(tip.y-root.y<.08);assert(ear.geometry.attributes.normal.array.every(Number.isFinite));const before=tip.clone().applyMatrix4(ear.matrixWorld);ear.parent.parent.rotation.y+=.35;a.updateMatrixWorld(true);assert(tip.clone().applyMatrix4(ear.matrixWorld).distanceTo(before)>.01)}disposeActor(a);
 });
+
+test('bust proportions deform the actual female body and fitted garments, restore cleanly, and persist without affecting male rigs',async()=>{
+ const s=await source('female'),h=hero('female'),a=createActor(s,{hero:h,race:'elf'}),rig=a.children[0];
+ for(const wardrobe of['adventurer','court','robes','ranger','corsair','moonveil']){
+  styleActor(a,{...h,wardrobe,bust:1});const name=wardrobe==='corsair'?'Corsair_Body':wardrobe==='moonveil'?'Moonveil_Body':['court','robes'].includes(wardrobe)?'Female_Peasant_Body':'Female_Ranger_Body',body=rig.getObjectByName(name),base=body.geometry.attributes.position.array.slice();
+  styleActor(a,{...h,wardrobe,bust:1.6});const large=body.geometry.attributes.position.array.slice();assert(large.some((v,i)=>Math.abs(v-base[i])>.005),wardrobe+' must change the fitted torso');
+  styleActor(a,{...h,wardrobe,bust:1.6});assert.deepEqual(body.geometry.attributes.position.array,large,'slider changes cannot accumulate');
+  styleActor(a,{...h,wardrobe,bust:.7});assert(body.geometry.attributes.position.array.some((v,i)=>Math.abs(v-large[i])>.01));assert(body.geometry.attributes.normal.array.every(Number.isFinite));
+  styleActor(a,{...h,wardrobe,bust:1});assert.deepEqual(body.geometry.attributes.position.array,base,'default restores the authored shape');
+ }disposeActor(a);assert.equal(appearanceOf({gender:'female'}).bust,1);assert.equal(appearanceOf({gender:'female',bust:8}).bust,1.6);assert.equal(appearanceOf({gender:'male',bust:1.6}).bust,1);
+});

@@ -1,8 +1,8 @@
-import {CLASSES,RACES,ORIGINS,MOTIFS,ENEMIES,SETTLEMENT_PREFIX,SETTLEMENT_SUFFIX,NPC_FIRST,NPC_LAST,QUALITY} from './content.js?v=8';
-import {appearanceOf,APPEARANCE_OPTIONS} from './appearance.js?v=8';
-import {REGION_COUNT,regionOf,roadLinks,frontierSites,siteKey,surveyState} from './frontier.js?v=8';
-import {populationFor} from './population.js?v=8';
-import {centerOf,regionAt,realmArea,realmPoint,realmSites,homePlan} from './atlas.js?v=8';
+import {CLASSES,RACES,ORIGINS,MOTIFS,ENEMIES,SETTLEMENT_PREFIX,SETTLEMENT_SUFFIX,NPC_FIRST,NPC_LAST,QUALITY} from './content.js?v=9';
+import {appearanceOf,APPEARANCE_OPTIONS} from './appearance.js?v=9';
+import {REGION_COUNT,regionOf,roadLinks,frontierSites,siteKey,surveyState} from './frontier.js?v=9';
+import {populationFor} from './population.js?v=9';
+import {centerOf,regionAt,realmArea,realmPoint,realmSites,homePlan} from './atlas.js?v=9';
 
 export const SCHEMA=4;
 export const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
@@ -247,6 +247,7 @@ export function validateHero(h){
  const str=(s,n=200)=>typeof s==='string'&&s.length<=n;
  if(h.world.outcomes!==undefined&&(!h.world.outcomes||typeof h.world.outcomes!=='object'||Array.isArray(h.world.outcomes)||!Object.entries(h.world.outcomes).every(([key,o])=>str(key,100)&&o&&str(o.choice,100)&&['town','scholars','veil','none'].includes(o.faction)&&typeof o.success==='boolean')))return false;
  const validItem=i=>!!i&&str(i.id,100)&&str(i.name,200)&&(['weapon','armor','trinket'].includes(i.type)?Number.isFinite(i.power)&&i.power>=0&&i.power<=100000:['potion','mana'].includes(i.type)?Number.isFinite(i.qty)&&i.qty>0&&i.qty<=9999:i.type==='quest');
+ if(h.bust!==undefined&&(!Number.isFinite(h.bust)||h.bust<.7||h.bust>1.6))return false;
  if(Object.entries(APPEARANCE_OPTIONS).some(([key,values])=>h[key]!==undefined&&!values.some(([id])=>id===h[key])))return false;
  if(h.world.exploration!==undefined&&(!h.world.exploration||!Array.isArray(h.world.exploration.sites)||!Array.isArray(h.world.exploration.rewards)||!h.world.exploration.sites.every(v=>typeof v==='string'&&/^[0-8]:site-[0-7]$/.test(v))||new Set(h.world.exploration.sites).size!==h.world.exploration.sites.length||!h.world.exploration.rewards.every(v=>Number.isInteger(v)&&v>=0&&v<REGION_COUNT)))return false;
  if(!h.items.every(validItem)||!Object.entries(h.equipment).every(([slot,i])=>['weapon','armor','trinket'].includes(slot)&&validItem(i)&&i.type===slot))return false;

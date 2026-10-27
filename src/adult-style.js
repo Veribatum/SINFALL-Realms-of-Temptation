@@ -1,5 +1,6 @@
 import * as T from '../vendor/three.module.js';
-import {appearanceOf,armorStyle} from './appearance.js?v=8';
+import {fitBust} from './body-shape.js?v=9';
+import {appearanceOf,armorStyle} from './appearance.js?v=9';
 const findBone=(rig,name)=>{let b;rig.traverse(o=>{if(o.isBone&&o.name.toLowerCase().replace(/[._]/g,'')===name)b=o});return b};
 function clear(rig){const old=rig.userData.adultDetails;if(!old)return;old.removeFromParent();old.traverse(o=>{o.geometry?.dispose();o.material?.dispose()});delete rig.userData.adultDetails}
 function detail(parent,geo,material,x,y,z){const m=new T.Mesh(geo,material);m.position.set(x,y,z);m.castShadow=true;parent.add(m);return m}
@@ -24,6 +25,7 @@ export function styleAdult(group,h,applyEquipment){
  const revealing=gender==='female'&&['corsair','moonveil'].includes(a.wardrobe),peasant=a.wardrobe==='robes'||a.wardrobe==='court',hair=a.hairStyle==='short'?'cropped':a.hairStyle==='braid'?'long':a.hairStyle;
  rig.traverse(o=>{if(!o.isMesh)return;const n=o.name.toLowerCase(),role=o.material.name;
   if(!o.userData.authoredPositions&&o.isSkinnedMesh)o.userData.authoredPositions=o.geometry.attributes.position.array.slice();
+  if(gender==='female'&&o.isSkinnedMesh&&(/body$|_skin$|neckline|face_and_neck/.test(n)))fitBust(o,a.bust);
   if(n.startsWith('female_ranger')||n.startsWith('male_ranger'))o.visible=!revealing&&!peasant;
   if(n.startsWith('female_peasant')||n.startsWith('male_peasant'))o.visible=!revealing&&peasant&&!(a.wardrobe==='robes'&&/legs|feet/.test(n));
   if(n.startsWith('corsair_')||n.startsWith('moonveil_'))o.visible=revealing&&n.startsWith(a.wardrobe+'_');

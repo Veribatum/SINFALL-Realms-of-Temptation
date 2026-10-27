@@ -1,5 +1,5 @@
 import * as T from '../vendor/three.module.js';
-import {frontierSites,roadLinks,regionOf} from './frontier.js?v=8';
+import {frontierSites,roadLinks,regionOf} from './frontier.js?v=9';
 
 function path(r,x1,z1,x2,z2,width=3.6){const length=Math.hypot(x2-x1,z2-z1),p=r.box(width,.045,length,r.frontierRoad,r.root,(x1+x2)/2,.012,(z1+z2)/2);p.rotation.y=Math.atan2(x2-x1,z2-z1)}
 function tower(r,x,z){const g=new T.Group();g.position.set(x,0,z-5);r.root.add(g);for(const side of[-1,1])r.box(.65,8,6,r.m.stone,g,side*3,4,0);r.box(6.5,8,.65,r.m.stone,g,0,4,-3);for(let i=0;i<4;i++)r.box(.85,.9,.85,r.m.stone,g,-3+i*2,8.4,-3);r.box(4,.16,4,r.m.wood,g,0,4,0);r.lamp(x-4,z+1)}

@@ -1,3 +1,4 @@
+import {bustSize} from './body-shape.js?v=9';
 export const APPEARANCE_OPTIONS={
  gender:[['male','Male'],['female','Female']],
  build:[['slender','Slender'],['balanced','Balanced'],['broad','Broad']],
@@ -15,6 +16,7 @@ export const PALETTES={skin:['#e5c3a2','#d6af8d','#c39c7a','#9c7151','#78563f','
 export function appearanceOf(h={}){
  const a={};if(h.hairStyle==='short')h={...h,hairStyle:'cropped'};for(const[key,values]of Object.entries(APPEARANCE_OPTIONS))a[key]=values.some(([id])=>id===h[key])?h[key]:key==='gender'?(h.pronouns==='he/him'||Number(h.portrait)>=4?'male':'female'):values[key==='build'||key==='height'?1:0][0];
  if(a.gender!=='female'&&revealing.has(a.wardrobe))a.wardrobe='adventurer';
+ a.bust=a.gender==='female'?bustSize(h.bust):1;
  for(const[key,values]of Object.entries(PALETTES))a[key]=/^#[a-f\d]{6}$/i.test(h[key])?h[key]:values[key==='hair'?0:1]||values[0];return a;
 }
 export function weaponStyle(item={},kind='ranger'){
