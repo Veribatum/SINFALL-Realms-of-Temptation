@@ -38,6 +38,8 @@ The main quest tracks automatically. Journal → **Track quest on map** selects 
 
 Map now draws the game's seeded terrain, river, roads, trails, settlement buildings, landmarks, hero position and quest destinations. Switch between Region, Town, World and Undercrypt views.
 
+![Phone quest map](docs/sinfall-quest-map-phone.png)
+
 ## ChatGPT dungeon master
 
 Live ChatGPT is **not connected on the hosted phone edition**. OpenAI's direct open-source plan flow uses a local callback; website sign-in requires an approved client registration. A hosted authentication/inference service is still needed. The game does not present a working-phone sign-in button when that service is unavailable.\n\nThe GitHub Pages edition uses six authored mystery frameworks with seeded terrain, names and encounter variation. Import a ChatGPT-written campaign pack for a new story in that edition.
