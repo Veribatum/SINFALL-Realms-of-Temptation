@@ -1,14 +1,14 @@
 import * as T from '../vendor/three.module.js';
-import {seeded,entitiesFor,locationId,townOf,visitState,objective,syncRealm} from './model.js?v=6';
-import {loadActor,createActor,animateActor,disposeActor} from './actors.js?v=6';
-import {batchScenery,cameraPosition} from './scene-utils.js?v=6';
-import {buildInterior} from './interiors.js?v=6';
-import {appearanceKey} from './appearance.js?v=6';
-import {styleActor} from './actor-style.js?v=6';
-import {BOUNDS,regionOf,frontierSites,roadLinks} from './frontier.js?v=6';
-import {buildFrontier,buildOutskirts} from './landscape.js?v=6';
-import {surfaceHeight,navigable,centerOf} from './atlas.js?v=6';
-import {buildOpenWorld,updateOpenWorld} from './overworld.js?v=6';
+import {seeded,entitiesFor,locationId,townOf,visitState,objective,syncRealm} from './model.js?v=7';
+import {loadActor,createActor,animateActor,disposeActor} from './actors.js?v=7';
+import {batchScenery,cameraPosition} from './scene-utils.js?v=7';
+import {buildInterior} from './interiors.js?v=7';
+import {appearanceKey} from './appearance.js?v=7';
+import {styleActor} from './actor-style.js?v=7';
+import {BOUNDS,regionOf,frontierSites,roadLinks} from './frontier.js?v=7';
+import {buildFrontier,buildOutskirts} from './landscape.js?v=7';
+import {surfaceHeight,navigable,centerOf} from './atlas.js?v=7';
+import {buildOpenWorld,updateOpenWorld} from './overworld.js?v=7';
 const sceneKey=h=>h.world.seed+':'+(h.location.type==='realm'?'realm':locationId(h));
 
 const TAU=Math.PI*2;

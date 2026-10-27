@@ -1,8 +1,9 @@
 import * as T from '../vendor/three.module.js';
 import {GLTFLoader} from '../vendor/GLTFLoader.js';
 import {clone} from '../vendor/SkeletonUtils.js';
-import {appearanceOf} from './appearance.js?v=6';
-import {styleActor} from './actor-style.js?v=6';
+import {appearanceOf} from './appearance.js?v=7';
+import {styleActor} from './actor-style.js?v=7';
+import {updateAdultGrip} from './adult-style.js?v=7';
 
 const models=new Map();
 const equipment=/^(?:Knife|Throwable|\dH_|Badge_Shield|Rectangle_Shield|Round_Shield|Spike_Shield|Barbarian_Round_Shield|Mug|Spellbook)/;
@@ -45,7 +46,7 @@ export function animateActor(group,dt,speed=0,pose){
  const a=group.userData.animation;if(!a)return;
  const clip=pose|| (speed>.8?'Running_A':speed>.02?'Walking_A':'Idle');
  if(a.current!==clip&&a.actions.has(clip)){const next=a.actions.get(clip);a.actions.get(a.current)?.fadeOut(.18);next.reset().fadeIn(.18).play();a.current=clip}
- a.mixer.update(Math.min(.1,dt));
+ a.mixer.update(Math.min(.1,dt));if(group.userData.adult)updateAdultGrip(group);
 }
 export function disposeActor(group){
  const a=group.userData.animation;a?.mixer.stopAllAction();if(a)a.mixer.uncacheRoot(a.mixer.getRoot());

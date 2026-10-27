@@ -1,14 +1,14 @@
-import {RACES,CLASSES,ORIGINS,OMENS,STAT_LABELS,LORE} from './content.js?v=6';
-import * as M from './model.js?v=6';
-import * as S from './saves.js?v=6';
-import * as AI from './director.js?v=6';
-import {Realm} from './world.js?v=6';
-import {appearanceOf,APPEARANCE_OPTIONS,PALETTES,weaponStyle,armorStyle} from './appearance.js?v=6';
-import {regionOf,frontierSites,surveyState,roadLinks,siteKey} from './frontier.js?v=6';
-import {CharacterPreview} from './preview.js?v=6';
-import {centerOf,realmSites,worldStats} from './atlas.js?v=6';
-import {styleActor} from './actor-style.js?v=6';
-import {Soundscape,audioMode} from './audio.js?v=6';
+import {RACES,CLASSES,ORIGINS,OMENS,STAT_LABELS,LORE} from './content.js?v=7';
+import * as M from './model.js?v=7';
+import * as S from './saves.js?v=7';
+import * as AI from './director.js?v=7';
+import {Realm} from './world.js?v=7';
+import {appearanceOf,APPEARANCE_OPTIONS,PALETTES,weaponStyle,armorStyle} from './appearance.js?v=7';
+import {regionOf,frontierSites,surveyState,roadLinks,siteKey} from './frontier.js?v=7';
+import {CharacterPreview} from './preview.js?v=7';
+import {centerOf,realmSites,worldStats} from './atlas.js?v=7';
+import {styleActor} from './actor-style.js?v=7';
+import {Soundscape,audioMode} from './audio.js?v=7';
 
 const $=id=>document.getElementById(id),app=$('app'),modalRoot=$('modal-root');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -43,7 +43,7 @@ function appearanceDialog(){const copy={...hero,...appearanceOf(hero)};const d=d
 
 function menu(){
  if(hero)persist();disposeWorld();dismiss();screen='menu';sound.setMode('menu');const last=S.lastHero(),heroes=S.listHeroes();
- app.innerHTML='<main class="title-screen"><div class="title-landscape"></div><div class="title-shade"></div><div class="title-top"><span class="seal">✧</span><span>A WORLD THAT REMEMBERS</span></div><section class="title-content"><div class="eyebrow">REALMS OF TEMPTATION</div><h1>SINFALL</h1><p class="title-quote">Every road hides a story.<br>Every choice leaves a scar.</p><nav id="main-menu" aria-label="Main menu"></nav><div id="continue-summary"></div></section><div class="title-footer"><span>THE OPEN REALM · 2.0</span><button id="how-to">How to play</button><span>Your legends live on this device</span></div></main>';
+ app.innerHTML='<main class="title-screen"><div class="title-landscape"></div><div class="title-shade"></div><div class="title-top"><span class="seal">✧</span><span>A WORLD THAT REMEMBERS</span></div><section class="title-content"><div class="eyebrow">REALMS OF TEMPTATION</div><h1>SINFALL</h1><p class="title-quote">Every road hides a story.<br>Every choice leaves a scar.</p><nav id="main-menu" aria-label="Main menu"></nav><div id="continue-summary"></div></section><div class="title-footer"><span>THE OPEN REALM · 2.0.1</span><button id="how-to">How to play</button><span>Your legends live on this device</span></div></main>';
  const nav=$('main-menu');if(last){nav.append(btn('Continue',()=>load(last.id),'menu-button primary'));$('continue-summary').textContent=`${last.name} · Level ${last.level} ${M.classOf(last).name} · ${last.campaign.title}`}
  nav.append(btn('New Game',creator,'menu-button '+(!last?'primary':'')),btn('Load Game'+(heroes.length?' · '+heroes.length:''),()=>loadScreen(),'menu-button'),btn('Dungeon Master & Settings',()=>settings(),'menu-button subtle'));
  $('how-to').onclick=howTo;

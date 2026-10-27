@@ -1,3 +1,13 @@
+# Equipment fit correction · 2.0.1 · 2026-10-27
+
+User screenshots exposed two adult-rig issues: the old wrist rotation put the staff sideways at the wrist, and an equipment-name filter left a rigid chest box visible over Traveler’s Attire. The latter also appeared over robes during character creation.
+
+The adult grip now aligns the shaft with the authored hand frame and keeps the handle between the curled index finger and thumb each animation update. Adult handles use a slimmer grip. Starter cloth uses its authored torso directly. Leather/mail/plate clone the selected outfit’s fitted skinned torso and use the same bones and bind matrices, preserving equipment changes without the former rigid chest cube. The legacy KayKit path is unchanged. No save fields or progression data are modified.
+
+Two regression tests exercise both adult rigs, eight weapon shapes, idle/walk/run and actor rotation, all four wardrobe settings, all three armor types, switching back to starter attire, and posed armor vertex alignment. Full suite: 47 passing tests. Syntax/import/asset checks pass. The labeled `sinfall-equipment-fit.png` is a software projection of the actual posed meshes, with a starter staff and mail over robes. GPU rendering remains unavailable in the managed verification browser.
+
+---
+
 # The Open Realm 2.0 verification · 2026-10-27
 
 The expansion takes an existing hero into a continuous 3,600 × 3,600 metre realm, with nine settlements, 225 enterable buildings, 72 landmarks and nine undercrypts. Each settlement has five core buildings and twenty occupied homes, shops or halls. Household discoveries persist independently and their stories point toward wilderness sites.

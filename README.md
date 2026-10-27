@@ -1,4 +1,4 @@
-# SINFALL · The Open Realm 2.0
+# SINFALL · The Open Realm 2.0.1
 
 [Play Sinfall](https://veribatum.github.io/SINFALL-Realms-of-Temptation/)
 
@@ -49,7 +49,7 @@ Official references: [sign-in](https://developers.openai.com/siwc/token-sharing-
 
 ## Development and verification
 
-`npm test` runs 45 game, save, terrain, road, scene, character, OAuth and streaming checks. `npm run check` verifies syntax, local imports, required assets and source hygiene. [Verification details](docs/VERIFICATION.md).
+`npm test` runs 47 game, save, terrain, road, scene, character, OAuth and streaming checks. `npm run check` verifies syntax, local imports, required assets and source hygiene. [Verification details](docs/VERIFICATION.md).
 
 `npm run dev` starts the local preview with AI authorization disabled. Preview-only pages `/__qa/mobile` and `/__qa/models` check the phone layout and actual model/texture decoding. Production local mode does not expose these diagnostics.
 
