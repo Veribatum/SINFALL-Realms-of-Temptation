@@ -1,4 +1,4 @@
-# SINFALL · The Open Realm 2.0.2
+# SINFALL · The Open Realm 2.0.3
 
 [Play Sinfall](https://veribatum.github.io/SINFALL-Realms-of-Temptation/)
 
@@ -30,9 +30,17 @@ Mark landmarks or settlements in the atlas. Walking discovers regions; reaching 
 
 ![Corsair and Moonveil outfits with swept-back elf ears, projected from the committed meshes](docs/sinfall-elf-outfits.png)
 
+## Quest navigation and character proportions
+
+Female adult heroes have a **Bust size** slider (70–160%, default 100%) in creation and Character → Change appearance. It shapes the actual skinned torso and fitted clothing, keeps equipment in the preview, and is saved independently for each hero. Existing saves retain their authored proportions.
+
+The main quest tracks automatically. Journal → **Track quest on map** selects a side quest; selection survives reload. Gold diamonds and direction/distance text guide to actual NPCs, entrances, resources, enemies, stairs and quest items. Turn-in markers return to the correct giver. Dungeon routes follow walkable corridors.
+
+Map now draws the game's seeded terrain, river, roads, trails, settlement buildings, landmarks, hero position and quest destinations. Switch between Region, Town, World and Undercrypt views.
+
 ## ChatGPT dungeon master
 
-The GitHub Pages edition uses six authored mystery frameworks with seeded terrain, names and encounter variation. Import a ChatGPT-written campaign pack for a new story in that edition.
+Live ChatGPT is **not connected on the hosted phone edition**. OpenAI's direct open-source plan flow uses a local callback; website sign-in requires an approved client registration. A hosted authentication/inference service is still needed. The game does not present a working-phone sign-in button when that service is unavailable.\n\nThe GitHub Pages edition uses six authored mystery frameworks with seeded terrain, names and encounter variation. Import a ChatGPT-written campaign pack for a new story in that edition.
 
 Live ChatGPT uses the local edition and OpenAI's loopback sign-in flow:
 
@@ -51,7 +59,7 @@ Official references: [sign-in](https://developers.openai.com/siwc/token-sharing-
 
 ## Development and verification
 
-`npm test` runs 50 game, save, terrain, road, scene, character, OAuth and streaming checks. `npm run check` verifies syntax, local imports, required assets and source hygiene. [Verification details](docs/VERIFICATION.md).
+`npm test` runs 56 game, save, terrain, road, scene, character, OAuth and streaming checks. `npm run check` verifies syntax, local imports, required assets and source hygiene. [Verification details](docs/VERIFICATION.md).
 
 `npm run dev` starts the local preview with AI authorization disabled. Preview-only pages `/__qa/mobile` and `/__qa/models` check the phone layout and actual model/texture decoding. Production local mode does not expose these diagnostics.
 
