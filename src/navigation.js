@@ -53,7 +53,7 @@ export function questTarget(h,questId='main'){
   scene=h.location.type;instruction='Leave '+(h.location.type==='dungeon'?'the undercrypt':'this building')+'; then '+instruction.charAt(0).toLowerCase()+instruction.slice(1);
  }
  if(!target)return null;
- return {...target,townId,scene,questId,title:q?.title||h.campaign.title,instruction,worldX:global.x,worldZ:global.z};
+ return {...target,townId,interactionTownId:target.type==='exit'?h.location.townId:townId,scene,questId,title:q?.title||h.campaign.title,instruction,worldX:global.x,worldZ:global.z};
 }
 export function trackedQuest(h){const id=h.settings?.trackedQuest;return id&&h.world.quests.some(q=>q.id===id&&live(q))?id:'main'}
 export function trackedTarget(h){return questTarget(h,trackedQuest(h))}
@@ -70,4 +70,8 @@ export function dungeonRoute(h,target){
  const queue=[start],seen=new Map([[key(...start),null]]);
  for(let i=0;i<queue.length;i++){const[x,y]=queue[i];if(x===end[0]&&y===end[1]){const path=[];let k=key(x,y);while(k!==null){path.unshift({x:(k%17)*4+2,z:Math.floor(k/17)*4+2});k=seen.get(k)}return path}for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+dx,yy=y+dy,k=key(xx,yy);if(grid[yy]?.[xx]===0&&!seen.has(k)){seen.set(k,key(x,y));queue.push([xx,yy])}}}
  return [];
+}
+
+export function isTargetHere(h,entity,target=trackedTarget(h)){
+ return !!target&&entity.id===target.id&&target.scene===h.location.type&&(target.interactionTownId??target.townId)===h.location.townId;
 }

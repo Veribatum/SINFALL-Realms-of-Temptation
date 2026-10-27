@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as M from '../src/model.js';
-import {questTarget,trackedQuest,trackedTarget,dungeonRoute,directionTo,targetDistance} from '../src/navigation.js';
+import {questTarget,trackedQuest,trackedTarget,dungeonRoute,directionTo,targetDistance,isTargetHere} from '../src/navigation.js';
 import {mapBounds,drawAtlas} from '../src/map-view.js';
 const make=()=>{const h=M.makeHero({name:'Sylvanas',gender:'female',raceId:'elf',classId:'necromancer',originId:'wanderer'},13254);M.enterRealm(h);return h};
 test('main quest markers follow the witness, clue, archive door, scholar, stairs, guardian and artifact',()=>{
@@ -37,4 +37,10 @@ test('geographic maps and dungeon routes render finite coordinates at each suppo
 test('new and existing hero saves retain valid bust proportions without changing identity or quest state',()=>{
  const h=make(),id=h.id,campaign=h.campaign.id;h.bust=1.45;let copy=JSON.parse(JSON.stringify(h));assert(M.validateHero(copy));M.upgradeHero(copy);assert.equal(copy.bust,1.45);assert.equal(copy.id,id);assert.equal(copy.campaign.id,campaign);
  delete copy.bust;assert(M.validateHero(copy));M.upgradeHero(copy);assert.equal(copy.bust,1);for(const invalid of[NaN,Infinity,-1,5])assert(!M.validateHero({...h,bust:invalid}));
+});
+
+test('identical gate and resource IDs in other regions never receive the tracked quest marker',()=>{
+ const h=make();h.campaign.stage='descent';M.changeLocation(h,'town',8);let target=trackedTarget(h),gate=M.entitiesFor(h).find(e=>e.id==='gate');assert.equal(target.townId,0);assert(!isTargetHere(h,gate,target));assert.notEqual(gate.marker,'main');
+ M.changeLocation(h,'interior',8,'smith');target=trackedTarget(h);const exit=M.entitiesFor(h).find(e=>e.type==='exit');assert(isTargetHere(h,exit,target));
+ M.changeLocation(h,'town',0);gate=M.entitiesFor(h).find(e=>e.id==='gate');assert(isTargetHere(h,gate));assert.equal(gate.marker,'main');
 });

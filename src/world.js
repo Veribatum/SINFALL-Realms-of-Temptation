@@ -1,5 +1,5 @@
 import * as T from '../vendor/three.module.js';
-import {trackedTarget,targetDistance,directionTo} from './navigation.js?v=9';
+import {trackedTarget,targetDistance,directionTo,isTargetHere} from './navigation.js?v=9';
 import {seeded,entitiesFor,locationId,townOf,visitState,objective,syncRealm} from './model.js?v=9';
 import {loadActor,createActor,animateActor,disposeActor} from './actors.js?v=9';
 import {batchScenery,cameraPosition} from './scene-utils.js?v=9';
@@ -148,7 +148,7 @@ export class Realm {
   for(const e of entitiesFor(this.hero)){const g=this.entityModel(e);this.entities.push({...e,g});if(e.marker){const gem=this.mesh(new T.OctahedronGeometry(.15),this.material(e.marker==='main'?'#f5cf79':'#9ec7b7',{emissive:e.marker==='main'?'#977137':'#517b72',emissiveIntensity:.8}),g,0,3,0);g.userData.marker=gem}}
   this.syncQuestMarker();
  }
- syncQuestMarker(){const target=trackedTarget(this.hero);for(const e of this.entities){if(e.id===target?.id&&!e.g.userData.questMarker)e.g.userData.questMarker=this.mesh(new T.OctahedronGeometry(.24),this.material('#ffe092',{emissive:'#a77d31',emissiveIntensity:1}),e.g,0,3.5,0);if(e.g.userData.questMarker)e.g.userData.questMarker.visible=e.id===target?.id;if(e.g.userData.marker)e.g.userData.marker.visible=!!e.marker&&e.id!==target?.id}}
+ syncQuestMarker(){const target=trackedTarget(this.hero);for(const e of this.entities){if(isTargetHere(this.hero,e,target)&&!e.g.userData.questMarker)e.g.userData.questMarker=this.mesh(new T.OctahedronGeometry(.24),this.material('#ffe092',{emissive:'#a77d31',emissiveIntensity:1}),e.g,0,3.5,0);if(e.g.userData.questMarker)e.g.userData.questMarker.visible=isTargetHere(this.hero,e,target);if(e.g.userData.marker)e.g.userData.marker.visible=!!e.marker&&!isTargetHere(this.hero,e,target)}}
  refresh(){
   const key=sceneKey(this.hero);if(key!==this.staticKey){this.build();return}if(this.open)updateOpenWorld(this);if(this.entityRegion!==this.hero.location.townId){for(const e of this.entities){e.g.removeFromParent();if(e.g.userData.rig)disposeActor(e.g.userData.rig);e.g.traverse(o=>o.geometry?.dispose())}this.entities=[];this.people=[];this.particles=[];this.entityRegion=this.hero.location.townId;this.daySky.set(regionOf(townOf(this.hero)).sky)}const style=appearanceKey(this.hero);if(style!==this.playerStyleKey){if(this.player.userData.rig){styleActor(this.player.userData.rig,this.hero);if(this.player.userData.rig.userData.needsModelReload)this.attachActor(this.player,{hero:this.hero,race:this.hero.raceId,kind:this.hero.classId})}this.playerStyleKey=style}const states=entitiesFor(this.hero),ids=new Set(states.map(e=>e.id));
   for(const entity of this.entities.filter(e=>!ids.has(e.id))){entity.g.removeFromParent();this.people=this.people.filter(p=>p.g!==entity.g);this.particles=this.particles.filter(p=>p.g!==entity.g);if(entity.g.userData.rig){disposeActor(entity.g.userData.rig);this.actors=this.actors.filter(a=>a!==entity.g.userData.rig)}entity.g.traverse(o=>o.geometry?.dispose())}

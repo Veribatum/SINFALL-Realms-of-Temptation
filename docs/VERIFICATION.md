@@ -6,7 +6,7 @@ Main and side quest tracking uses actual interaction entities and persists per h
 
 The geographic atlas samples the same seeded terrain and uses the same river, roads, trail routes, building plans and landmarks as the world. Region, Town, World and Undercrypt scales show the player and gold quest destination. The HUD and minimap show direction and distance, including an edge marker for distant destinations.
 
-Regression suite: 56 tests; source/import/asset verification: 42 modules. The GitHub Actions workflow also exercises the real 390×844 Chromium phone interface: create a hero, move the bust slider, save, reload and continue, reopen appearance, switch map scales, track a side quest from Journal, and retain its HUD objective after reload. Screenshots are retained as the workflow's browser-proof artifact.
+Regression suite: 57 tests; source/import/asset verification: 42 modules. The GitHub Actions workflow also exercises the real 390×844 Chromium phone interface: create a hero, move the bust slider, save, reload and continue, reopen appearance, switch map scales, track a side quest from Journal, and retain its HUD objective after reload. Screenshots are retained as the workflow's browser-proof artifact.
 
 The hosted phone edition still lacks live ChatGPT. Official website sign-in is a limited partner trial requiring a registered client/callback; the open-source direct-plan flow uses loopback. No fabricated login or paid API fallback is added. The existing local integration remains available. Phone Safari performance and actual live-account authorization/inference remain unverified.
 
