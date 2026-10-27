@@ -1,75 +1,60 @@
-# SINFALL · Living Realms 1.2
+# SINFALL · The Open Realm 2.0
 
-This update expands the existing RPG while retaining the v4 save collection and hero IDs.
+[Play Sinfall](https://veribatum.github.io/SINFALL-Realms-of-Temptation/)
 
-- Gender selector: Male / Female. Body build, height, face, five hairstyles, facial hair, markings, skin, hair, cloth and eye colors. Rotatable 3D preview and an in-game appearance editor.
-- Equipped swords, daggers, bows, axes, hammers, spears, staves and wands attach to animated hand bones. Cloth, leather, mail and plate use different visible armor geometry; trinkets display as amulets. Loot offers **Equip now** or **Keep in satchel**.
-- Nine connected regions, each with a settlement, larger wilderness, eight survey landmarks, supplies, enemies, undercrypt and five furnished interiors. Wilderness bounds expand from 50 × 78 to 290 × 295; town bounds expand from 46 × 83 to 152 × 154. Border signposts connect neighboring regions. Atlas pins mark local trails. Surveying all eight landmarks grants 120 gold and 80 XP once per region.
-- Twelve additional named residents per settlement with a mix of genders, ancestries, appearances and jobs; some follow walking routines. Merchants and tailors trade, and residents give local information.
-- Original procedural music for the menu, towns, wilderness, interiors, dungeons and combat. Wind/bird ambience, walking, doors, equipment, combat, magic, potions, loot and discovery effects. Music, ambience and effects have separate persistent controls. Audio unlocks on the first tap/key press and pauses in the background.
-- Existing three-town saves gain six additional towns when loaded or saved. The original towns, campaign, inventory, level, visits and relationships remain intact. Old appearance fields are migrated to gender and defaults; the save key and schema stay unchanged.
+A browser RPG with persistent characters, a connected countryside, occupied settlements and branching occult mysteries.
 
-Validation and remaining browser limitations are recorded in `docs/VERIFICATION.md`.
+The realm spans **3.6 × 3.6 km**. Walk between **nine settlements** across woodland, highlands, wetlands, snowfields, coast, ashlands, enchanted forest, borderlands and haunted marsh. Physical roads and bridges connect the towns. Nearby terrain, trees and buildings stream as you move, with distant terrain filling the horizon.
 
----
+Each settlement has an inn, forge, archive, apothecary and chapel, plus twenty homes, shops or halls: **225 enterable buildings** across the realm. Homes have named occupants, furnishings, independent persistent discoveries and stories leading to wilderness landmarks. Explore **72 landmarks and nine seeded undercrypts**. Three street plans, fortified towns and regional building colors give settlements different silhouettes.
 
-# SINFALL · Realms of Temptation
+![Actual streamed scenery geometry, software verification view](docs/sinfall-open-realm.jpg)
 
-A rebuilt dark fantasy browser RPG about an enduring hero, living settlements, and decisions with a price.
+## Your character
+
+Choose Male or Female, eight ancestries, ten classes, an origin and personal history. The new locally bundled adult female/male models have authored faces, eyes, fitted clothing, 65-bone skeletons and eleven animation clips. A female Moon Elf uses the female body with sculpted elven ears and customizable hair and features.
+
+Choose build, height, four face contours, six hairstyles, four outfit settings, skin/hair/eye/cloth colors, facial hair and markings. Weapons and armor change on the actual model. Drag the preview to rotate it. Appearance can be changed later while keeping the hero and progress.
+
+![Actual posed character geometry, software verification view](docs/sinfall-adult-models.png)
 
 ## Play
 
-The GitHub Pages edition runs from the repository root. Choose **New Game**, **Load Game**, or **Continue**. Each hero has a separate save, equipment, talents, world, and chronicle. Saves are local to the browser; use Settings → Export all heroes to move a collection between devices.
+Choose **New Game**, **Load Game** or **Continue**. Each hero has independent autosaves, equipment, talents, campaign, world and chronicle. Three manual checkpoints per hero and collection/hero export/import are available. Earlier saves migrate into the continuous realm without losing identity, equipment, quests, claimed resources or surveys. Saves are browser-local; export to move between devices.
 
-Desktop controls: WASD/arrows to move, drag to look, E to interact, Shift to run, V to switch the dungeon camera. C/I/J/M open character, inventory, journal, and map. Escape closes a panel or opens the pause menu. On a phone, use the left joystick, drag the view, and use the contextual interaction button on the right.
+Desktop: WASD/arrows walk, drag to look, E interacts, Shift runs, V switches camera. C/I/J/M open Character, Satchel, Journal and Map. Escape closes panels or opens Pause. On a phone, use the joystick, drag the view and tap Interact; the run button toggles running.
 
-Follow the gold quest marker to the witness in the village square. Ask other people about rumors, read the notice board, buy supplies, gather silverleaf, and investigate the old road. Enter the archive to take evidence to the scholar before deciding whom to trust. Buildings have marked doors; you can walk inside, talk to their inhabitants, and investigate objects. In combat, guard against heavy attacks, use class abilities to interrupt or heal, and equip the armor you find.
+Follow the gold marker to the witness. Investigate the road evidence, visit the archive scholar, choose an alliance and enter the undercrypt. Encounters, relationships, faction favors, merchant discounts, side quests, equipment, talents and three endings have mechanical effects. After an ending, begin a different campaign with the same stronger hero and retained legacy.
 
-## What is implemented
+Mark landmarks or settlements in the atlas. Walking discovers regions; reaching a settlement unlocks fast travel. The minimap follows global position and shows destination distance. Synthesized music covers menus, towns, wilderness, interiors, dungeons and combat; effects and ambience have independent volume controls and persistent mute settings.
 
-- Main menu, four-step character creation, eight ancestries, ten classes, original painted portrait choices, colors, origin, omen, and a personal backstory.
-- Separate hero slots, automatic saves, three manual checkpoints per hero, save export/import, recovery copy, and migration of the previous campaign-v1 hero without deleting the old save.
-- A walkable third-person village, moving citizens and chickens, shops, inn, archive, chapel, notice board, contextual interaction, and a minimap. Three settlements with roads, differing biomes, names, and inhabitants are generated for each campaign.
-- Connected, seeded undercrypts with exploration fog, visible encounters, coffers, inscriptions, shrines, a guardian, and an artifact. Graphics use a vendored Three.js module, with no CDN dependency.
-- Main investigation, three alliances with different mechanical effects, side quests from NPCs and overheard rumors, travel decisions, relationships, reputation, and three consequential endings per campaign.
-- Turn-based D20 combat with visible enemy intentions, distinct class abilities, mana, blocking, interruption, poison, healing, equipment defense, critical hits, and recoverable defeat.
-- Real talent effects, equipment swapping, buying, selling, weapon improvements, consumables, XP, levels, and legacy rewards.
-- After an ending, begin another campaign with the same character. Level, gear, talents, factions, history, prior relationships and endings persist; the new adventure has a new world and mystery.
+## ChatGPT dungeon master
 
-The procedural edition draws from six authored mystery frameworks and seeded world/encounter variation. It is not live AI. The ChatGPT-connected local edition can write original campaign scenes and respond to freeform actions. Manually imported ChatGPT campaign packs also work in the browser edition.
+The GitHub Pages edition uses six authored mystery frameworks with seeded terrain, names and encounter variation. Import a ChatGPT-written campaign pack for a new story in that edition.
 
-The live world now uses four locally stored, rigged KayKit fantasy characters with idle, walking and running animations, class equipment, ancestry proportions, and palette customization. Characters start with a lightweight fallback while their model loads. The inn, forge, archive, apothecary and chapel have furnished, walkable interiors with their inhabitants and one-time discoveries. Static scenery is combined into material batches; the town benchmark removes 777 separate scenery draw calls. Camera collision keeps walls between the camera and the player. Daylight follows the world clock.
+Live ChatGPT uses the local edition and OpenAI's loopback sign-in flow:
 
-Seven seeded town and road encounters offer checks, paid interventions and faction consequences. Travelers can approach the hero. Completed meetings remain resolved after saving; reputation unlocks additional favors and merchant discounts. Existing schema-4 heroes remain compatible.
-
-## Connect your ChatGPT plan
-
-OpenAI’s documented open-source sign-in flow currently uses an HTTP loopback callback. For that reason, live ChatGPT plan sign-in belongs to the **local edition**, not the public GitHub Pages page.
-
-1. Download this repository and install Node.js 22 or later if needed.
-2. On Windows, open **start-sinfall.cmd**. Or run `npm start` from the project folder.
+1. Download the repository and install Node.js 22 or later.
+2. Open **start-sinfall.cmd** on Windows, or run `npm start`.
 3. Open `http://127.0.0.1:8787`, then Dungeon Master & Settings → **Continue with ChatGPT**.
-4. Sign in and authorize eligible ChatGPT plan usage. Select an available model in Settings.
+4. Authorize eligible ChatGPT plan usage and select an available model.
 
-There is no dependency installation and no API key field. AI usage counts toward the connected ChatGPT plan’s limits. Eligibility and successful consent are determined by OpenAI. No fallback to paid API billing is configured.
+No dependency installation or API key is required. OpenAI determines account eligibility and consent; usage counts toward the connected plan. No paid API billing fallback is configured. Sign-in and live inference remain unverified with the user's account.
 
-The app generates a stable installation host ID, registers a dynamic client, uses fresh state/nonce/PKCE, verifies the ID token signature/issuer/audience/expiry/nonce, checks the granted plan scopes, and refreshes credentials when needed. Credentials are written atomically to `~/.sinfall/` with owner-only Unix permissions. They are never sent to the browser, included in saves, logged, or stored in the repository. The local server binds to 127.0.0.1 and rejects other Host/Origin values on sensitive routes.
+For manual use on a phone, copy the game's campaign request into ChatGPT, then import the returned JSON at the start of a new adventure. Existing active campaigns are protected from replacement.
 
-For mobile play without a local AI connection: open Dungeon Master in the game, copy a campaign request into ChatGPT, then paste the JSON reply into Import story pack. Do this at the beginning of a new adventure; active stories are protected from replacement. This manual route creates a playable AI-written campaign but is not a live chat connection.
+Credentials stay on the local server under `~/.sinfall/`, excluded from browser responses, saves, logs and the repository. The server binds to loopback and validates client, state, nonce, PKCE, token signature and plan scopes.
 
-Official implementation references:
+Official references: [sign-in](https://developers.openai.com/siwc/token-sharing-open-source/sign-in), [models and inference](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference), [preview limitations](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations).
 
-- https://developers.openai.com/siwc/token-sharing-open-source/sign-in
-- https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference
-- https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations
+## Development and verification
 
-## Development and checks
+`npm test` runs 45 game, save, terrain, road, scene, character, OAuth and streaming checks. `npm run check` verifies syntax, local imports, required assets and source hygiene. [Verification details](docs/VERIFICATION.md).
 
-`npm test` runs the game, save, geometry, OAuth-validation, and SSE tests. `npm run check` checks source syntax, imports, required assets, and public-source hygiene.
+`npm run dev` starts the local preview with AI authorization disabled. Preview-only pages `/__qa/mobile` and `/__qa/models` check the phone layout and actual model/texture decoding. Production local mode does not expose these diagnostics.
 
-`npm run dev` serves the preview with AI authorization disabled. The preview-only `/__qa/mobile` page embeds a 390px phone viewport for layout verification. `/__qa/models` verifies browser model downloads, embedded texture decoding, independent rigs and animation startup without requiring WebGL. Production local mode does not expose these pages.
+WebGL is disabled in the managed verification browser. Normal UI flows were checked through the interaction fallback; actual model downloads, embedded texture decoding and animation startup passed separately. The images above are labeled software projections of committed geometry. GPU appearance, shader compilation, movement feel and device frame rate remain unverified.
 
-The entry point is `index.html`, with the rebuilt implementation under `src/`, local ChatGPT support under `server/`, and the graphics dependency under `vendor/`. The older campaign/v3 scripts remain in Git history and the repository but are not loaded by the new entry point.
+Entry point: `index.html` → `src/game.js`. World coordinates and terrain: `src/atlas.js`; scenery streaming: `src/overworld.js`; adult models/style: `src/actors.js` and `src/adult-style.js`; local ChatGPT support: `server/`. Older root scripts remain for history and are not loaded.
 
-Third-party dependencies: Three.js r170 and its matching loaders/utilities, MIT; see `vendor/LICENSE-THREE.txt`. Character models: KayKit Adventurers Character Pack 1.0 by Kay Lousberg, CC0; source and license are in `assets/models/CREDITS.md` and `assets/models/LICENSE-KAYKIT.txt`. New artwork was generated for this project using the built-in Image Generation tool and encoded as WebP without changing its dimensions. Asset briefs: a twilight riverside village beneath an eclipsed moon; eight adult fantasy character portraits; four painted enemy portraits; and an impossible sanctuary with an inverted cathedral beyond the Veil.
-
+Three.js r170: MIT. Adult characters, clothing and animations: Quaternius, CC0. Original KayKit models: CC0. Original licenses and sources are retained in [assets/models/CREDITS.md](assets/models/CREDITS.md). Painted interface artwork is locally bundled in `assets/`.

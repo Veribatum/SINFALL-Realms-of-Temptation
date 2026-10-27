@@ -1,4 +1,5 @@
 import * as T from '../vendor/three.module.js';
+import {homePlan} from './atlas.js?v=6';
 // Furnished, walkable rooms. The interaction anchors sit in free aisle space;
 // furniture collision belongs to the prop, rather than its interaction marker.
 export function buildInterior(r){
@@ -23,7 +24,15 @@ export function buildInterior(r){
  window(-6.79,2.5);window(6.79,2.5);
  // Real lights are restricted to the room, where their small count matters.
  r.roomLights?.(room==='archive'?'#b6c9df':'#ffd29b');
- if(room==='inn'){
+ if(room==='home'){
+  const home=homePlan(r.hero.world.towns[r.hero.location.townId])[r.hero.location.homeId];
+  shelf(-4.6,-6.8,3.3);shelf(4.6,-6.8,2.8);table(-4,-3.3,2.4,1.4);candle(-4,-3.3);chair(-5.3,-3.3,Math.PI/2);
+  r.box(1.7,.65,3,m.timber,r.root,4.7,.33,1.2);r.box(1.6,.28,2.9,rug,r.root,4.7,.8,1.2);r.box(1.4,.16,.6,m.white,r.root,4.7,1.03,.2);collide(4.7,1.2,1.8,3.1);
+  r.box(2,2.6,1,m.stone,r.root,-5.5,1.3,5.8);r.box(1.3,1.2,1.1,m.dark,r.root,-5.5,.7,5.8);r.sphere(.32,m.glow,r.root,-5.5,.55,6.4);collide(-5.5,5.8,2.1,1.2);
+  if(home.kind==='merchant'){table(4.4,-2.2,2,1.4);for(let i=0;i<4;i++)r.box(.4,.4,.5,bookColors[i],r.root,3.7+i*.45,1.34,-2.2)}
+  if(['guild','lodge'].includes(home.kind)){table(3.8,-2.6,2.4,1.6);r.box(1.8,.03,1.15,m.white,r.root,3.8,1.16,-2.6);r.sphere(.12,m.gold,r.root,4,1.25,-2.6)}
+  if(home.kind==='barracks')for(let i=0;i<4;i++){r.box(.08,1.5,.08,m.iron,r.root,6.5,1.5,-3+i*.6);r.box(.4,.08,.12,m.gold,r.root,6.5,1.8,-3+i*.6)}
+ }else if(room==='inn'){
   r.box(9.4,1.35,1.15,m.wood,r.root,0,.675,-5.7);collide(0,-5.7,9.4,1.15);shelf(3,-7,3);
   for(const[x,z]of[[-3.7,2.5],[3.7,2.5],[-4,-3.1]]){table(x,z);chair(x-.95,z,Math.PI/2);chair(x+.95,z,-Math.PI/2);candle(x,z)}
   r.box(1.6,.6,2.7,m.timber,r.root,5.3,.3,-1);r.box(1.5,.25,2.5,rug,r.root,5.3,.74,-1);r.box(1.3,.14,.5,m.white,r.root,5.3,.94,-1.9);collide(5.3,-1,1.7,2.9);

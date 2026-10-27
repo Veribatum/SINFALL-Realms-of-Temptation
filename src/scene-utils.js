@@ -24,6 +24,6 @@ export function cameraPosition(target,desired,canOccupy){
  const delta=desired.clone().sub(target),distance=delta.length();if(distance===0)return desired.clone();
  // March from the player toward the camera. The first wall limits the camera,
  // including in crypt corridors and small interiors.
- let clear=0;for(let d=.2;d<=distance;d+=.2){const p=target.clone().addScaledVector(delta,d/distance);if(p.y<4.9&&!canOccupy(p.x,p.z))return target.clone().addScaledVector(delta,Math.max(.25,clear-.12)/distance);clear=d}
+ let clear=0;for(let d=.2;d<=distance;d+=.2){const p=target.clone().addScaledVector(delta,d/distance);if(!canOccupy(p.x,p.z,p.y))return target.clone().addScaledVector(delta,Math.max(.25,clear-.12)/distance);clear=d}
  return desired.clone();
 }

@@ -1,3 +1,21 @@
+# The Open Realm 2.0 verification · 2026-10-27
+
+The expansion takes an existing hero into a continuous 3,600 × 3,600 metre realm, with nine settlements, 225 enterable buildings, 72 landmarks and nine undercrypts. Each settlement has five core buildings and twenty occupied homes, shops or halls. Household discoveries persist independently and their stories point toward wilderness sites.
+
+`npm test`: 45 passing tests. `npm run check` verifies syntax, imports and required assets. `git diff --check` is clean.
+
+Six new realm tests cover old-save migration without losing identity/gear/claims/surveys; all 225 doors and 180 independent household discovery states; main investigation, archive alliance and exact dungeon return; physical roads between all nine towns with river bridges; continuous terrain across region/chunk seams and safe landmark trails; and bounded scenery streaming with finite geometry and every interaction anchor approachable. Streamed detail is bounded at 25 chunks on high quality and 9 on low quality. Tests found and corrected a wilderness encounter on a steep terrain shoulder and a supply cache that intersected a river bend.
+
+Three new character tests inspect actual authored adult female/male GLBs: skinned faces and covered fitted bodies, independent 65-bone skeletons, eleven animation clips, normalized colors and weights, six hair choices, face/outfit variation, dynamic equipment and gender model replacement. The preview-only browser harness downloaded all six models; both adults decoded five embedded textures and started Walking_A.
+
+Normal browser controls were used to create Elara, a female Moon Elf Ranger with long hair and a regal face. She entered Elara Ashford’s home in Emberwatch, read the household journal, reloaded and resumed inside that home without restoring the claimed discovery. Asking the resident about her sister’s bottled voice offered a trail to the travelers’ camp. Leaving returned outside; the atlas displayed global distances and the expanded realm counts. Travel through a roadside story reached Duskwick, which became a discovered fast-travel destination. The 390px phone layout was inspected separately.
+
+The labeled model and realm images are software projections of actual committed mesh geometry, not concept art. Roof winding, terrain-aligned paths, the adult neckline and overlapping outfit parts were inspected and corrected. See `sinfall-adult-models.png`, `sinfall-open-realm.jpg` and `sinfall-open-realm-phone.jpg`.
+
+WebGL is disabled in the managed browser, so browser playthroughs used the interaction fallback. Actual GPU appearance, shader compilation, touch movement feel and device frame rate remain unverified. Browser asset/texture decoding and animation startup were checked independently of GPU rendering. Live ChatGPT account consent and inference were not performed; the expansion preserves the local integration and supplies global position, realm metrics and current landmarks to its context.
+
+---
+
 # Living Realms 1.2 verification
 
 Automated checks: `npm test` and `npm run check`.

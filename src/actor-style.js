@@ -1,7 +1,8 @@
 import * as T from '../vendor/three.module.js';
-import {appearanceOf,weaponStyle,armorStyle} from './appearance.js?v=5';
-import {batchScenery} from './scene-utils.js?v=5';
-const bone=(rig,name)=>{let found;rig.traverse(o=>{if(o.isBone&&o.name.replace(/[._]/g,'')===name)found=o});return found};
+import {styleAdult} from './adult-style.js?v=6';
+import {appearanceOf,weaponStyle,armorStyle} from './appearance.js?v=6';
+import {batchScenery} from './scene-utils.js?v=6';
+const bone=(rig,name)=>{let found;rig.traverse(o=>{if(o.isBone&&(o.name.toLowerCase().replace(/[._]/g,'')===name||name==='chest'&&o.name==='spine_03'||name==='handslotr'&&o.name==='hand_r'))found=o});return found};
 const mat=(color,metal=false)=>new T.MeshStandardMaterial({color,roughness:metal?.4:.86,metalness:metal?.65:0});
 function mesh(parent,geometry,material,x=0,y=0,z=0){const o=new T.Mesh(geometry,material);o.position.set(x,y,z);o.castShadow=true;parent.add(o);return o}
 const box=(g,m,w,h,d,x=0,y=0,z=0)=>mesh(g,new T.BoxGeometry(w,h,d),m,x,y,z);
@@ -43,4 +44,4 @@ export function styleEquipment(rig,h){
  }
  if(chest&&h.equipment?.trinket){const g=new T.Group();g.name='Equipped amulet';chest.add(g);rig.userData.trinket=g;const m=mat('#99c9bc');sphere(g,m,.052,0,-.12,.235)}
 }
-export function styleActor(group,h){const rig=group.children[0];if(!rig)return;const a=appearanceOf(h),width={slender:.88,balanced:1,broad:1.15}[a.build],height={short:.91,average:1,tall:1.1}[a.height];group.scale.set(width*(a.gender==='female'?.95:1.03),height,1);rig.traverse(o=>{if(!o.isMesh)return;const palette=o.material.userData.palette;if(palette){palette.skin.set(a.skin);palette.hair.set(a.hair)}if(/_(Body|Cape|ArmLeft|ArmRight)$/.test(o.name))o.material.color.set(a.outfit).lerp(new T.Color('#ffffff'),.72)});styleFace(rig,h);styleEquipment(rig,h);group.userData.appearance=a;}
+export function styleActor(group,h){const rig=group.children[0];if(!rig)return;if(group.userData.adult){styleAdult(group,h,styleEquipment);return}const a=appearanceOf(h),width={slender:.88,balanced:1,broad:1.15}[a.build],height={short:.91,average:1,tall:1.1}[a.height];group.scale.set(width*(a.gender==='female'?.95:1.03),height,1);rig.traverse(o=>{if(!o.isMesh)return;const palette=o.material.userData.palette;if(palette){palette.skin.set(a.skin);palette.hair.set(a.hair)}if(/_(Body|Cape|ArmLeft|ArmRight)$/.test(o.name))o.material.color.set(a.outfit).lerp(new T.Color('#ffffff'),.72)});styleFace(rig,h);styleEquipment(rig,h);group.userData.appearance=a;}

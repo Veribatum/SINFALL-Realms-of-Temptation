@@ -9,7 +9,7 @@ export const MUSIC={
  combat:{bpm:112,root:38,melody:[0,7,12,7,3,10,15,10,5,12,17,12,1,8,13,8],chords:[0,3,5,1]}
 };
 const hz=n=>440*2**((n-69)/12),limit=n=>Math.min(1,Math.max(0,Number(n)||0));
-export function audioMode(hero,screen='world'){return screen!=='world'?'menu':hero?.combat?'combat':hero?.location?.type==='dungeon'?'dungeon':hero?.location?.type==='interior'?'interior':hero?.location?.type==='wilds'?'wilds':'town'}
+export function audioMode(hero,screen='world'){return screen!=='world'?'menu':hero?.combat?'combat':hero?.location?.type==='dungeon'?'dungeon':hero?.location?.type==='interior'?'interior':(hero?.location?.type==='wilds'||hero?.location?.type==='realm'&&hero?.location?.area==='wilds')?'wilds':'town'}
 export class Soundscape{
  constructor(){try{this.settings={...AUDIO_DEFAULTS,...JSON.parse(localStorage.getItem('sinfall-audio')||'{}')}}catch{this.settings={...AUDIO_DEFAULTS}}for(const k of['music','ambience','effects'])this.settings[k]=limit(this.settings[k]);this.settings.muted=!!this.settings.muted;this.mode='menu';this.context=null;this.musicNotes=new Set();this.beat=0;this.footClock=0}
  async unlock(){try{if(!this.context){const Context=globalThis.AudioContext||globalThis.webkitAudioContext;if(!Context)return false;this.context=new Context();this.setup();this.nextBeat=this.context.currentTime+.1;this.timer=setInterval(()=>this.schedule(),120)}if(this.context.state==='suspended')await this.context.resume();this.applyVolumes();return this.context.state==='running'}catch{return false}}

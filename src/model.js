@@ -1,7 +1,8 @@
-import {CLASSES,RACES,ORIGINS,MOTIFS,ENEMIES,SETTLEMENT_PREFIX,SETTLEMENT_SUFFIX,NPC_FIRST,NPC_LAST,QUALITY} from './content.js?v=5';
-import {appearanceOf,APPEARANCE_OPTIONS} from './appearance.js?v=5';
-import {REGION_COUNT,regionOf,roadLinks,frontierSites,siteKey,surveyState} from './frontier.js?v=5';
-import {populationFor} from './population.js?v=5';
+import {CLASSES,RACES,ORIGINS,MOTIFS,ENEMIES,SETTLEMENT_PREFIX,SETTLEMENT_SUFFIX,NPC_FIRST,NPC_LAST,QUALITY} from './content.js?v=6';
+import {appearanceOf,APPEARANCE_OPTIONS} from './appearance.js?v=6';
+import {REGION_COUNT,regionOf,roadLinks,frontierSites,siteKey,surveyState} from './frontier.js?v=6';
+import {populationFor} from './population.js?v=6';
+import {centerOf,regionAt,realmArea,realmPoint,realmSites,homePlan} from './atlas.js?v=6';
 
 export const SCHEMA=4;
 export const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
@@ -19,8 +20,8 @@ export const BUILDINGS=[
  {id:'apothecary',role:'healer',name:'The Stillwater Apothecary',x:10.7,z:-12,description:'Dried herbs sway over shelves of glass bottles and a clean infirmary bed.'},
  {id:'chapel',role:'warden',name:'The Watch Chapel',x:0,z:-30.8,description:'Colored light crosses the stone aisle. The watch keeps its old vows here.'}
 ];
-export const buildingOf=h=>BUILDINGS.find(b=>b.id===h.location.room);
-export const locationId=h=>h.location.type+'-'+h.location.townId+(h.location.type==='interior'?'-'+h.location.room:'');
+export const buildingOf=h=>h.location.room==='home'?{...homePlan(townOf(h))[h.location.homeId],id:'home'}:BUILDINGS.find(b=>b.id===h.location.room);
+export const locationId=h=>h.location.type+'-'+h.location.townId+(h.location.type==='interior'?'-'+h.location.room+(h.location.room==='home'?'-'+h.location.homeId:''):'');
 export function addLog(h,text,kind='story'){h.history.unshift({id:uid(),text:String(text).slice(0,2000),kind,day:h.world?.day||1});h.history=h.history.slice(0,160);h.updatedAt=Date.now();return text}
 export function effects(h){const out={};for(const id of h.talents){const t=classOf(h).talents.find(t=>t.id===id);if(t)for(const[k,v]of Object.entries(t.effect))out[k]=(out[k]||0)+v}return out}
 export function stats(h){const s={...classOf(h).stats};for(const[k,v]of Object.entries(raceOf(h).stats))s[k]=(s[k]||0)+v;const o=ORIGINS.find(o=>o.id===h.originId);if(o)s[o.stat]++;const e=effects(h);for(const k of Object.keys(s))s[k]+=(e[k]||0)+Math.floor((h.level-1)/3);return s}
@@ -67,13 +68,13 @@ export function upgradeHero(h){
  h.world.expansion=1;h.world.exploration??={sites:[],rewards:[]};return h;
 }
 export function surveyLandmark(h,id,method='study',rng=Math.random){
- const site=h.location.type==='wilds'&&frontierSites(townOf(h)).find(s=>s.id===id);if(!site)return{ok:false,text:'Find this place in the wilderness first.'};const key=siteKey(h,id);h.world.exploration??={sites:[],rewards:[]};if(h.world.exploration.sites.includes(key))return{ok:false,text:'Your journal already records what you found here.'};if(!['study','restore','salvage'].includes(method))return{ok:false,text:'Choose how to approach the site.'};if(method==='restore'&&h.gold<12)return{ok:false,text:'You need 12 gold in supplies.'};
+ const site=(h.location.type==='wilds'||h.location.type==='realm')&&frontierSites(townOf(h)).find(s=>s.id===id);if(!site)return{ok:false,text:'Find this place in the wilderness first.'};const key=siteKey(h,id);h.world.exploration??={sites:[],rewards:[]};if(h.world.exploration.sites.includes(key))return{ok:false,text:'Your journal already records what you found here.'};if(!['study','restore','salvage'].includes(method))return{ok:false,text:'Choose how to approach the site.'};if(method==='restore'&&h.gold<12)return{ok:false,text:'You need 12 gold in supplies.'};
  const roll=method==='study'?check(h,site.stat,11,rng):null,success=!roll||roll.success;h.world.exploration.sites.push(key);gainXp(h,success?28:12);let text=success?'You uncover the site’s story and add it to your survey.':'The site keeps its deepest secret. Your survey still records a safe route here.';let item=null;
  if(method==='restore'){h.gold-=12;h.factions.town++;h.hp=Math.min(maxHp(h),h.hp+8);text+=' You repair the ward and leave supplies. The townsfolk will hear of it.'}
  if(success){gainGold(h,method==='salvage'?24:12);if(['tower','mine','ruin','bridge'].includes(site.kind)){const visual={tower:'spear',mine:'axe',ruin:'staff',bridge:'dagger'}[site.kind];item={id:uid(),type:'weapon',name:{tower:'Watchkeeper’s Spear',mine:'Quarryman’s Veilsteel Axe',ruin:'Astronomer’s Moonstaff',bridge:'Ferryman’s Dagger'}[site.kind],visual,power:5+h.level*2,quality:1};h.items.push(item)}else if(site.kind==='camp'||site.kind==='stones'){item={id:uid(),type:'armor',name:site.kind==='camp'?'Wayfarer’s Leather Armor':'Circlekeeper’s Mantle',visual:site.kind==='camp'?'leather':'cloth',power:3+h.level,quality:1};h.items.push(item)}else h.items.push({id:uid(),type:'potion',name:'Healing Draught',qty:1});if(item)text+=' Recovered '+item.name+'. Equip it from your satchel.'}
  const survey=surveyState(h);if(survey.done===survey.total&&!survey.claimed){h.world.exploration.rewards.push(h.location.townId);gainGold(h,120);gainXp(h,80);text+=' Region surveyed: +120 gold and +80 XP.'}if(roll)text+=` D20 ${roll.roll} + ${roll.bonus} against ${roll.dc}.`;addLog(h,site.name+': '+text,'discovery');return{ok:true,text,item,success};
 }
-export function locationName(h){const t=townOf(h);return h.location.type==='interior'?buildingOf(h)?.name||t.name:h.location.type==='town'?t.name:h.location.type==='wilds'?`The ${t.name} Road`:`${t.name} Undercrypt`}
+export function locationName(h){const t=townOf(h);return h.location.type==='interior'?buildingOf(h)?.name||t.name:['town','realm'].includes(h.location.type)?t.name:h.location.type==='wilds'?`The ${t.name} Road`:`${t.name} Undercrypt`}
 export function objective(h){const t=h.world.towns[0],c=h.campaign;if(h.combat)return'Defeat your foe or find a way out.';if(c.stage==='arrival')return`Speak with ${t.npcs.witness.name} in ${t.name}’s square.`;if(c.stage==='trail')return`Investigate the strange remains on the road outside ${t.name}.`;if(c.stage==='counsel')return`Bring the evidence to ${t.npcs.scholar.name} at ${t.name}’s archive.`;if(c.stage==='descent')return`Enter the undercrypt outside ${t.name}. Find ${c.enemy}.`;if(c.stage==='heart')return`Return to the final chamber and decide the fate of ${c.artifact}.`;return'Your adventure is complete. Explore, or set out on a new story.'}
 export function visitState(h){const id=locationId(h);return h.world.visits[id]??={resolved:[],discovered:[],searched:false}}
 export function resolveEntity(h,id){const v=visitState(h);if(!v.resolved.includes(id))v.resolved.push(id)}
@@ -90,7 +91,7 @@ const TOWN_STORIES=[
  {title:'A prisoner and a familiar seal',text:'The watch has arrested a traveler carrying a letter stamped with the same symbol as your omen. “Tell them I came to warn you,” the traveler says.',options:[{id:'free',label:'Pay the traveler’s fine',cost:20,rep:'veil',text:'Freed, the traveler warns that someone is buying accounts of your movements.'},{id:'argue',label:'Demand to hear the evidence',stat:'presence',dc:12,rep:'town',gold:22,text:'The accusation collapses under scrutiny. The watch thanks you for preventing an injustice.',failure:'The captain refuses, but lets you read the letter. Its warning will stay with you.'},{id:'decode',label:'Examine the seal for a hidden message',stat:'lore',dc:11,rep:'scholars',mp:8,text:'A second message appears beneath the wax: trust the person who remembers the rain.',failure:'The seal crumbles into ordinary ash. You remember the symbol anyway.'}]}
 ];
 export function encounterFor(h){
- const type=h.location.type;if(!['town','wilds'].includes(type))return null;const id=`encounter-${h.location.townId}-${type}`;if(h.world.events.includes(id))return null;
+ const type=h.location.type==='realm'?h.location.area:h.location.type;if(!['town','wilds'].includes(type))return null;const id=`encounter-${h.location.townId}-${type}`;if(h.world.events.includes(id))return null;
  const table=type==='town'?TOWN_STORIES:ROAD_STORIES,offset=(h.world.seed>>>0)+h.location.townId+(type==='wilds'?7:0),story=table[offset%table.length];
  let text=story.text;
  if(h.campaign.flags.alliance==='wardens'&&type==='wilds')text+=' A strip of watch-blue cloth is tied nearby; your allies have been watching this road.';
@@ -116,9 +117,11 @@ export function exploreRoom(h){
  if(room==='archive'){h.mp=Math.min(maxMp(h),h.mp+8);text='A margin note describes your omen centuries before your birth. Reading the old script restores 8 mana.'}
  if(room==='apothecary'){h.items.push({id:uid(),name:'Healing Draught',type:'potion',qty:1});text='You help prepare a silverleaf remedy. The healer gives you one healing draught for your trouble.'}
  if(room==='chapel'){h.hp=Math.min(maxHp(h),h.hp+12);text='You read the names of those who kept their vows. For a moment, their courage steadies yours. Recover 12 vitality.'}
+ if(room==='home'){const b=buildingOf(h);text=b.story;if(b.kind==='merchant'){gainGold(h,8);text+=' You help sort the stock and earn 8 gold.'}else{h.mp=Math.min(maxMp(h),h.mp+3);text+=' You record the lead in your chronicle.'}}
  gainXp(h,15);addLog(h,text,'discovery');return{ok:true,text};
 }
 export function entitiesFor(h){
+ if(h.location.type==='realm')return realmEntities(h);
  const town=townOf(h),type=h.location.type,v=visitState(h);let a=[];
  if(type==='town'){
   const places=[['innkeeper',-8.5,11,'The Wayfarer’s Rest'],['smith',8.5,7,'The Ember & Anvil'],['scholar',-8.5,-9,'The Lantern Archive'],['healer',8.5,-12,'The Stillwater Apothecary'],['warden',2,-25,'The Watch Chapel'],['witness',-3,1,'The village square'],['stranger',5,13,'A passing traveler']];
@@ -126,7 +129,7 @@ export function entitiesFor(h){
   a.push(...BUILDINGS.map(b=>({...b,id:'door-'+b.id,room:b.id,type:'door',name:'Enter '+b.name,marker:h.location.townId===0&&h.campaign.stage==='counsel'&&b.id==='archive'?'main':b.id==='inn'?'rumor':null})));
   a.push({id:'road',type:'travel',name:'The old road',x:0,z:34},{id:'board',type:'board',name:'Notice board',x:7,z:1},...populationFor(town));
  }else if(type==='interior'){
-  const b=buildingOf(h);a=[{...town.npcs[b.role],type:'npc',x:b.id==='smith'?3:0,z:-3.8,building:b.name,marker:h.location.townId===0&&b.id==='archive'&&h.campaign.stage==='counsel'?'main':null},{id:'outside',type:'exit',name:'Step outside to '+town.name,x:0,z:6.2},{id:'room-detail',type:'detail',name:{inn:'The fireside guestbook',smith:'The master’s workbench',archive:'A book of forgotten paths',apothecary:'The silverleaf journal',chapel:'The altar of names'}[b.id],x:-4,z:-1,room:b.id,marker:'discovery'}];
+  const b=buildingOf(h);if(b.id==='home'){a=[{id:'homeowner',name:b.owner,type:'npc',role:b.role,portrait:b.id%8||0,appearance:b.appearance,greeting:'“'+b.story+'”',story:b.story,trailId:b.trailId,x:0,z:-3.8,building:b.name},{id:'outside',type:'exit',name:'Step outside to '+town.name,x:0,z:6.2},{id:'room-detail',type:'detail',name:'The household journal',x:-4,z:-1,room:'home',marker:'discovery'}];return a.filter(e=>!v.resolved.includes(e.id)||['exit','npc'].includes(e.type))}a=[{...town.npcs[b.role],type:'npc',x:b.id==='smith'?3:0,z:-3.8,building:b.name,marker:h.location.townId===0&&b.id==='archive'&&h.campaign.stage==='counsel'?'main':null},{id:'outside',type:'exit',name:'Step outside to '+town.name,x:0,z:6.2},{id:'room-detail',type:'detail',name:{inn:'The fireside guestbook',smith:'The master’s workbench',archive:'A book of forgotten paths',apothecary:'The silverleaf journal',chapel:'The altar of names'}[b.id],x:-4,z:-1,room:b.id,marker:'discovery'}];
  }else if(type==='wilds'){
   a=[{id:'town',type:'exit',name:'Return to '+town.name,x:0,z:24},{id:'clue',type:'clue',name:'Strange remains',x:-7,z:-8,marker:h.location.townId===0&&h.campaign.stage==='trail'?'main':null},{id:'gate',type:'gate',name:'The undercrypt entrance',x:0,z:-35,marker:['descent','heart'].includes(h.campaign.stage)?'main':null},{id:'cache',type:'chest',name:'Abandoned strongbox',x:12,z:-17},{id:'shrine',type:'shrine',name:'A forgotten wayshrine',x:-13,z:8},{id:'herbs',type:'herbs',name:'Silverleaf patch',x:9,z:9},{id:'road-enemy',type:'enemy',kind:'wolf',name:'Gloom Hound',x:4,z:-20},{id:'road-bandit',type:'enemy',kind:'bandit',name:'Road Reaver',x:-14,z:-24},{id:'caravan',type:'traveler',name:'A stranded courier',x:-6,z:16}];
  }else{
@@ -142,13 +145,34 @@ export function entitiesFor(h){
  if(type==='town'||type==='wilds'){const encounter=encounterFor(h);if(encounter)a.push(encounter)}
  return a.filter(e=>!v.resolved.includes(e.id)||['exit','npc','gate','travel','board','door','landmark','route'].includes(e.type));
 }
-export function changeLocation(h,type,townId=h.location.townId,room){
- if(!['town','wilds','dungeon','interior'].includes(type)||!h.world.towns[townId])throw Error('Unknown location');
- if(type==='interior'&&!BUILDINGS.some(b=>b.id===room))throw Error('Unknown building');
+export function changeLocation(h,type,townId=h.location.townId,room,homeId){
+ if(!['town','wilds','realm','dungeon','interior'].includes(type)||!h.world.towns[townId])throw Error('Unknown location');
+ if(type==='interior'&&!(BUILDINGS.some(b=>b.id===room)||room==='home'&&Number.isInteger(homeId)&&homeId>=0&&homeId<20))throw Error('Unknown building');
+ if(h.world.openWorld){
+  if(h.location.type==='realm'&&['interior','dungeon'].includes(type))h.world.realmReturn={townId:h.location.townId,position:{...h.position}};
+  if(['town','wilds','realm'].includes(type)){
+   const saved=h.world.realmReturn,returning=['interior','dungeon'].includes(h.location.type)&&saved&&saved.townId===townId;
+   h.location={type:'realm',townId,area:type==='wilds'?'wilds':'town'};h.position=returning?{...saved.position}:{...realmPoint(townId,type==='wilds'?'wilds':'town',0,20),yaw:Math.PI};delete h.world.realmReturn;syncRealm(h);h.world.hour+=.4;normalizeHour(h);visitState(h);return addLog(h,'You arrive at '+locationName(h)+'.','travel');
+  }
+ }
  const leaving=h.location.type==='interior'&&type==='town'&&townId===h.location.townId?buildingOf(h):null;
- h.location={type,townId,...(type==='interior'?{room}:{})};
- h.position=type==='dungeon'?{...townOf(h).dungeon.start,yaw:townOf(h).dungeon.start.yaw||0}:type==='interior'?{x:0,z:4.8,yaw:Math.PI}:leaving?{x:leaving.x,z:leaving.z,yaw:leaving.x<0?Math.PI/2:leaving.x>0?-Math.PI/2:0}:{x:0,z:type==='town'?23:20,yaw:Math.PI};
- h.world.hour+=(type==='interior'||leaving)? .05 : .4;if(h.world.hour>=24){h.world.hour-=24;h.world.day++}const id=locationId(h);if(!h.world.discovered.includes(id))h.world.discovered.push(id);visitState(h);return addLog(h,'You arrive at '+locationName(h)+'.','travel');
+ h.location={type,townId,...(type==='interior'?{room,...(room==='home'?{homeId}:{})}:{})};
+ h.position=type==='dungeon'?{...townOf(h).dungeon.start,yaw:townOf(h).dungeon.start.yaw||0}:type==='interior'?{x:0,z:4.8,yaw:Math.PI}:leaving?{x:leaving.x,z:leaving.z,yaw:0}:{x:0,z:type==='town'?23:20,yaw:Math.PI};
+ h.world.hour+=(type==='interior'||leaving)?.05:.4;normalizeHour(h);const id=locationId(h);if(!h.world.discovered.includes(id))h.world.discovered.push(id);visitState(h);return addLog(h,'You arrive at '+locationName(h)+'.','travel');
+}
+function normalizeHour(h){while(h.world.hour>=24){h.world.hour-=24;h.world.day++}}
+export function enterRealm(h){
+ upgradeHero(h);h.world.openWorld=true;
+ if(!h.world.realmMigrated){for(const town of h.world.towns){const id='realm-'+town.id;const resolved=new Set(h.world.visits[id]?.resolved||[]);for(const type of['town','wilds'])for(const claim of h.world.visits[type+'-'+town.id]?.resolved||[])resolved.add(claim);h.world.visits[id]={resolved:[...resolved],discovered:[]}}h.world.realmMigrated=true}
+ if(['town','wilds'].includes(h.location.type)){const type=h.location.type,point=realmPoint(h.location.townId,type,h.position.x,h.position.z);h.location={type:'realm',townId:h.location.townId,area:type};h.position={...h.position,...point}}
+ if(['interior','dungeon'].includes(h.location.type)&&!h.world.realmReturn){const b=h.location.type==='interior'?buildingOf(h):{x:0,z:-35};h.world.realmReturn={townId:h.location.townId,position:{...realmPoint(h.location.townId,h.location.type==='interior'?'town':'wilds',(b.x||0)+(b.id==='chapel'?28:0),b.z||0),yaw:0}}}if(h.location.type==='realm')syncRealm(h);return h;
+}
+export function syncRealm(h){if(h.location.type!=='realm')return false;const before=h.location.townId,id=regionAt(h.position.x,h.position.z);h.location.townId=id;h.location.area=realmArea(h.position.x,h.position.z);const key='town-'+id;if(h.location.area==='town'&&!h.world.discovered.includes(key)){h.world.discovered.push(key);gainXp(h,20);addLog(h,'Discovered '+townOf(h).name+'.','discovery')}return id!==before}
+function realmEntities(h){
+ const town=townOf(h),resolved=visitState(h).resolved,out=[];
+ for(const type of['town','wilds']){const view={...h,location:{type,townId:town.id}};for(const e of entitiesFor(view)){if(['travel','exit','route'].includes(e.type))continue;if(e.type==='encounter'&&type!==h.location.area)continue;let p=realmPoint(town.id,type,e.x,e.z);if(e.type==='door'&&e.room==='chapel')p.x+=28;if(e.id.startsWith('frontier-cache-')||e.id.startsWith('frontier-enemy-')){const site=realmSites(town)[Number(e.id.match(/(\d+)$/)[1])];p={x:site.x+(e.id.includes('enemy')?-7:5),z:site.z+6}}const route=e.routine?.map(v=>{const q=realmPoint(town.id,type,v[0],v[1]);return[q.x,q.z]});out.push({...e,...p,...(e.type==='door'?{rotation:e.x<0?Math.PI/2:e.x>0?-Math.PI/2:0}:{}),...(route?{routine:route}:{}),regionId:town.id})}}
+ const c=centerOf(town.id);for(const home of homePlan(town))out.push({id:'home-'+home.id,type:'door',name:'Enter '+home.name,room:'home',homeId:home.id,rotation:home.rotation,x:c.x+home.doorX,z:c.z+home.doorZ,regionId:town.id});
+ return out.filter(e=>!resolved.includes(e.id)||['npc','door','gate','board','landmark'].includes(e.type));
 }
 export function acceptMain(h){if(h.campaign.stage!=='arrival')return false;h.campaign.stage='trail';addLog(h,`${townOf(h).npcs.witness.name} asks you to investigate. ${h.campaign.witness}`);gainXp(h,15);return true}
 export function collectClue(h){if(h.location.townId!==0||h.campaign.stage!=='trail')return false;h.campaign.stage='counsel';resolveEntity(h,'clue');gainXp(h,35);h.items.push({id:uid(),type:'quest',name:'Evidence: '+h.campaign.artifact});addLog(h,h.campaign.clue);return true}
@@ -167,7 +191,7 @@ export function discoverRumor(h,source='innkeeper'){
 }
 export function acceptSide(h,id){const q=h.world.quests.find(q=>q.id===id);if(q&&q.state==='offered'){q.state='active';q.progress=Math.min(q.goal,h.world.ledger?.[q.townId+'-'+q.kind]||0);if(q.progress>=q.goal)q.state='ready';addLog(h,'Quest accepted: '+q.title);return true}return false}
 export function progressSide(h,kind){h.world.ledger??={};const key=h.location.townId+'-'+kind;h.world.ledger[key]=(h.world.ledger[key]||0)+1;for(const q of h.world.quests)if(q.state==='active'&&q.kind===kind&&q.townId===h.location.townId){q.progress=Math.min(q.goal,q.progress+1);if(q.progress>=q.goal){q.state='ready';addLog(h,`Quest ready to turn in: ${q.title}. Return to ${q.giver}.`,'quest')}}}
-export function turnIn(h,id){const q=h.world.quests.find(q=>q.id===id);if(!q||q.state!=='ready'||!['town','interior'].includes(h.location.type)||q.townId!==h.location.townId)return false;q.state='complete';gainGold(h,q.reward);gainXp(h,50);h.relationships[q.giver]=(h.relationships[q.giver]||0)+15;h.items.push({id:uid(),type:'potion',name:'Healing Draught',qty:1});addLog(h,`${q.title} completed. ${q.giver} will remember your help.`,'quest');return true}
+export function turnIn(h,id){const q=h.world.quests.find(q=>q.id===id);if(!q||q.state!=='ready'||!['town','interior','realm'].includes(h.location.type)||q.townId!==h.location.townId)return false;q.state='complete';gainGold(h,q.reward);gainXp(h,50);h.relationships[q.giver]=(h.relationships[q.giver]||0)+15;h.items.push({id:uid(),type:'potion',name:'Healing Draught',qty:1});addLog(h,`${q.title} completed. ${q.giver} will remember your help.`,'quest');return true}
 export function loot(h,boss=false,rng=Math.random){const type=pick(['weapon','armor','trinket'],rng),tier=clamp(Math.floor((h.level+(boss?3:0)+rng()*3)/3),0,4),names={weapon:['Veilsteel Blade','Thornwood Recurve','Ashen Halberd','Starfall Scepter'],armor:['Lanternwarden Coat','Hollowguard Mail','Briarwoven Mantle','Moon-silver Cuirass'],trinket:['Ossuary Ring','Starseed Amulet','Mothwing Charm','Glass Hour Pendant']};const item={id:uid(),type,name:QUALITY[tier]+' '+pick(names[type],rng),power:3+h.level*2+tier*2+(boss?3:0),quality:tier};h.items.push(item);return item}
 export function equip(h,id){const i=h.items.findIndex(i=>i.id===id);if(i<0)return false;const item=h.items[i];if(!['weapon','armor','trinket'].includes(item.type))return false;h.items.splice(i,1);const prev=h.equipment[item.type];if(prev)h.items.push(prev);h.equipment[item.type]=item;addLog(h,'Equipped '+item.name+'.','gear');return true}
 export function useItem(h,type){const i=h.items.findIndex(i=>i.type===type&&i.qty>0);if(i<0)return false;if(type==='potion'&&h.hp>=maxHp(h)||type==='mana'&&h.mp>=maxMp(h))return false;if(type==='potion')h.hp=Math.min(maxHp(h),h.hp+22+Math.floor(h.level/2));else if(type==='mana')h.mp=Math.min(maxMp(h),h.mp+16);else return false;h.items[i].qty--;if(h.items[i].qty<=0)h.items.splice(i,1);return true}
@@ -212,11 +236,14 @@ export function migrateLegacy(old){if(!old||old.version!==1||!old.name)return nu
 export function validateHero(h){
  if(!h||h.schema!==SCHEMA||typeof h.id!=='string'||!h.id||typeof h.name!=='string'||h.name.length>32||!CLASSES.some(c=>c.id===h.classId)||!RACES.some(r=>r.id===h.raceId)||!ORIGINS.some(o=>o.id===h.originId))return false;
  if(!['level','xp','gold','hp','mp','talentPoints','completed'].every(k=>Number.isFinite(h[k])&&h[k]>=0)||h.level<1||h.level>1000||h.items?.length>500||!Array.isArray(h.items)||!Array.isArray(h.talents)||!Array.isArray(h.history)||!Array.isArray(h.legacy)||!h.equipment?.weapon||!h.equipment?.armor||!h.factions||!h.relationships||!h.world||!h.campaign||!h.location||!h.position)return false;
- if(!Array.isArray(h.world.towns)||![3,REGION_COUNT].includes(h.world.towns.length)||!Array.isArray(h.world.quests)||!h.world.visits||!Array.isArray(h.world.discovered)||!['town','wilds','dungeon','interior'].includes(h.location.type)||h.location.type==='interior'&&!BUILDINGS.some(b=>b.id===h.location.room)||!Number.isInteger(h.location.townId)||h.location.townId<0||h.location.townId>=h.world.towns.length||!Number.isFinite(h.position.x)||!Number.isFinite(h.position.z))return false;
+ if(!Array.isArray(h.world.towns)||![3,REGION_COUNT].includes(h.world.towns.length)||!Array.isArray(h.world.quests)||!h.world.visits||!Array.isArray(h.world.discovered)||!['town','wilds','realm','dungeon','interior'].includes(h.location.type)||h.location.type==='interior'&&!(BUILDINGS.some(b=>b.id===h.location.room)||h.location.room==='home'&&Number.isInteger(h.location.homeId)&&h.location.homeId>=0&&h.location.homeId<20)||!Number.isInteger(h.location.townId)||h.location.townId<0||h.location.townId>=h.world.towns.length||!Number.isFinite(h.position.x)||!Number.isFinite(h.position.z))return false;
  if(!['arrival','trail','counsel','descent','heart','complete'].includes(h.campaign.stage)||!h.campaign.flags||!Array.isArray(h.campaign.decisions))return false;
  if(!['title','artifact','enemy','witness','clue','revelation','demand','preserve','destroy','bind'].every(k=>typeof h.campaign[k]==='string'&&h.campaign[k].length<5000))return false;
  if(!h.world.towns.every(t=>typeof t.name==='string'&&t.npcs&&t.dungeon?.grid?.length===17&&t.dungeon.grid.every(row=>Array.isArray(row)&&row.length===17&&row.every(v=>v===0||v===1))&&Array.isArray(t.dungeon.entities)&&t.dungeon.end?.length===2))return false;
  if(!h.items.every(i=>i&&typeof i.id==='string'&&typeof i.name==='string'&&['weapon','armor','trinket','potion','mana','quest'].includes(i.type)))return false;
+ if(h.location.type==='realm'&&!['town','wilds'].includes(h.location.area))return false;
+ if(h.world.openWorld!==undefined&&typeof h.world.openWorld!=='boolean')return false;
+ if(h.world.realmReturn&&(!Number.isInteger(h.world.realmReturn.townId)||h.world.realmReturn.townId<0||h.world.realmReturn.townId>=h.world.towns.length||!Number.isFinite(h.world.realmReturn.position?.x)||!Number.isFinite(h.world.realmReturn.position?.z)))return false;
  const str=(s,n=200)=>typeof s==='string'&&s.length<=n;
  if(h.world.outcomes!==undefined&&(!h.world.outcomes||typeof h.world.outcomes!=='object'||Array.isArray(h.world.outcomes)||!Object.entries(h.world.outcomes).every(([key,o])=>str(key,100)&&o&&str(o.choice,100)&&['town','scholars','veil','none'].includes(o.faction)&&typeof o.success==='boolean')))return false;
  const validItem=i=>!!i&&str(i.id,100)&&str(i.name,200)&&(['weapon','armor','trinket'].includes(i.type)?Number.isFinite(i.power)&&i.power>=0&&i.power<=100000:['potion','mana'].includes(i.type)?Number.isFinite(i.qty)&&i.qty>0&&i.qty<=9999:i.type==='quest');
