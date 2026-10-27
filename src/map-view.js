@@ -10,12 +10,13 @@ export function mapBounds(h,scope='local'){
 }
 export function drawAtlas(ctx,h,scope='local'){
  const w=ctx.canvas.width,bounds=mapBounds(h,scope),project=(x,z)=>[(x-bounds.x)/bounds.size*w,(z-bounds.z)/bounds.size*w],k=w/bounds.size,target=trackedTarget(h);
+ const displayWidth=ctx.canvas.getBoundingClientRect?.().width||480,labelSize=Math.round(w/Math.max(320,displayWidth)*11);
  ctx.clearRect(0,0,w,w);ctx.fillStyle='#d4c59f';ctx.fillRect(0,0,w,w);ctx.save();
  const line=(points,color,width,dash=[])=>{ctx.strokeStyle=color;ctx.lineWidth=width;ctx.setLineDash(dash);ctx.beginPath();points.forEach((p,i)=>{const[x,y]=project(p.x,p.z);if(i)ctx.lineTo(x,y);else ctx.moveTo(x,y)});ctx.stroke();ctx.setLineDash([])};
  const pin=(p,label,color='#f4d783',size=8)=>{
   const [x,y]=project(p.x,p.z);if(!visible(x,y,w))return;
   ctx.fillStyle=color;ctx.strokeStyle='#172829';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x,y-size);ctx.lineTo(x+size,y);ctx.lineTo(x,y+size);ctx.lineTo(x-size,y);ctx.closePath();ctx.fill();ctx.stroke();
-  if(label){ctx.font='19px Georgia';ctx.textAlign='center';ctx.lineWidth=5;ctx.strokeText(label,x,y+size+24);ctx.fillStyle=color;ctx.fillText(label,x,y+size+24)}
+  if(label){ctx.font=labelSize+'px Georgia';ctx.textAlign='center';ctx.lineWidth=5;ctx.strokeText(label,x,y+size+labelSize+4);ctx.fillStyle=color;ctx.fillText(label,x,y+size+24)}
  };
  if(scope==='dungeon'){
   ctx.fillStyle='#15282b';ctx.fillRect(0,0,w,w);const dungeon=h.world.towns[h.location.townId].dungeon,cell=w/17;
@@ -48,7 +49,7 @@ export function drawAtlas(ctx,h,scope='local'){
   x=Math.max(18,Math.min(w-18,x));y=Math.max(18,Math.min(w-18,y));ctx.strokeStyle='#ffe2a0';ctx.lineWidth=4;ctx.beginPath();ctx.arc(x,y,21,0,Math.PI*2);ctx.stroke();
  }
  const position=scope==='dungeon'||h.location.type==='realm'?h.position:h.world.realmReturn?.position||centerOf(h.location.townId);
- const[x,y]=project(position.x,position.z);if(visible(x,y,w)){ctx.save();ctx.translate(x,y);ctx.rotate(-(h.position.yaw||0));ctx.fillStyle='#fff9dc';ctx.strokeStyle='#1b363b';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,14);ctx.lineTo(-10,-10);ctx.lineTo(10,-10);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();ctx.font='18px system-ui';ctx.fillStyle='#fff9dc';ctx.textAlign='left';ctx.fillText('You',x+17,y+6)}
+ const[x,y]=project(position.x,position.z);if(visible(x,y,w)){ctx.save();ctx.translate(x,y);ctx.rotate(-(h.position.yaw||0));ctx.fillStyle='#fff9dc';ctx.strokeStyle='#1b363b';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,14);ctx.lineTo(-10,-10);ctx.lineTo(10,-10);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();ctx.font=labelSize+'px system-ui';ctx.fillStyle='#fff9dc';ctx.textAlign='left';ctx.fillText('You',x+17,y+6)}
  ctx.restore();ctx.fillStyle='#f2e1b2';ctx.strokeStyle='#203535';ctx.font='bold 22px Georgia';ctx.textAlign='right';ctx.lineWidth=4;ctx.strokeText('N ↑',w-24,34);ctx.fillText('N ↑',w-24,34);
  ctx.font='18px system-ui';ctx.textAlign='left';const length=scope==='world'?500:scope==='dungeon'?8:scope==='town'?25:100;ctx.strokeStyle='#eadab5';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(25,w-35);ctx.lineTo(25+length*k,w-35);ctx.stroke();ctx.fillText(length+' m',25,w-48);
 }
