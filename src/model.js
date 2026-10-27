@@ -1,4 +1,7 @@
-import {CLASSES,RACES,ORIGINS,MOTIFS,ENEMIES,SETTLEMENT_PREFIX,SETTLEMENT_SUFFIX,NPC_FIRST,NPC_LAST,QUALITY} from './content.js';
+import {CLASSES,RACES,ORIGINS,MOTIFS,ENEMIES,SETTLEMENT_PREFIX,SETTLEMENT_SUFFIX,NPC_FIRST,NPC_LAST,QUALITY} from './content.js?v=5';
+import {appearanceOf,APPEARANCE_OPTIONS} from './appearance.js?v=5';
+import {REGION_COUNT,regionOf,roadLinks,frontierSites,siteKey,surveyState} from './frontier.js?v=5';
+import {populationFor} from './population.js?v=5';
 
 export const SCHEMA=4;
 export const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
@@ -33,7 +36,7 @@ export function tradePrice(h,base,role='smith',name=''){
 }
 export function check(h,stat,dc,rng=Math.random){const roll=1+Math.floor(rng()*20),bonus=(stats(h)[stat]||0)+(effects(h).checks||0)+(h.raceId==='fae'?1:0);return{roll,bonus,total:roll+bonus,dc,success:roll===20||(roll!==1&&roll+bonus>=dc)}}
 export function makeHero(draft,seed=randomSeed()){
- const h={schema:SCHEMA,id:uid(),name:String(draft.name||'Wanderer').trim().slice(0,32)||'Wanderer',classId:CLASSES.some(c=>c.id===draft.classId)?draft.classId:'ranger',raceId:RACES.some(r=>r.id===draft.raceId)?draft.raceId:'human',originId:ORIGINS.some(o=>o.id===draft.originId)?draft.originId:'wanderer',omen:String(draft.omen||'Your shadow sometimes moves without you.').slice(0,200),backstory:String(draft.backstory||'').slice(0,600),pronouns:draft.pronouns||'she/her',portrait:clamp(Number(draft.portrait)||0,0,7),hair:draft.hair||'#382b24',outfit:draft.outfit||'#49675c',skin:draft.skin||'#be9478',level:1,xp:0,talentPoints:(draft.raceId==='human'?3:2),talents:[],gold:75,hp:1,mp:1,boons:{},items:[],equipment:{},history:[],legacy:[],completed:0,kills:0,playSeconds:0,createdAt:Date.now(),updatedAt:Date.now(),relationships:{},factions:{town:0,scholars:0,veil:0},settings:{},combat:null};
+ const h={schema:SCHEMA,id:uid(),name:String(draft.name||'Wanderer').trim().slice(0,32)||'Wanderer',classId:CLASSES.some(c=>c.id===draft.classId)?draft.classId:'ranger',raceId:RACES.some(r=>r.id===draft.raceId)?draft.raceId:'human',originId:ORIGINS.some(o=>o.id===draft.originId)?draft.originId:'wanderer',omen:String(draft.omen||'Your shadow sometimes moves without you.').slice(0,200),backstory:String(draft.backstory||'').slice(0,600),portrait:clamp(Number(draft.portrait)||0,0,7),...appearanceOf(draft),level:1,xp:0,talentPoints:(draft.raceId==='human'?3:2),talents:[],gold:75,hp:1,mp:1,boons:{},items:[],equipment:{},history:[],legacy:[],completed:0,kills:0,playSeconds:0,createdAt:Date.now(),updatedAt:Date.now(),relationships:{},factions:{town:0,scholars:0,veil:0},settings:{},combat:null};
  h.equipment={weapon:{id:uid(),name:classOf(h).weapon,type:'weapon',power:3,quality:0},armor:{id:uid(),name:'Traveler’s Attire',type:'armor',power:1,quality:0}};
  h.items=[{id:uid(),name:'Healing Draught',type:'potion',qty:4},{id:uid(),name:'Moonwater',type:'mana',qty:2}];h.hp=maxHp(h);h.mp=maxMp(h);newCampaign(h,seed);return h;
 }
@@ -56,7 +59,19 @@ export function newCampaign(h,seed=randomSeed()){
  const names=new Set(),npcNames=new Set();const climates=['green','autumn','mist'],climateOffset=Math.floor(r()*3);const towns=[];for(let i=0;i<3;i++){let name;do{name=pick(SETTLEMENT_PREFIX,r)+pick(SETTLEMENT_SUFFIX,r)}while(names.has(name));names.add(name);const npcs={};for(const role of['innkeeper','smith','scholar','warden','healer','witness','stranger']){let npcName;do{npcName=pick(NPC_FIRST,r)+' '+pick(NPC_LAST,r)}while(npcNames.has(npcName));npcNames.add(npcName);npcs[role]={id:`${i}-${role}`,name:npcName,role,portrait:Math.floor(r()*8)}};towns.push({id:i,name,seed:Math.floor(r()*1e9),climate:climates[(i+climateOffset)%3],npcs,description:['A river village caught between the old woods and an older secret.','Amber leaves gather around a hilltop settlement of miners and itinerant scholars.','A trading town at the edge of a marsh where the lanterns never go out.'][(i+climateOffset)%3],dungeon:generateDungeon(Math.floor(r()*1e9))})}
  h.campaign={...motif,id:uid(),number:h.completed+1,motifId:motif.id,stage:'arrival',flags:{},decisions:[],ai:false,startedAt:Date.now(),ending:null};
  h.world={seed,towns,day:1,hour:17,visits:{},rumors:[],quests:[],events:[],claimed:[],ledger:{},discovered:['town-0'],weather:pick(['clear','mist','rain'],r)};h.location={type:'town',townId:0};h.position={x:0,z:20,yaw:Math.PI};h.combat=null;
- addLog(h,`A new adventure: ${motif.title}. You arrive in ${towns[0].name}. ${h.omen}`);return h.campaign;
+ upgradeHero(h);addLog(h,`A new adventure: ${motif.title}. You arrive in ${towns[0].name}. ${h.omen}`);return h.campaign;
+}
+export function upgradeHero(h){
+ Object.assign(h,appearanceOf(h));delete h.pronouns;
+ if(h.world.towns.length===3){const r=seeded(h.world.seed^0x61b9a203),names=new Set(h.world.towns.map(t=>t.name));for(let id=3;id<REGION_COUNT;id++){let name;do{name=pick(SETTLEMENT_PREFIX,r)+pick(SETTLEMENT_SUFFIX,r)}while(names.has(name));names.add(name);const npcs={};for(const role of['innkeeper','smith','scholar','warden','healer','witness','stranger'])npcs[role]={id:`${id}-${role}`,name:pick(NPC_FIRST,r)+' '+pick(NPC_LAST,r),role,portrait:Math.floor(r()*8)};const region=regionOf({id});h.world.towns.push({id,name,seed:Math.floor(r()*1e9),climate:region.climate,npcs,description:region.detail,dungeon:generateDungeon(Math.floor(r()*1e9))})}}
+ h.world.expansion=1;h.world.exploration??={sites:[],rewards:[]};return h;
+}
+export function surveyLandmark(h,id,method='study',rng=Math.random){
+ const site=h.location.type==='wilds'&&frontierSites(townOf(h)).find(s=>s.id===id);if(!site)return{ok:false,text:'Find this place in the wilderness first.'};const key=siteKey(h,id);h.world.exploration??={sites:[],rewards:[]};if(h.world.exploration.sites.includes(key))return{ok:false,text:'Your journal already records what you found here.'};if(!['study','restore','salvage'].includes(method))return{ok:false,text:'Choose how to approach the site.'};if(method==='restore'&&h.gold<12)return{ok:false,text:'You need 12 gold in supplies.'};
+ const roll=method==='study'?check(h,site.stat,11,rng):null,success=!roll||roll.success;h.world.exploration.sites.push(key);gainXp(h,success?28:12);let text=success?'You uncover the site’s story and add it to your survey.':'The site keeps its deepest secret. Your survey still records a safe route here.';let item=null;
+ if(method==='restore'){h.gold-=12;h.factions.town++;h.hp=Math.min(maxHp(h),h.hp+8);text+=' You repair the ward and leave supplies. The townsfolk will hear of it.'}
+ if(success){gainGold(h,method==='salvage'?24:12);if(['tower','mine','ruin','bridge'].includes(site.kind)){const visual={tower:'spear',mine:'axe',ruin:'staff',bridge:'dagger'}[site.kind];item={id:uid(),type:'weapon',name:{tower:'Watchkeeper’s Spear',mine:'Quarryman’s Veilsteel Axe',ruin:'Astronomer’s Moonstaff',bridge:'Ferryman’s Dagger'}[site.kind],visual,power:5+h.level*2,quality:1};h.items.push(item)}else if(site.kind==='camp'||site.kind==='stones'){item={id:uid(),type:'armor',name:site.kind==='camp'?'Wayfarer’s Leather Armor':'Circlekeeper’s Mantle',visual:site.kind==='camp'?'leather':'cloth',power:3+h.level,quality:1};h.items.push(item)}else h.items.push({id:uid(),type:'potion',name:'Healing Draught',qty:1});if(item)text+=' Recovered '+item.name+'. Equip it from your satchel.'}
+ const survey=surveyState(h);if(survey.done===survey.total&&!survey.claimed){h.world.exploration.rewards.push(h.location.townId);gainGold(h,120);gainXp(h,80);text+=' Region surveyed: +120 gold and +80 XP.'}if(roll)text+=` D20 ${roll.roll} + ${roll.bonus} against ${roll.dc}.`;addLog(h,site.name+': '+text,'discovery');return{ok:true,text,item,success};
 }
 export function locationName(h){const t=townOf(h);return h.location.type==='interior'?buildingOf(h)?.name||t.name:h.location.type==='town'?t.name:h.location.type==='wilds'?`The ${t.name} Road`:`${t.name} Undercrypt`}
 export function objective(h){const t=h.world.towns[0],c=h.campaign;if(h.combat)return'Defeat your foe or find a way out.';if(c.stage==='arrival')return`Speak with ${t.npcs.witness.name} in ${t.name}’s square.`;if(c.stage==='trail')return`Investigate the strange remains on the road outside ${t.name}.`;if(c.stage==='counsel')return`Bring the evidence to ${t.npcs.scholar.name} at ${t.name}’s archive.`;if(c.stage==='descent')return`Enter the undercrypt outside ${t.name}. Find ${c.enemy}.`;if(c.stage==='heart')return`Return to the final chamber and decide the fate of ${c.artifact}.`;return'Your adventure is complete. Explore, or set out on a new story.'}
@@ -109,7 +124,7 @@ export function entitiesFor(h){
   const places=[['innkeeper',-8.5,11,'The Wayfarer’s Rest'],['smith',8.5,7,'The Ember & Anvil'],['scholar',-8.5,-9,'The Lantern Archive'],['healer',8.5,-12,'The Stillwater Apothecary'],['warden',2,-25,'The Watch Chapel'],['witness',-3,1,'The village square'],['stranger',5,13,'A passing traveler']];
   a=places.filter(([role])=>['witness','stranger'].includes(role)).map(([role,x,z,building])=>({id:role,type:'npc',...town.npcs[role],x,z,building,marker:h.location.townId===0&&h.campaign.stage==='arrival'&&role==='witness'?'main':null}));
   a.push(...BUILDINGS.map(b=>({...b,id:'door-'+b.id,room:b.id,type:'door',name:'Enter '+b.name,marker:h.location.townId===0&&h.campaign.stage==='counsel'&&b.id==='archive'?'main':b.id==='inn'?'rumor':null})));
-  a.push({id:'road',type:'travel',name:'The old road',x:0,z:34},{id:'board',type:'board',name:'Notice board',x:7,z:1});
+  a.push({id:'road',type:'travel',name:'The old road',x:0,z:34},{id:'board',type:'board',name:'Notice board',x:7,z:1},...populationFor(town));
  }else if(type==='interior'){
   const b=buildingOf(h);a=[{...town.npcs[b.role],type:'npc',x:b.id==='smith'?3:0,z:-3.8,building:b.name,marker:h.location.townId===0&&b.id==='archive'&&h.campaign.stage==='counsel'?'main':null},{id:'outside',type:'exit',name:'Step outside to '+town.name,x:0,z:6.2},{id:'room-detail',type:'detail',name:{inn:'The fireside guestbook',smith:'The master’s workbench',archive:'A book of forgotten paths',apothecary:'The silverleaf journal',chapel:'The altar of names'}[b.id],x:-4,z:-1,room:b.id,marker:'discovery'}];
  }else if(type==='wilds'){
@@ -120,8 +135,12 @@ export function entitiesFor(h){
    a=a.filter(e=>e.type!=='boss');a.push({id:'artifact',type:'artifact',name:h.campaign.artifact,x:town.dungeon.end[0]*4+2,z:town.dungeon.end[1]*4+2,marker:h.campaign.stage==='heart'?'main':null});
   }
  }
+ if(type==='wilds'){
+  a.push(...frontierSites(town).map(s=>({...s,marker:h.world.exploration?.sites.includes(siteKey(h,s.id))?null:'discovery'})),...roadLinks(town.id,h.world.towns.length).map(l=>({...l,id:'route-'+l.to,type:'route',name:l.direction+' road to '+h.world.towns[l.to].name,marker:'route'})));
+  for(const[i,site]of frontierSites(town).entries()){a.push({id:'frontier-cache-'+i,type:i%3===0?'herbs':'chest',name:i%3===0?'Wild silverleaf':'Hidden supply cache',x:site.x+5,z:site.z+4});if(i%2===0)a.push({id:'frontier-enemy-'+i,type:'enemy',kind:i%4===0?'bandit':'wolf',name:i%4===0?'Road Reaver':'Gloom Hound',x:site.x-6,z:site.z+6})}
+ }
  if(type==='town'||type==='wilds'){const encounter=encounterFor(h);if(encounter)a.push(encounter)}
- return a.filter(e=>!v.resolved.includes(e.id)||['exit','npc','gate','travel','board','door'].includes(e.type));
+ return a.filter(e=>!v.resolved.includes(e.id)||['exit','npc','gate','travel','board','door','landmark','route'].includes(e.type));
 }
 export function changeLocation(h,type,townId=h.location.townId,room){
  if(!['town','wilds','dungeon','interior'].includes(type)||!h.world.towns[townId])throw Error('Unknown location');
@@ -193,7 +212,7 @@ export function migrateLegacy(old){if(!old||old.version!==1||!old.name)return nu
 export function validateHero(h){
  if(!h||h.schema!==SCHEMA||typeof h.id!=='string'||!h.id||typeof h.name!=='string'||h.name.length>32||!CLASSES.some(c=>c.id===h.classId)||!RACES.some(r=>r.id===h.raceId)||!ORIGINS.some(o=>o.id===h.originId))return false;
  if(!['level','xp','gold','hp','mp','talentPoints','completed'].every(k=>Number.isFinite(h[k])&&h[k]>=0)||h.level<1||h.level>1000||h.items?.length>500||!Array.isArray(h.items)||!Array.isArray(h.talents)||!Array.isArray(h.history)||!Array.isArray(h.legacy)||!h.equipment?.weapon||!h.equipment?.armor||!h.factions||!h.relationships||!h.world||!h.campaign||!h.location||!h.position)return false;
- if(!Array.isArray(h.world.towns)||h.world.towns.length!==3||!Array.isArray(h.world.quests)||!h.world.visits||!Array.isArray(h.world.discovered)||!['town','wilds','dungeon','interior'].includes(h.location.type)||h.location.type==='interior'&&!BUILDINGS.some(b=>b.id===h.location.room)||!Number.isInteger(h.location.townId)||h.location.townId<0||h.location.townId>2||!Number.isFinite(h.position.x)||!Number.isFinite(h.position.z))return false;
+ if(!Array.isArray(h.world.towns)||![3,REGION_COUNT].includes(h.world.towns.length)||!Array.isArray(h.world.quests)||!h.world.visits||!Array.isArray(h.world.discovered)||!['town','wilds','dungeon','interior'].includes(h.location.type)||h.location.type==='interior'&&!BUILDINGS.some(b=>b.id===h.location.room)||!Number.isInteger(h.location.townId)||h.location.townId<0||h.location.townId>=h.world.towns.length||!Number.isFinite(h.position.x)||!Number.isFinite(h.position.z))return false;
  if(!['arrival','trail','counsel','descent','heart','complete'].includes(h.campaign.stage)||!h.campaign.flags||!Array.isArray(h.campaign.decisions))return false;
  if(!['title','artifact','enemy','witness','clue','revelation','demand','preserve','destroy','bind'].every(k=>typeof h.campaign[k]==='string'&&h.campaign[k].length<5000))return false;
  if(!h.world.towns.every(t=>typeof t.name==='string'&&t.npcs&&t.dungeon?.grid?.length===17&&t.dungeon.grid.every(row=>Array.isArray(row)&&row.length===17&&row.every(v=>v===0||v===1))&&Array.isArray(t.dungeon.entities)&&t.dungeon.end?.length===2))return false;
@@ -201,6 +220,8 @@ export function validateHero(h){
  const str=(s,n=200)=>typeof s==='string'&&s.length<=n;
  if(h.world.outcomes!==undefined&&(!h.world.outcomes||typeof h.world.outcomes!=='object'||Array.isArray(h.world.outcomes)||!Object.entries(h.world.outcomes).every(([key,o])=>str(key,100)&&o&&str(o.choice,100)&&['town','scholars','veil','none'].includes(o.faction)&&typeof o.success==='boolean')))return false;
  const validItem=i=>!!i&&str(i.id,100)&&str(i.name,200)&&(['weapon','armor','trinket'].includes(i.type)?Number.isFinite(i.power)&&i.power>=0&&i.power<=100000:['potion','mana'].includes(i.type)?Number.isFinite(i.qty)&&i.qty>0&&i.qty<=9999:i.type==='quest');
+ if(Object.entries(APPEARANCE_OPTIONS).some(([key,values])=>h[key]!==undefined&&!values.some(([id])=>id===h[key])))return false;
+ if(h.world.exploration!==undefined&&(!h.world.exploration||!Array.isArray(h.world.exploration.sites)||!Array.isArray(h.world.exploration.rewards)||!h.world.exploration.sites.every(v=>typeof v==='string'&&/^[0-8]:site-[0-7]$/.test(v))||new Set(h.world.exploration.sites).size!==h.world.exploration.sites.length||!h.world.exploration.rewards.every(v=>Number.isInteger(v)&&v>=0&&v<REGION_COUNT)))return false;
  if(!h.items.every(validItem)||!Object.entries(h.equipment).every(([slot,i])=>['weapon','armor','trinket'].includes(slot)&&validItem(i)&&i.type===slot))return false;
  if(!h.history.every(e=>e&&str(e.id,100)&&str(e.text,2000)&&Number.isFinite(e.day))||!h.legacy.every(e=>e&&str(e.title,150)&&str(e.text,5000)&&Array.isArray(e.decisions)))return false;
  if(!h.world.towns.every((t,i)=>t.id===i&&Number.isFinite(t.seed)&&['innkeeper','smith','scholar','warden','healer','witness','stranger'].every(role=>t.npcs[role]&&str(t.npcs[role].name,100))&&t.dungeon.entities.every(e=>e&&str(e.id,100)&&str(e.type,50)&&Number.isFinite(e.x)&&Number.isFinite(e.z))))return false;
@@ -210,3 +231,4 @@ export function validateHero(h){
  if(h.combat&&(!Array.isArray(h.combat.intents)||!Number.isFinite(h.combat.hp)||!Number.isFinite(h.combat.attack)||typeof h.combat.id!=='string'))return false;
  return true;
 }
+

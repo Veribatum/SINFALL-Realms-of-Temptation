@@ -1,3 +1,13 @@
+# Living Realms 1.2 verification
+
+Automated checks: `npm test` and `npm run check`.
+
+The update adds coverage for nine-region bidirectional connectivity; old three-town save migration with identity, campaign, items and visits preserved; persistent survey progress and one-time regional rewards; equipment swapping on all four actual GLB skeletons; varied deterministic NPC profiles; every interaction coordinate in all nine town/wilderness scenes; straight walkable paths to all eight landmarks in each wilderness; finite geometry; and audio mode/settings persistence.
+
+Browser checks use the managed preview through character creation, Male/Female selection, appearance options, a created hero, the nine-region atlas, travel, landmark salvage, equipping recovered gear, the character editor, save/reload and sound settings. The cloud browser cannot create a WebGL context. GPU rendering, actual on-device frame rate and iPhone playback are therefore unverified. Model geometry, skeleton attachments and animation are checked directly against all four committed GLBs. Audio is synthesized locally after a user gesture; no external audio service is required.
+
+---
+
 # Rebuild verification · 2026-10-26
 
 The player story is: create a separate hero → investigate a village mystery → gather evidence on the road → choose an alliance → enter a connected undercrypt → fight the guardian → choose an ending → begin a different campaign with the same stronger character.
@@ -47,3 +57,4 @@ The managed browser reports `GL_VENDOR = Disabled` and `GL_RENDERER = Disabled`;
 Live ChatGPT consent and inference were not performed with the user’s account. OAuth identity checks and response-stream handling were tested with local fixtures; actual eligibility, sign-in, token refresh against OpenAI, account model discovery, and in-game inference still require a connected eligible account in the local edition. The public browser edition remains procedural unless an AI-written story pack is imported.
 
 The earlier repository state is preserved on `archive/before-living-realms-overhaul`.
+

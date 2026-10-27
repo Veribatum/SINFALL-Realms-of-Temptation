@@ -1,4 +1,4 @@
-import {SCHEMA,validateHero,migrateLegacy,uid} from './model.js';
+import {SCHEMA,validateHero,migrateLegacy,uid,upgradeHero} from './model.js?v=5';
 const KEY='sinfall-realms-v4',BACKUP=KEY+'-recovery';
 let failure=null;
 const fresh=()=>({schema:SCHEMA,lastId:null,heroes:[],checkpoints:{}});
@@ -16,14 +16,14 @@ function writeBook(b){
 }
 export function saveHero(h,{checkpoint=false}={}){
  if(!validateHero(h)){failure='The hero failed validation; the previous save was kept.';return false}
- const b=readBook();h.updatedAt=Date.now();const index=b.heroes.findIndex(v=>v.id===h.id);const copy=structuredClone(h);
+ upgradeHero(h);const b=readBook();h.updatedAt=Date.now();const index=b.heroes.findIndex(v=>v.id===h.id);const copy=structuredClone(h);
  if(index<0)b.heroes.push(copy);else b.heroes[index]=copy;b.lastId=h.id;
  if(checkpoint){const saves=b.checkpoints[h.id]||[];saves.unshift({id:uid(),at:Date.now(),hero:copy});b.checkpoints[h.id]=saves.slice(0,3)}
  return writeBook(b);
 }
 export function listHeroes(){return readBook().heroes.slice().sort((a,b)=>b.updatedAt-a.updatedAt)}
 export function lastHero(){const b=readBook();return b.heroes.find(h=>h.id===b.lastId)||b.heroes[0]||null}
-export function loadHero(id){const h=readBook().heroes.find(h=>h.id===id);return validateHero(h)?structuredClone(h):null}
+export function loadHero(id){const h=readBook().heroes.find(h=>h.id===id);return validateHero(h)?upgradeHero(structuredClone(h)):null}
 export function checkpoints(id){return readBook().checkpoints[id]||[]}
 export function deleteHero(id){const b=readBook();b.heroes=b.heroes.filter(h=>h.id!==id);delete b.checkpoints[id];if(b.lastId===id)b.lastId=b.heroes[0]?.id||null;return writeBook(b)}
 export function migrateOldSave(){
@@ -37,6 +37,7 @@ export function importSave(text){
  const candidates=data.format==='sinfall-collection'?data.heroes:[data.hero||data];
  if(!Array.isArray(candidates)||!candidates.length||candidates.length>100)throw Error('No supported heroes found.');
  const heroes=candidates.map(raw=>raw?.schema===SCHEMA?raw:migrateLegacy(raw));if(!heroes.every(validateHero))throw Error('The file is not a complete SINFALL hero save. Your saves were kept.');
- const b=readBook();for(const h of heroes){const index=b.heroes.findIndex(v=>v.id===h.id);if(index>=0){h.id=uid();h.name=h.name.slice(0,25)+' · copy'}h.updatedAt=Date.now();b.heroes.push(h);b.lastId=h.id}if(!writeBook(b))throw Error(failure);return heroes;
+ const b=readBook();for(const h of heroes){upgradeHero(h);const index=b.heroes.findIndex(v=>v.id===h.id);if(index>=0){h.id=uid();h.name=h.name.slice(0,25)+' · copy'}h.updatedAt=Date.now();b.heroes.push(h);b.lastId=h.id}if(!writeBook(b))throw Error(failure);return heroes;
 }
 export function restoreRecovery(){try{const raw=localStorage.getItem(BACKUP),b=JSON.parse(raw||'null');if(!b?.heroes?.every(validateHero))return false;localStorage.setItem(KEY,raw);failure=null;return true}catch{return false}}
+

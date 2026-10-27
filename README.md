@@ -1,3 +1,18 @@
+# SINFALL · Living Realms 1.2
+
+This update expands the existing RPG while retaining the v4 save collection and hero IDs.
+
+- Gender selector: Male / Female. Body build, height, face, five hairstyles, facial hair, markings, skin, hair, cloth and eye colors. Rotatable 3D preview and an in-game appearance editor.
+- Equipped swords, daggers, bows, axes, hammers, spears, staves and wands attach to animated hand bones. Cloth, leather, mail and plate use different visible armor geometry; trinkets display as amulets. Loot offers **Equip now** or **Keep in satchel**.
+- Nine connected regions, each with a settlement, larger wilderness, eight survey landmarks, supplies, enemies, undercrypt and five furnished interiors. Wilderness bounds expand from 50 × 78 to 290 × 295; town bounds expand from 46 × 83 to 152 × 154. Border signposts connect neighboring regions. Atlas pins mark local trails. Surveying all eight landmarks grants 120 gold and 80 XP once per region.
+- Twelve additional named residents per settlement with a mix of genders, ancestries, appearances and jobs; some follow walking routines. Merchants and tailors trade, and residents give local information.
+- Original procedural music for the menu, towns, wilderness, interiors, dungeons and combat. Wind/bird ambience, walking, doors, equipment, combat, magic, potions, loot and discovery effects. Music, ambience and effects have separate persistent controls. Audio unlocks on the first tap/key press and pauses in the background.
+- Existing three-town saves gain six additional towns when loaded or saved. The original towns, campaign, inventory, level, visits and relationships remain intact. Old appearance fields are migrated to gender and defaults; the save key and schema stay unchanged.
+
+Validation and remaining browser limitations are recorded in `docs/VERIFICATION.md`.
+
+---
+
 # SINFALL · Realms of Temptation
 
 A rebuilt dark fantasy browser RPG about an enduring hero, living settlements, and decisions with a price.
@@ -57,3 +72,4 @@ Official implementation references:
 The entry point is `index.html`, with the rebuilt implementation under `src/`, local ChatGPT support under `server/`, and the graphics dependency under `vendor/`. The older campaign/v3 scripts remain in Git history and the repository but are not loaded by the new entry point.
 
 Third-party dependencies: Three.js r170 and its matching loaders/utilities, MIT; see `vendor/LICENSE-THREE.txt`. Character models: KayKit Adventurers Character Pack 1.0 by Kay Lousberg, CC0; source and license are in `assets/models/CREDITS.md` and `assets/models/LICENSE-KAYKIT.txt`. New artwork was generated for this project using the built-in Image Generation tool and encoded as WebP without changing its dimensions. Asset briefs: a twilight riverside village beneath an eclipsed moon; eight adult fantasy character portraits; four painted enemy portraits; and an impossible sanctuary with an inverted cathedral beyond the Veil.
+
