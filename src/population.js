@@ -1,5 +1,5 @@
-import {NPC_FIRST,NPC_LAST} from './content.js?v=7';
-import {PALETTES} from './appearance.js?v=7';
+import {NPC_FIRST,NPC_LAST} from './content.js?v=8';
+import {PALETTES,townWardrobe} from './appearance.js?v=8';
 const ROLES=[
  ['merchant','Market stalls',-13,29,'“A little of everything, if you have coin. I trade with every settlement on these roads.”'],
  ['farmer','South fields',-48,45,'“Frost, wolves, taxes. At least the turnips don’t argue. The old farm out on the road has been empty too long.”'],
@@ -16,5 +16,5 @@ const ROLES=[
 ];
 export function populationFor(town){return ROLES.map(([role,building,x,z,greeting],i)=>{
  const n=(town.seed+i*347)>>>0,gender=i%2?'female':'male',raceId=['human','dwarf','elf','human','beastkin','human','duskborn','fae','human','elf','dwarf','exile'][i];
- return{id:'resident-'+i,type:'npc',name:NPC_FIRST[n%NPC_FIRST.length]+' '+NPC_LAST[(n>>>6)%NPC_LAST.length],role,building,x,z,greeting,portrait:(gender==='male'?4:0)+i%4,appearance:{gender,build:['slender','balanced','broad'][i%3],height:i%4===0?'short':i%4===1?'tall':'average',hairStyle:['short','long','swept','braid','bald'][i%5],face:['soft','angular','round'][i%3],beard:gender==='male'&&i%3===0?'full':'none',marking:i%5===0?'scar':'none',skin:PALETTES.skin[n%6],hair:PALETTES.hair[(n>>>3)%7],outfit:PALETTES.outfit[i%7],eyes:PALETTES.eyes[i%5],raceId},routine:i%3===0?[[x,z],[x+3,z]]:null};
+ return{id:'resident-'+i,type:'npc',name:NPC_FIRST[n%NPC_FIRST.length]+' '+NPC_LAST[(n>>>6)%NPC_LAST.length],role,building,x,z,greeting,portrait:(gender==='male'?4:0)+i%4,appearance:{gender,wardrobe:townWardrobe(gender,role,i+town.id),build:['slender','balanced','broad'][i%3],height:i%4===0?'short':i%4===1?'tall':'average',hairStyle:['short','long','swept','braid','bald'][i%5],face:['soft','angular','round'][i%3],beard:gender==='male'&&i%3===0?'full':'none',marking:i%5===0?'scar':'none',skin:PALETTES.skin[n%6],hair:PALETTES.hair[(n>>>3)%7],outfit:PALETTES.outfit[i%7],eyes:PALETTES.eyes[i%5],raceId},routine:i%3===0?[[x,z],[x+3,z]]:null};
 })}

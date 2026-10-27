@@ -1,9 +1,9 @@
 import * as T from '../vendor/three.module.js';
 import {GLTFLoader} from '../vendor/GLTFLoader.js';
 import {clone} from '../vendor/SkeletonUtils.js';
-import {appearanceOf} from './appearance.js?v=7';
-import {styleActor} from './actor-style.js?v=7';
-import {updateAdultGrip} from './adult-style.js?v=7';
+import {appearanceOf} from './appearance.js?v=8';
+import {styleActor} from './actor-style.js?v=8';
+import {updateAdultGrip} from './adult-style.js?v=8';
 
 const models=new Map();
 const equipment=/^(?:Knife|Throwable|\dH_|Badge_Shield|Rectangle_Shield|Round_Shield|Spike_Shield|Barbarian_Round_Shield|Mug|Spellbook)/;
@@ -15,7 +15,7 @@ export function modelFor(kind){
 }
 export function loadActor(kind,heroOrAppearance){
  const name=heroOrAppearance?'adult-'+appearanceOf(heroOrAppearance).gender:modelFor(kind);
- if(!models.has(name))models.set(name,new GLTFLoader().loadAsync(new URL(`../assets/models/${name}.glb`,import.meta.url).href).catch(error=>{models.delete(name);throw error}));
+ if(!models.has(name))models.set(name,new GLTFLoader().loadAsync(new URL(`../assets/models/${name}.glb?v=8`,import.meta.url).href).catch(error=>{models.delete(name);throw error}));
  return models.get(name);
 }
 export function createActor(source,{race='human',color='#ffffff',skin='#c39c7a',hair='#382b24',kind='citizen',hero=null,appearance=null}={}){

@@ -1,3 +1,15 @@
+# Swept ears and adult outfit variety · 2.0.2 · 2026-10-27
+
+Elf ears now taper backward alongside the skull and follow the animated head. Corsair leathers and Moonveil silk add two fitted adult female wardrobe choices, with cropped bodices, exposed waist and legs, covered bottoms, boots and bracers; Moonveil has a split skirt. These choices are also distributed among female town and household residents. Existing hero appearances and progression remain intact.
+
+The female GLB adds sixteen skinned meshes while retaining the original 65 bones, eleven clips, seven embedded images and original binary data. Added skin uses the authored adult body and weights. All added weights are normalized and joint indices valid; the asset packer rebuilds byte-identically. Only the selected wardrobe is visible. Equipped armor clones the selected bodice and remains on the same bones.
+
+`npm test`: 50 passing tests. `npm run check`: all 38 source/test modules, imports and required assets pass. New regressions cover outfit visibility and animation, fitted armor swaps, swept ear geometry and head attachment, saved appearance, and wardrobe distribution across all nine towns. The browser creator offers six female outfits; changing gender filters compatible choices. Creating a Moonveil hero, switching to Corsair, saving, reloading and continuing retains the selection.
+
+`sinfall-elf-outfits.png` shows the actual integrated, posed models. The software renderer now uses a depth buffer to inspect skirt/leg clearance without triangle-sort artifacts. The browser model harness passes all six GLBs; the updated female asset decodes its five used textures and starts Walking_A with 65 bones and eleven clips. WebGL remains disabled in the managed browser; GPU rendering and device frame rate remain unverified.
+
+---
+
 # Equipment fit correction · 2.0.1 · 2026-10-27
 
 User screenshots exposed two adult-rig issues: the old wrist rotation put the staff sideways at the wrist, and an equipment-name filter left a rigid chest box visible over Traveler’s Attire. The latter also appeared over robes during character creation.

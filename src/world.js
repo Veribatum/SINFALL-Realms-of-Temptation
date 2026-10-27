@@ -1,14 +1,14 @@
 import * as T from '../vendor/three.module.js';
-import {seeded,entitiesFor,locationId,townOf,visitState,objective,syncRealm} from './model.js?v=7';
-import {loadActor,createActor,animateActor,disposeActor} from './actors.js?v=7';
-import {batchScenery,cameraPosition} from './scene-utils.js?v=7';
-import {buildInterior} from './interiors.js?v=7';
-import {appearanceKey} from './appearance.js?v=7';
-import {styleActor} from './actor-style.js?v=7';
-import {BOUNDS,regionOf,frontierSites,roadLinks} from './frontier.js?v=7';
-import {buildFrontier,buildOutskirts} from './landscape.js?v=7';
-import {surfaceHeight,navigable,centerOf} from './atlas.js?v=7';
-import {buildOpenWorld,updateOpenWorld} from './overworld.js?v=7';
+import {seeded,entitiesFor,locationId,townOf,visitState,objective,syncRealm} from './model.js?v=8';
+import {loadActor,createActor,animateActor,disposeActor} from './actors.js?v=8';
+import {batchScenery,cameraPosition} from './scene-utils.js?v=8';
+import {buildInterior} from './interiors.js?v=8';
+import {appearanceKey,townWardrobe} from './appearance.js?v=8';
+import {styleActor} from './actor-style.js?v=8';
+import {BOUNDS,regionOf,frontierSites,roadLinks} from './frontier.js?v=8';
+import {buildFrontier,buildOutskirts} from './landscape.js?v=8';
+import {surfaceHeight,navigable,centerOf} from './atlas.js?v=8';
+import {buildOpenWorld,updateOpenWorld} from './overworld.js?v=8';
 const sceneKey=h=>h.world.seed+':'+(h.location.type==='realm'?'realm':locationId(h));
 
 const TAU=Math.PI*2;
@@ -124,7 +124,7 @@ export class Realm {
  }
  entityModel(e){
   let g=new T.Group();const m=this.m;
-  if(e.type==='npc'){const a=e.appearance||{gender:e.portrait>=4?'male':'female',skin:['#bf9575','#976e51','#d1ad8c'][e.portrait%3],outfit:['#54766d','#806353','#65788d','#8b6b78'][e.portrait%4],hair:e.portrait%2?'#b7b1a0':'#3d3024',hairStyle:['short','long','braid','swept'][e.portrait%4]};g=this.humanoid(a.skin,a.outfit,a.hair,a.raceId||'human',e.role,{appearance:a});this.people.push({g,home:new T.Vector3(e.x,0,e.z),seed:e.portrait,speed:e.routine?.length ? .5 : 0,route:e.routine,waypoint:0,entity:e})}
+  if(e.type==='npc'){const a=e.appearance||{gender:e.portrait>=4?'male':'female',skin:['#bf9575','#976e51','#d1ad8c'][e.portrait%3],outfit:['#54766d','#806353','#65788d','#8b6b78'][e.portrait%4],hair:e.portrait%2?'#b7b1a0':'#3d3024',hairStyle:['cropped','long','braid','swept'][e.portrait%4],wardrobe:townWardrobe(e.portrait>=4?'male':'female',e.role,e.portrait+this.hero.location.townId)};g=this.humanoid(a.skin,a.outfit,a.hair,a.raceId||'human',e.role,{appearance:a});this.people.push({g,home:new T.Vector3(e.x,0,e.z),seed:e.portrait,speed:e.routine?.length ? .5 : 0,route:e.routine,waypoint:0,entity:e})}
   else if(e.type==='encounter'){g=this.humanoid('#b99578','#7d6b82','#39312b','human',e.kind);this.people.push({g,home:new T.Vector3(e.x,0,e.z),seed:3,speed:.75,entity:e,approach:true})}
   else if(e.type==='landmark'||e.type==='route'){this.cylinder(.11,.15,2.6,m.wood,g,1,1.3,0,6);this.box(1.4,.5,.1,m.gold,g,1,2.3,0);this.mesh(new T.RingGeometry(.65,.78,20),this.material('#bbd4b4',{side:T.DoubleSide,transparent:true,opacity:.4}),g,0,.06,0).rotation.x=-Math.PI/2}
   else if(e.type==='door'){const plaque=this.box(1.5,.5,.12,m.wood,g,0,2.8,0);g.rotation.y=e.rotation??(e.x<0?Math.PI/2:e.x>0?-Math.PI/2:0);this.box(1.3,.32,.14,m.gold,g,0,2.8,.02);this.mesh(new T.RingGeometry(.65,.8,24),this.material('#bdd6b0',{side:T.DoubleSide,transparent:true,opacity:.5}),g,0,.07,0).rotation.x=-Math.PI/2}

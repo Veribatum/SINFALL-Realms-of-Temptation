@@ -1,7 +1,7 @@
 import * as T from '../vendor/three.module.js';
-import {styleAdult} from './adult-style.js?v=7';
-import {appearanceOf,weaponStyle,armorStyle} from './appearance.js?v=7';
-import {batchScenery} from './scene-utils.js?v=7';
+import {styleAdult} from './adult-style.js?v=8';
+import {appearanceOf,weaponStyle,armorStyle} from './appearance.js?v=8';
+import {batchScenery} from './scene-utils.js?v=8';
 const bone=(rig,name)=>{let found;rig.traverse(o=>{if(o.isBone&&(o.name.toLowerCase().replace(/[._]/g,'')===name||name==='chest'&&o.name==='spine_03'||name==='handslotr'&&o.name==='hand_r'))found=o});return found};
 const mat=(color,metal=false)=>new T.MeshStandardMaterial({color,roughness:metal?.4:.86,metalness:metal?.65:0});
 function mesh(parent,geometry,material,x=0,y=0,z=0){const o=new T.Mesh(geometry,material);o.position.set(x,y,z);o.castShadow=true;parent.add(o);return o}

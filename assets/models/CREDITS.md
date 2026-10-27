@@ -28,3 +28,20 @@ embeds compressed WebP atlases, and retains eleven named animation clips.
 It adds a fitted female neckline with a covered collar insert and removes
 trouser geometry hidden inside boots. It never includes teen models.
 Rebuild with scripts/asset-tools/pack-adult-characters.py and the source mirror.
+
+## Corsair and Moonveil adult outfits
+
+The female expansion includes two covered adult fantasy outfits, derived from
+the same Quaternius adult Superhero Female body and fitted Ranger/Peasant
+garments under CC0. Authored skin, shoulders, midriff, arms and legs retain
+their original skeletal weights and normals. Cropped bodices, opaque fitted
+bottoms, boots and bracers cover the chest and pelvis; the Moonveil outfit
+adds original open-front skirt panels and trim weighted to the shared rig.
+No teen source assets are used. Existing textures and eleven gameplay clips
+remain embedded in the female GLB.
+
+After the adult-character packer, run
+`python scripts/asset-tools/pack-revealing-outfits.py SOURCE_DIRECTORY`, where
+the source directory contains `Superhero_Female_FullBody.gltf` and its `.bin`
+from the same retained CC0 mirror. This append step is repeatable and preserves
+the original character content.

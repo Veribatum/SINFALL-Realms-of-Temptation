@@ -1,14 +1,14 @@
-import {RACES,CLASSES,ORIGINS,OMENS,STAT_LABELS,LORE} from './content.js?v=7';
-import * as M from './model.js?v=7';
-import * as S from './saves.js?v=7';
-import * as AI from './director.js?v=7';
-import {Realm} from './world.js?v=7';
-import {appearanceOf,APPEARANCE_OPTIONS,PALETTES,weaponStyle,armorStyle} from './appearance.js?v=7';
-import {regionOf,frontierSites,surveyState,roadLinks,siteKey} from './frontier.js?v=7';
-import {CharacterPreview} from './preview.js?v=7';
-import {centerOf,realmSites,worldStats} from './atlas.js?v=7';
-import {styleActor} from './actor-style.js?v=7';
-import {Soundscape,audioMode} from './audio.js?v=7';
+import {RACES,CLASSES,ORIGINS,OMENS,STAT_LABELS,LORE} from './content.js?v=8';
+import * as M from './model.js?v=8';
+import * as S from './saves.js?v=8';
+import * as AI from './director.js?v=8';
+import {Realm} from './world.js?v=8';
+import {appearanceOf,APPEARANCE_OPTIONS,wardrobeOptions,PALETTES,weaponStyle,armorStyle} from './appearance.js?v=8';
+import {regionOf,frontierSites,surveyState,roadLinks,siteKey} from './frontier.js?v=8';
+import {CharacterPreview} from './preview.js?v=8';
+import {centerOf,realmSites,worldStats} from './atlas.js?v=8';
+import {styleActor} from './actor-style.js?v=8';
+import {Soundscape,audioMode} from './audio.js?v=8';
 
 const $=id=>document.getElementById(id),app=$('app'),modalRoot=$('modal-root');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -36,14 +36,14 @@ function disposeWorld(){disposePreview();realm?.dispose();realm=null;near=null;p
 function mountPreview(parent,h,cls=''){disposePreview();const canvas=node('canvas','character-model-preview '+cls);canvas.setAttribute('aria-label','3D character preview · drag to rotate');parent.append(canvas);preview=new CharacterPreview(canvas,h);return canvas}
 function appearanceControls(parent,target,changed,{gender=true}={}){
  const grid=node('div','customization-grid'),titles={gender:'Gender',build:'Build',height:'Height',hairStyle:'Hairstyle',face:'Face',beard:'Facial hair',marking:'Face marking',wardrobe:'Outfit style'};
- for(const[key,values]of Object.entries(APPEARANCE_OPTIONS)){if(key==='gender'&&!gender)continue;const label=node('label','field-label',titles[key]),select=node('select');select.setAttribute('aria-label',titles[key]);for(const[value,text]of values){const option=node('option','',text);option.value=value;select.append(option)}select.value=target[key];select.onchange=()=>{target[key]=select.value;changed()};label.append(select);grid.append(label)}parent.append(grid);
+ for(const[key,values]of Object.entries(APPEARANCE_OPTIONS)){if(key==='gender'&&!gender)continue;const label=node('label','field-label',titles[key]),select=node('select');select.setAttribute('aria-label',titles[key]);for(const[value,text]of(key==='wardrobe'?wardrobeOptions(target.gender):values)){const option=node('option','',text);option.value=value;select.append(option)}select.dataset.appearance=key;select.value=target[key];select.onchange=()=>{target[key]=select.value;if(key==='gender'){target.wardrobe=appearanceOf(target).wardrobe;const outfits=grid.querySelector('[data-appearance=wardrobe]');if(outfits){outfits.replaceChildren();for(const[id,text]of wardrobeOptions(target.gender)){const option=node('option','',text);option.value=id;outfits.append(option)}outfits.value=target.wardrobe}}changed()};label.append(select);grid.append(label)}parent.append(grid);
  const colors=node('div','appearance-controls');for(const[key,values]of Object.entries(PALETTES)){const title={outfit:'Cloth',hair:'Hair',skin:'Skin',eyes:'Eyes'}[key],row=node('div','color-row');row.append(node('span','',title));for(const v of values){const b=btn('',()=>{target[key]=v;for(const swatch of row.querySelectorAll('button')){const selected=swatch.getAttribute('aria-label')===title+' '+v;swatch.classList.toggle('selected',selected);swatch.setAttribute('aria-pressed',String(selected))}changed()},'swatch '+(target[key]===v?'selected':''));b.style.backgroundColor=v;b.setAttribute('aria-label',title+' '+v);b.setAttribute('aria-pressed',String(target[key]===v));row.append(b)}colors.append(row)}parent.append(colors);
 }
 function appearanceDialog(){const copy={...hero,...appearanceOf(hero)};const d=dialog({tag:'YOUR HERO',title:'Change appearance',text:'Drag the model to turn it. Your equipped gear stays on your character.',wide:true,choices:[['Save appearance',()=>{Object.assign(hero,appearanceOf(copy));persist();dismiss();panel=null;openPanel('character')}],['Cancel',dismiss]]});const area=node('div','appearance-editor');mountPreview(area,copy,'editor-model');const controls=node('div');const changed=()=>{if(preview?.actor?.userData.modelGender&&preview.actor.userData.modelGender!==copy.gender){const canvas=area.querySelector('canvas');disposePreview();const replacement=node('canvas','character-model-preview editor-model');replacement.setAttribute('aria-label','3D character preview · drag to rotate');canvas.replaceWith(replacement);preview=new CharacterPreview(replacement,copy)}else if(preview?.actor)styleActor(preview.actor,copy)};appearanceControls(controls,copy,changed);area.append(controls);d.body.insertBefore(area,d.list)}
 
 function menu(){
  if(hero)persist();disposeWorld();dismiss();screen='menu';sound.setMode('menu');const last=S.lastHero(),heroes=S.listHeroes();
- app.innerHTML='<main class="title-screen"><div class="title-landscape"></div><div class="title-shade"></div><div class="title-top"><span class="seal">✧</span><span>A WORLD THAT REMEMBERS</span></div><section class="title-content"><div class="eyebrow">REALMS OF TEMPTATION</div><h1>SINFALL</h1><p class="title-quote">Every road hides a story.<br>Every choice leaves a scar.</p><nav id="main-menu" aria-label="Main menu"></nav><div id="continue-summary"></div></section><div class="title-footer"><span>THE OPEN REALM · 2.0.1</span><button id="how-to">How to play</button><span>Your legends live on this device</span></div></main>';
+ app.innerHTML='<main class="title-screen"><div class="title-landscape"></div><div class="title-shade"></div><div class="title-top"><span class="seal">✧</span><span>A WORLD THAT REMEMBERS</span></div><section class="title-content"><div class="eyebrow">REALMS OF TEMPTATION</div><h1>SINFALL</h1><p class="title-quote">Every road hides a story.<br>Every choice leaves a scar.</p><nav id="main-menu" aria-label="Main menu"></nav><div id="continue-summary"></div></section><div class="title-footer"><span>THE OPEN REALM · 2.0.2</span><button id="how-to">How to play</button><span>Your legends live on this device</span></div></main>';
  const nav=$('main-menu');if(last){nav.append(btn('Continue',()=>load(last.id),'menu-button primary'));$('continue-summary').textContent=`${last.name} · Level ${last.level} ${M.classOf(last).name} · ${last.campaign.title}`}
  nav.append(btn('New Game',creator,'menu-button '+(!last?'primary':'')),btn('Load Game'+(heroes.length?' · '+heroes.length:''),()=>loadScreen(),'menu-button'),btn('Dungeon Master & Settings',()=>settings(),'menu-button subtle'));
  $('how-to').onclick=howTo;
@@ -56,7 +56,7 @@ function loadScreen(){
 function checkpointScreen(id){const saves=S.checkpoints(id);dialog({tag:'A MOMENT YOU CAN RETURN TO',title:'Saved checkpoints',text:saves.length?'Restoring keeps the current autosave as another checkpoint.':'Use Save checkpoint from the pause menu to preserve a moment in this hero’s story.',choices:[...saves.map(s=>[new Date(s.at).toLocaleString(),()=>confirmAction('Return to this checkpoint?','Your current progress will be kept as a checkpoint before the earlier moment is restored.',()=>{const current=S.loadHero(id);if(current)S.saveHero(current,{checkpoint:true});hero=structuredClone(s.hero);S.saveHero(hero);dismiss();startGame()}),`${s.hero.name} · Level ${s.hero.level} · ${s.hero.campaign.title}`]),['Back to heroes',loadScreen]]})}
 function load(id){const h=S.loadHero(id);if(!h){notify('That save could not be loaded. Your other heroes are safe.');return}hero=h;dismiss();startGame();if(hero.combat)combatDialog()}
 function creator(){
- disposeWorld();dismiss();screen='creator';step=0;draft={name:'Raven',raceId:'elf',classId:'ranger',originId:'wanderer',omen:OMENS[Math.floor(Math.random()*OMENS.length)],portrait:1,...appearanceOf({gender:'female',skin:'#c39c7a',hair:'#ddd7bf',outfit:'#49675c',hairStyle:'long',face:'regal',wardrobe:'adventurer'}),backstory:''};renderCreator();
+ disposeWorld();dismiss();screen='creator';step=0;draft={name:'Raven',raceId:'elf',classId:'ranger',originId:'wanderer',omen:OMENS[Math.floor(Math.random()*OMENS.length)],portrait:1,...appearanceOf({gender:'female',skin:'#c39c7a',hair:'#ddd7bf',outfit:'#49675c',hairStyle:'long',face:'regal',wardrobe:'corsair'}),backstory:''};renderCreator();
 }
 function renderCreator(){
  disposePreview();const c=CLASSES.find(c=>c.id===draft.classId),r=RACES.find(r=>r.id===draft.raceId);
@@ -65,7 +65,7 @@ function renderCreator(){
  ['Identity','Calling','History','Appearance'].forEach((v,i)=>{const s=node('span',i===step?'active':i<step?'done':'',`${i<step?'✓':i+1} ${v}`);$('creation-steps').append(s)});
  const body=$('creation-content');
  if(step===0){body.append(node('div','eyebrow','01 / AN UNWRITTEN NAME'),node('h2','', 'Who walks this road?'),node('p','muted','Your ancestry shapes your gifts. Your decisions shape everything else.'));
-  const l=node('label','field-label','Your name'),input=node('input');input.id='hero-name';input.value=draft.name;input.maxLength=32;input.autocomplete='off';input.oninput=()=>{draft.name=input.value;$('preview-name').textContent=input.value||'Your name'};l.append(input);body.append(l);const genderLabel=node('label','field-label','Gender'),genderSelect=node('select');genderSelect.setAttribute('aria-label','Gender');for(const[value,text]of [['male','Male'],['female','Female']]){const option=node('option','',text);option.value=value;genderSelect.append(option)}genderSelect.value=draft.gender;genderSelect.onchange=()=>{draft.gender=genderSelect.value;draft.portrait=draft.gender==='male'?4:0;renderCreator()};genderLabel.append(genderSelect);body.append(genderLabel);
+  const l=node('label','field-label','Your name'),input=node('input');input.id='hero-name';input.value=draft.name;input.maxLength=32;input.autocomplete='off';input.oninput=()=>{draft.name=input.value;$('preview-name').textContent=input.value||'Your name'};l.append(input);body.append(l);const genderLabel=node('label','field-label','Gender'),genderSelect=node('select');genderSelect.setAttribute('aria-label','Gender');for(const[value,text]of [['male','Male'],['female','Female']]){const option=node('option','',text);option.value=value;genderSelect.append(option)}genderSelect.value=draft.gender;genderSelect.onchange=()=>{draft.gender=genderSelect.value;draft.wardrobe=appearanceOf(draft).wardrobe;draft.portrait=draft.gender==='male'?4:0;renderCreator()};genderLabel.append(genderSelect);body.append(genderLabel);
   const grid=node('div','ancestry-grid');for(const race of RACES){const b=btn(race.name,()=>{draft.raceId=race.id;renderCreator()},'choice-card '+(race.id===draft.raceId?'selected':''));b.append(node('span','',race.desc),node('small','',race.trait));grid.append(b)}body.append(grid);
  }
  if(step===1){body.append(node('div','eyebrow','02 / A WAY THROUGH THE WORLD'),node('h2','','Choose your calling'),node('p','muted','Every calling has a distinct combat ability and a branching talent tree.'));

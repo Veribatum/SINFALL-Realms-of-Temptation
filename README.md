@@ -1,4 +1,4 @@
-# SINFALL · The Open Realm 2.0.1
+# SINFALL · The Open Realm 2.0.2
 
 [Play Sinfall](https://veribatum.github.io/SINFALL-Realms-of-Temptation/)
 
@@ -14,7 +14,7 @@ Each settlement has an inn, forge, archive, apothecary and chapel, plus twenty h
 
 Choose Male or Female, eight ancestries, ten classes, an origin and personal history. The new locally bundled adult female/male models have authored faces, eyes, fitted clothing, 65-bone skeletons and eleven animation clips. A female Moon Elf uses the female body with sculpted elven ears and customizable hair and features.
 
-Choose build, height, four face contours, six hairstyles, four outfit settings, skin/hair/eye/cloth colors, facial hair and markings. Weapons and armor change on the actual model. Drag the preview to rotate it. Appearance can be changed later while keeping the hero and progress.
+Choose build, height, four face contours, six hairstyles, six female outfit settings (four male settings), skin/hair/eye/cloth colors, facial hair and markings. Weapons and armor change on the actual model. Drag the preview to rotate it. Appearance can be changed later while keeping the hero and progress. Corsair leathers and Moonveil silk add cropped bodices, bare waists and exposed legs to adult female heroes and townsfolk. Elf ears curve back alongside the head.
 
 ![Actual posed character geometry, software verification view](docs/sinfall-adult-models.png)
 
@@ -27,6 +27,8 @@ Desktop: WASD/arrows walk, drag to look, E interacts, Shift runs, V switches cam
 Follow the gold marker to the witness. Investigate the road evidence, visit the archive scholar, choose an alliance and enter the undercrypt. Encounters, relationships, faction favors, merchant discounts, side quests, equipment, talents and three endings have mechanical effects. After an ending, begin a different campaign with the same stronger hero and retained legacy.
 
 Mark landmarks or settlements in the atlas. Walking discovers regions; reaching a settlement unlocks fast travel. The minimap follows global position and shows destination distance. Synthesized music covers menus, towns, wilderness, interiors, dungeons and combat; effects and ambience have independent volume controls and persistent mute settings.
+
+![Corsair and Moonveil outfits with swept-back elf ears, projected from the committed meshes](docs/sinfall-elf-outfits.png)
 
 ## ChatGPT dungeon master
 
@@ -49,7 +51,7 @@ Official references: [sign-in](https://developers.openai.com/siwc/token-sharing-
 
 ## Development and verification
 
-`npm test` runs 47 game, save, terrain, road, scene, character, OAuth and streaming checks. `npm run check` verifies syntax, local imports, required assets and source hygiene. [Verification details](docs/VERIFICATION.md).
+`npm test` runs 50 game, save, terrain, road, scene, character, OAuth and streaming checks. `npm run check` verifies syntax, local imports, required assets and source hygiene. [Verification details](docs/VERIFICATION.md).
 
 `npm run dev` starts the local preview with AI authorization disabled. Preview-only pages `/__qa/mobile` and `/__qa/models` check the phone layout and actual model/texture decoding. Production local mode does not expose these diagnostics.
 
