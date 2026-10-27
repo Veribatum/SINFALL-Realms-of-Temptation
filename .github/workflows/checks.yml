@@ -1,0 +1,19 @@
+name: Sinfall checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  game:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Game regression tests
+        run: npm test
+      - name: Source and asset checks
+        run: npm run check
