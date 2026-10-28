@@ -4,7 +4,7 @@ import {RACES,CLASSES,ORIGINS,OMENS,STAT_LABELS,LORE} from './content.js?v=14';
 import * as M from './model.js?v=14';
 import * as S from './saves.js?v=14';
 import * as AI from './director.js?v=14';
-import {Realm} from './world.js?v=14';
+import {Realm} from './world.js?v=15';
 import {appearanceOf,APPEARANCE_OPTIONS,wardrobeOptions,PALETTES,weaponStyle,armorStyle} from './appearance.js?v=14';
 import {regionOf,frontierSites,surveyState,roadLinks,siteKey} from './frontier.js?v=14';
 import {CharacterPreview} from './preview.js?v=14';
@@ -12,7 +12,7 @@ import {centerOf,realmSites,worldStats} from './atlas.js?v=14';
 import {styleActor} from './actor-style.js?v=14';
 import {Soundscape,audioMode} from './audio.js?v=14';
 import {trackedTarget,trackedQuest,questTarget,targetDistance,directionTo} from './navigation.js?v=14';
-import * as Action from './action-combat.js?v=14';
+import * as Action from './action-combat.js?v=15';
 import {storyBrief} from './story-guide.js?v=14';
 import {drawAtlas} from './map-view.js?v=14';
 
@@ -229,7 +229,7 @@ function paintActionUI(){
  const companion=$('companion-status');if(companion){companion.hidden=!hero.companion;if(hero.companion)companion.textContent='☠ Skeleton · '+servantOf(hero).name+' · '+Math.ceil(hero.companion.hp)+' / '+hero.companion.maxHp+' · '+Math.ceil(hero.companion.remaining)+'s'}
  const raise=$('summon-control');if(raise){raise.hidden=active||hero.classId!=='necromancer'||!Action.canSummon(hero);raise.disabled=hero.mp<10||(hero.summonCooldown||0)>.02;raise.textContent=(hero.summonCooldown||0)>.02?'☠ '+Math.ceil(hero.summonCooldown)+'s':'☠ Raise Skeleton';raise.title='Raise '+(SERVANTS.find(s=>s.id===hero.settings?.servant)||SERVANTS[0]).name}
  if(!active)return;
- const foes=Action.combatants(hero),targets=$('battle-targets'),signature=foes.map(f=>f.id).join('|');targets.hidden=foes.length<2;
+ const foes=Action.combatants(hero).sort((a,b)=>a.id.localeCompare(b.id)),targets=$('battle-targets'),signature=foes.map(f=>f.id).join('|');targets.hidden=foes.length<2;
  if(targets.dataset.signature!==signature){targets.replaceChildren();foes.forEach((foe,i)=>{const button=btn('',()=>{if(!panel&&!modalRoot.children.length){Action.selectTarget(hero,foe.id);paintActionUI()}},'target-choice');button.dataset.target=foe.id;button.setAttribute('aria-label','Target '+foe.name+' '+(i+1));targets.append(button)});targets.dataset.signature=signature}
  for(const button of targets.children){const foe=foes.find(f=>f.id===button.dataset.target);button.textContent=foe.name+' · '+Math.max(0,Math.ceil(foe.hp));button.setAttribute('aria-pressed',String(foe.id===c.id))}
  const ability=M.classOf(hero).ability;const hp=Math.ceil(hero.hp),enemyHp=Math.max(0,Math.ceil(c.hp));$('battle-target').textContent=c.name;$('battle-enemy-fill').style.width=enemyHp/c.maxHp*100+'%';$('battle-enemy-numbers').textContent=enemyHp+' / '+c.maxHp+' enemy health';$('battle-player-fill').style.width=hp/M.maxHp(hero)*100+'%';$('battle-player-numbers').textContent='♥ '+hero.name+' · '+hp+' / '+M.maxHp(hero)+' health · '+Math.floor(hero.mp)+' mana';

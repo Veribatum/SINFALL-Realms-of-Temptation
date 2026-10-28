@@ -9,7 +9,7 @@ import {styleActor} from './actor-style.js?v=14';
 import {BOUNDS,regionOf,frontierSites,roadLinks} from './frontier.js?v=14';
 import {buildFrontier,buildOutskirts} from './landscape.js?v=14';
 import {surfaceHeight,navigable,centerOf} from './atlas.js?v=14';
-import {CombatScene} from './combat-scene.js?v=14';
+import {CombatScene} from './combat-scene.js?v=15';
 import {contactEvents} from './gait.js?v=14';
 import {buildOpenWorld,updateOpenWorld} from './overworld.js?v=14';
 const sceneKey=h=>JSON.stringify(Object.entries(h.world.factionQuests||{}).filter(([id,q])=>q.node==='complete').map(([id,q])=>[id,q.townId,q.ending]))+h.world.seed+':'+(h.location.type==='realm'?'realm':locationId(h));

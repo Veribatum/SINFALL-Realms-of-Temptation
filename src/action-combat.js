@@ -18,7 +18,7 @@ const sharedKeys=['cooldowns','guardFor','dodgeFor','wardFor','wardPower','clock
 const sharedOf=c=>Object.fromEntries(sharedKeys.map(k=>[k,c[k]]));
 function focusOn(h,all,id,shared){const selected=all.find(c=>c.id===id)||all[0];for(const foe of all)delete foe.pack;Object.assign(selected,shared);if(all.length>1)selected.pack=all.filter(c=>c!==selected);h.combat=selected}
 export function selectTarget(h,id){const all=combatants(h);if(!all.some(c=>c.id===id&&c.hp>0))return false;focusOn(h,all,id,sharedOf(h.combat));return true}
-export function cycleTarget(h){const all=combatants(h);return all.length>1&&selectTarget(h,all[1].id)}
+export function cycleTarget(h){const all=combatants(h).sort((a,b)=>a.id.localeCompare(b.id)),index=all.findIndex(c=>c.id===h.combat?.id);return all.length>1&&selectTarget(h,all[(index+1)%all.length].id)}
 export function resumeActionCombat(h){
  const c=h.combat;if(!c)return;const previousMode=c.mode;if(previousMode!=='action')c.location=M.locationId(h);
  const entity=M.entitiesFor(h).find(e=>e.id===c.id),x=Number.isFinite(c.x)?c.x:entity?.x??h.position.x+2,z=Number.isFinite(c.z)?c.z:entity?.z??h.position.z;

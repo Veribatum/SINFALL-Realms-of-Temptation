@@ -26,6 +26,7 @@ export function skeletonModel(form='guardian'){
 export class CombatScene{
  constructor(world){this.world=world;this.group=new T.Group();this.group.name='Combat effects and companion';world.scene.add(this.group);this.effects=[];this.clock=0;this.extraRings=[];this.enemyPrevious=new Map();
   this.ring=new T.Mesh(new T.RingGeometry(.88,1,48),new T.MeshBasicMaterial({color:'#de8666',transparent:true,opacity:.55,side:T.DoubleSide,depthWrite:false}));this.ring.rotation.x=-Math.PI/2;this.ring.visible=false;this.group.add(this.ring);
+  this.targetRing=new T.Mesh(new T.RingGeometry(.55,.63,32),new T.MeshBasicMaterial({color:'#ffe2a0',transparent:true,opacity:.85,side:T.DoubleSide,depthWrite:false}));this.targetRing.rotation.x=-Math.PI/2;this.targetRing.visible=false;this.group.add(this.targetRing);
  }
  disposeObject(o){o.removeFromParent();const mats=new Set();o.traverse(x=>{x.geometry?.dispose();if(x.material)mats.add(x.material)});mats.forEach(m=>m.dispose())}
  event(event){
@@ -53,6 +54,7 @@ export class CombatScene{
    const moved=this.minionPrevious&&Math.hypot(this.minionPrevious.x-s.x,this.minionPrevious.z-s.z)>.001,j=this.minion.userData.joints,stride=moved?Math.sin(this.clock*10)*.5:0;j.legL.rotation.x=stride;j.legR.rotation.x=-stride;j.armL.rotation.x=-stride*.7;j.armR.rotation.x=stride*.7;
    if(this.minionAttack>0){this.minionAttack-=dt;j.armR.rotation.x=-1.25+Math.sin(this.minionAttack*10)*.5}this.minionPrevious={x:s.x,z:s.z};
   }else if(this.minion){this.disposeObject(this.minion);this.minion=null;this.minionPrevious=null}
+  this.targetRing.visible=!!c;if(c)this.targetRing.position.set(c.x,w.groundAt(c.x,c.z)+.08,c.z);
   const foes=c?[c,...c.pack||[]]:[];
   while(this.extraRings.length<Math.max(0,foes.length-1)){const ring=new T.Mesh(this.ring.geometry.clone(),this.ring.material.clone());ring.rotation.x=-Math.PI/2;this.group.add(ring);this.extraRings.push(ring)}
   for(const[i,ring]of[this.ring,...this.extraRings].entries()){const foe=foes[i];ring.visible=!!foe?.windup;if(foe?.windup){const radius=foe.windup.intent==='heavy'?3.2:foe.windup.intent==='hex'?1.8:2.7;ring.position.set(foe.x,w.groundAt(foe.x,foe.z)+.07,foe.z);ring.scale.setScalar(radius);ring.material.color.set(foe.windup.intent==='hex'?'#b898dc':'#df735e');ring.material.opacity=.2+.55*(1-foe.windup.left/foe.windup.total)}}
