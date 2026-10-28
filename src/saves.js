@@ -1,4 +1,4 @@
-import {SCHEMA,validateHero,migrateLegacy,uid,upgradeHero} from './model.js?v=11';
+import {SCHEMA,validateHero,migrateLegacy,uid,upgradeHero} from './model.js?v=12';
 const KEY='sinfall-realms-v4',BACKUP=KEY+'-recovery';
 let failure=null;
 const fresh=()=>({schema:SCHEMA,lastId:null,heroes:[],checkpoints:{}});

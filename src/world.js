@@ -1,17 +1,17 @@
 import * as T from '../vendor/three.module.js';
-import {trackedTarget,targetDistance,directionTo,isTargetHere} from './navigation.js?v=11';
-import {seeded,entitiesFor,locationId,townOf,visitState,objective,syncRealm} from './model.js?v=11';
-import {loadActor,createActor,animateActor,disposeActor,playActorAction} from './actors.js?v=11';
-import {batchScenery,cameraPosition} from './scene-utils.js?v=11';
-import {buildInterior} from './interiors.js?v=11';
-import {appearanceKey,townWardrobe} from './appearance.js?v=11';
-import {styleActor} from './actor-style.js?v=11';
-import {BOUNDS,regionOf,frontierSites,roadLinks} from './frontier.js?v=11';
-import {buildFrontier,buildOutskirts} from './landscape.js?v=11';
-import {surfaceHeight,navigable,centerOf} from './atlas.js?v=11';
-import {CombatScene} from './combat-scene.js?v=11';
-import {contactEvents} from './gait.js?v=11';
-import {buildOpenWorld,updateOpenWorld} from './overworld.js?v=11';
+import {dungeonRoute,trackedTarget,targetDistance,directionTo,isTargetHere} from './navigation.js?v=12';
+import {seeded,entitiesFor,locationId,townOf,visitState,objective,syncRealm} from './model.js?v=12';
+import {loadActor,createActor,animateActor,disposeActor,playActorAction} from './actors.js?v=12';
+import {batchScenery,cameraPosition} from './scene-utils.js?v=12';
+import {buildInterior} from './interiors.js?v=12';
+import {appearanceKey,townWardrobe} from './appearance.js?v=12';
+import {styleActor} from './actor-style.js?v=12';
+import {BOUNDS,regionOf,frontierSites,roadLinks} from './frontier.js?v=12';
+import {buildFrontier,buildOutskirts} from './landscape.js?v=12';
+import {surfaceHeight,navigable,centerOf} from './atlas.js?v=12';
+import {CombatScene} from './combat-scene.js?v=12';
+import {contactEvents} from './gait.js?v=12';
+import {buildOpenWorld,updateOpenWorld} from './overworld.js?v=12';
 const sceneKey=h=>h.world.seed+':'+(h.location.type==='realm'?'realm':locationId(h));
 
 const TAU=Math.PI*2;
@@ -211,6 +211,14 @@ export class Realm {
  }
  lineOfSight(a,b){const length=Math.hypot(a.x-b.x,a.z-b.z);for(let d=.4;d<length-.4;d+=.6){const t=d/length,x=a.x+(b.x-a.x)*t,z=a.z+(b.z-a.z)*t;if(!this.canMove(x,z,this.groundAt(x,z)+1.1))return false}return true}
  dodge(){const p=this.hero.position,c=this.hero.combat;const dx=(c?.x??p.x+Math.sin(this.yaw))-p.x,dz=(c?.z??p.z+Math.cos(this.yaw))-p.z,d=Math.hypot(dx,dz)||1;let x=-dz/d,z=dx/d;if(this.keys.has('d')||this.joy.x>0){x=-x;z=-z}if(!this.canMove(p.x+x,p.z+z)){x=-x;z=-z}this.dodgeMotion={x,z,left:.22}}
+ navigate(actor,goal,step){
+  let waypoint=goal;
+  if(this.crypt&&!this.lineOfSight(actor,goal)){
+   const route=dungeonRoute({...this.hero,position:actor},{...goal,scene:'dungeon'});
+   if(route.length>1){waypoint=route[0];if(Math.hypot(actor.x-waypoint.x,actor.z-waypoint.z)<.25||this.lineOfSight(actor,route[1]))waypoint=route[1]}
+  }
+  const d=Math.hypot(waypoint.x-actor.x,waypoint.z-actor.z);if(d<.001)return{x:actor.x,z:actor.z};const n=Math.min(d,step);return{x:actor.x+(waypoint.x-actor.x)/d*n,z:actor.z+(waypoint.z-actor.z)/d*n};
+ }
  combatEvents(events){for(const event of events){const actor=this.player.userData.rig;if(event.kind==='projectile'||event.kind==='swing')playActorAction(actor,event.kind==='projectile'||event.action==='ability'?'Spellcast_Shoot':'1H_Melee_Attack_Slice_Diagonal',1.15);if(event.kind==='guard')playActorAction(actor,'Block',1);if(event.kind==='dodge')playActorAction(actor,'Hit_A',1.4);this.combatScene?.event(event)}this.lastCombatId=this.hero.combat?.id||this.lastCombatId}
  dispose(){this.destroyed=true;cancelAnimationFrame(this.raf);this.resizeObserver?.disconnect();for(const remove of this.events)remove();this.clearScene();this.renderer.dispose();this.renderer.forceContextLoss()}
 }

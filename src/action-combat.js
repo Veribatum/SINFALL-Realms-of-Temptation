@@ -1,4 +1,5 @@
-import * as M from './model.js?v=11';
+import {servantOf,SERVANTS} from './progression.js?v=12';
+import * as M from './model.js?v=12';
 
 export const SUMMON_LEVEL=2;
 const magicClasses=new Set(['necromancer','spellbinder','druid','bard']);
@@ -20,11 +21,16 @@ const emit=(events,kind,data={})=>events.push({kind,...data});
 function record(c,text){c.log=[text,...c.log].slice(0,8)}
 function safeCompanionPoint(h,env){for(const[x,z]of[[1.3,0],[-1.3,0],[0,1.3],[0,-1.3],[0,0]]){const p={x:h.position.x+x,z:h.position.z+z};if(!env.canMove||env.canMove(p.x,p.z))return p}return{...h.position}}
 function summon(h,events,env){
- const effects=M.effects(h),hp=16+h.level*5+(effects.summonHp||0);
- h.companion={kind:'skeleton',hp,maxHp:hp,remaining:60,cooldown:1,...safeCompanionPoint(h,env),scene:M.locationId(h)};
+ const effects=M.effects(h),form=servantOf({...h,companion:null}),hp=Math.round((16+h.level*5+(effects.summonHp||0))*form.hp);
+ h.companion={kind:'skeleton',form:form.id,hp,maxHp:hp,remaining:60,cooldown:1,...safeCompanionPoint(h,env),scene:M.locationId(h)};
  emit(events,'summon',{x:h.companion.x,z:h.companion.z});
 }
+export function summonCompanion(h,env={}){
+ const events=[];if(!canSummon(h))return{ok:false,reason:'Raise Skeleton unlocks at level 2.',events};if(h.combat&&h.combat.mode!=='action')return{ok:false,reason:'Finish this encounter first.',events};if((h.summonCooldown||0)>.02)return{ok:false,reason:'Raise Skeleton is recovering.',events};if(h.mp<10)return{ok:false,reason:'Raise Skeleton needs 10 mana.',events};
+ const selected=SERVANTS.find(s=>s.id===h.settings?.servant);if(selected&&h.level<selected.level)return{ok:false,reason:'This servant has not unlocked yet.',events};h.mp-=10;h.summonCooldown=16;summon(h,events,env);if(h.combat){h.combat.cooldowns.summon=16;record(h.combat,servantOf(h).name+' rises to fight at your side.')}return{ok:true,events};
+}
 export function performAction(h,action,env={}){
+ if(action==='summon')return summonCompanion(h,env);
  const c=h.combat,events=[];if(!c||c.mode!=='action'||!Object.hasOwn(cds,action))return{ok:false,reason:'Choose a target first.',events};
  if(c.cooldowns[action]>.02)return{ok:false,reason:'That action is recovering.',events};
  const info=actionInfo(h),stats=M.stats(h),effects=M.effects(h),ability=M.classOf(h).ability,rng=env.rng||Math.random;
@@ -45,25 +51,26 @@ export function performAction(h,action,env={}){
   c.dodgeFor=.4;env.dodge?.();emit(events,'dodge');record(c,'You dodge. Time it against the enemy’s wind-up.');
  }else if(action==='potion'){
   const before=h.hp;if(!M.useItem(h,'potion'))return{ok:false,reason:'No draught available, or health is full.',events};emit(events,'heal',{amount:h.hp-before,x:h.position.x,z:h.position.z});record(c,'Healing draught used.');
- }else if(action==='summon'){
-  if(!canSummon(h))return{ok:false,reason:'Raise Skeleton unlocks for necromancers at level 2.',events};
-  if(h.mp<10)return{ok:false,reason:'Raise Skeleton needs 10 mana.',events};
-  h.mp-=10;summon(h,events,env);record(c,'A skeleton rises to fight at your side.');
+
  }
  c.cooldowns[action]=cds[action];return{ok:true,events};
+}
+function approach(actor,goal,step,env){
+ const d=distance(actor,goal);if(d<.001)return;const direct={x:actor.x+(goal.x-actor.x)/d*step,z:actor.z+(goal.z-actor.z)/d*step},next=env.navigate?.(actor,goal,step)||direct;
+ if(!env.canMove||env.canMove(next.x,next.z))Object.assign(actor,next);else if(env.canMove(next.x,actor.z))actor.x=next.x;else if(env.canMove(actor.x,next.z))actor.z=next.z;
 }
 function companionTick(h,dt,events,env){
  const s=h.companion;if(!s)return;
  s.remaining-=dt;s.cooldown=Math.max(0,s.cooldown-dt);
  if(s.remaining<=0||s.hp<=0){emit(events,'summonEnd');delete h.companion;return}
  const c=h.combat,scene=M.locationId(h);if(s.scene!==scene||distance(s,h.position)>28){Object.assign(s,safeCompanionPoint(h,env));s.scene=scene}
- const goal=c?{x:c.x,z:c.z}:h.position,d=distance(s,goal),stop=c?1.6:2;
- if(d>stop){const step=Math.min(d-stop,dt*(c?5:4.5)),nx=s.x+(goal.x-s.x)/d*step,nz=s.z+(goal.z-s.z)/d*step;if(!env.canMove||env.canMove(nx,nz)){s.x=nx;s.z=nz}}
- if(c&&d<2.4&&s.cooldown<=0&&(!env.lineOfSight||env.lineOfSight(s,c))){const amount=3+Math.floor(M.stats(h).lore*.45)+Math.floor(h.level/2)+(M.effects(h).summonDamage||0);c.hp-=amount;s.cooldown=1.45;emit(events,'minionStrike',{amount,x:c.x,z:c.z});record(c,'Your skeleton strikes for '+amount+'.')}
+ const form=servantOf(h),goal=c?{x:c.x,z:c.z}:h.position,d=distance(s,goal),stop=c?env.lineOfSight&&!env.lineOfSight(s,c)?.3:form.reach*.7:2;
+ if(d>stop){const step=Math.min(d-stop,dt*(c?5:4.5));approach(s,goal,step,env)}
+ if(c&&d<form.reach&&s.cooldown<=0&&(!env.lineOfSight||env.lineOfSight(s,c))){const amount=Math.max(1,Math.round((3+Math.floor(M.stats(h).lore*.45)+Math.floor(h.level/2)+(M.effects(h).summonDamage||0))*form.damage));c.hp-=amount;s.cooldown=form.interval;if(form.reach>3)emit(events,'minionProjectile',{from:{x:s.x,z:s.z},to:{x:c.x,z:c.z}});emit(events,'minionStrike',{amount,x:c.x,z:c.z});record(c,'Your skeleton strikes for '+amount+'.')}
 }
 export function advanceAction(h,seconds,env={}){
  const dt=clamp(seconds,0,.1),events=[];if(!Number.isFinite(dt))return{ok:false,events};
- companionTick(h,dt,events,env);const c=h.combat;if(!c||c.mode!=='action')return{ok:true,events};
+ h.summonCooldown=Math.max(0,(h.summonCooldown||0)-dt);companionTick(h,dt,events,env);const c=h.combat;if(!c||c.mode!=='action')return{ok:true,events};
  if(c.location!==M.locationId(h)||distance(h.position,{x:c.homeX,z:c.homeZ})>28){h.combat=null;emit(events,'fled');return{ok:true,outcome:'fled',events}}
  c.clock+=dt;for(const key of Object.keys(c.cooldowns))c.cooldowns[key]=Math.max(0,c.cooldowns[key]-dt);for(const key of['guardFor','dodgeFor','stunFor','wardFor'])c[key]=Math.max(0,c[key]-dt);
  const rng=env.rng||Math.random;
@@ -72,13 +79,13 @@ export function advanceAction(h,seconds,env={}){
  if(c.hp<=0){const result=M.winCombat(h,c.log[0],rng);return{...result,events:[...events,{kind:'victory',x:c.x,z:c.z}]}}
  h.mp=Math.min(M.maxMp(h),h.mp+dt*(.65+(M.effects(h).manaRegen||0)/2));
  if(c.stunFor>0)return{ok:true,events};
- const s=h.companion,focus=s&&s.hp>0&&distance(s,c)<4?s:h.position,enemyRange=M.combatIntent(h)==='hex'?8:2.65,d=distance(c,focus);
- if(!c.windup&&d>enemyRange*.8){const step=Math.min(d-enemyRange*.8,dt*(c.kind==='wolf'?3.7:2.7)),nx=c.x+(focus.x-c.x)/d*step,nz=c.z+(focus.z-c.z)/d*step;if(!env.canMove||env.canMove(nx,nz)){c.x=nx;c.z=nz}}
+ const s=h.companion,focus=s&&s.hp>0&&distance(s,c)<(servantOf(h).id==='guardian'?6:4)?s:h.position,enemyRange=M.combatIntent(h)==='hex'?8:2.65,d=distance(c,focus);
+ if(!c.windup&&(d>enemyRange*.8||env.lineOfSight&&!env.lineOfSight(c,focus))){const step=Math.min(d,dt*(c.kind==='wolf'?3.7:2.7));approach(c,focus,step,env)}
  if(c.windup){
   c.windup.left-=dt;if(c.windup.left<=0){const wind=c.windup,target=wind.target==='companion'?h.companion:h.position,reach=wind.intent==='hex'?9:wind.intent==='heavy'?3.2:2.7;
    if(target&&distance(c,target)<reach&&(!env.lineOfSight||env.lineOfSight(c,target))){
     if(wind.target==='hero'&&c.dodgeFor>0){emit(events,'evade');record(c,'You dodge the blow.')}else{
-     const base=c.attack+(wind.intent==='heavy'?5:wind.intent==='hex'?2:0)-c.weaken,block=wind.target==='hero'&&c.guardFor>0,hurt=Math.max(1,Math.round((base-(wind.target==='hero'?M.armor(h)+(c.wardFor>0?c.wardPower:0):1)-rng()*2)*(block?.25:1)));
+     const base=c.attack+(wind.intent==='heavy'?5:wind.intent==='hex'?2:0)-c.weaken,block=wind.target==='hero'&&c.guardFor>0,hurt=Math.max(1,Math.round((base-(wind.target==='hero'?M.armor(h)+(c.wardFor>0?c.wardPower:0):1+servantOf(h).armor)-rng()*2)*(block?.25:1)));
      if(wind.target==='companion'&&h.companion)h.companion.hp=Math.max(0,h.companion.hp-hurt);else h.hp=Math.max(0,h.hp-hurt);
      emit(events,wind.target==='companion'?'minionHurt':'hurt',{amount:hurt,x:target.x,z:target.z,blocked:block});record(c,(wind.target==='companion'?'Skeleton':block?'Guarded':'You')+' · −'+hurt+' health');
     }
@@ -87,7 +94,7 @@ export function advanceAction(h,seconds,env={}){
    if(c.poison){c.hp-=c.poison;emit(events,'hit',{amount:c.poison,x:c.x,z:c.z})}
   }
  }else{
-  c.nextAttack-=dt;if(c.nextAttack<=0&&d<enemyRange+1){const intent=M.combatIntent(h);if(intent==='guard'){record(c,'Your foe braces. Press the attack.');c.round++;c.nextAttack=1.2}else{const duration=intent==='heavy'?1.05:intent==='hex'?1.2:.75;c.windup={intent,left:duration,total:duration,target:focus===s?'companion':'hero'};emit(events,'windup',{intent,x:c.x,z:c.z})}}
+  c.nextAttack-=dt;if(c.nextAttack<=0&&d<enemyRange+1&&(!env.lineOfSight||env.lineOfSight(c,focus))){const intent=M.combatIntent(h);if(intent==='guard'){record(c,'Your foe braces. Press the attack.');c.round++;c.nextAttack=1.2}else{const duration=intent==='heavy'?1.05:intent==='hex'?1.2:.75;c.windup={intent,left:duration,total:duration,target:focus===s?'companion':'hero'};emit(events,'windup',{intent,x:c.x,z:c.z})}}
  }
  if(h.hp<=0)return{...M.loseCombat(h,c.log[0]),events:[...events,{kind:'defeat'}]};
  if(c.hp<=0)return{...M.winCombat(h,c.log[0],rng),events:[...events,{kind:'victory',x:c.x,z:c.z}]};

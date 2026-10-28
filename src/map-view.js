@@ -1,7 +1,7 @@
-import {WORLD_MIN,WORLD_MAX,centerOf,realmSites,trailRoute,riverX,terrainHeight,homePlan,settlementStreets,SETTLEMENT_CORE,cryptAnchor} from './atlas.js?v=11';
-import {entitiesFor} from './model.js?v=11';
-import {regionOf} from './frontier.js?v=11';
-import {questMarkers,trackedTarget,dungeonRoute} from './navigation.js?v=11';
+import {WORLD_MIN,WORLD_MAX,centerOf,realmSites,trailRoute,riverX,terrainHeight,homePlan,settlementStreets,SETTLEMENT_CORE,cryptAnchor} from './atlas.js?v=12';
+import {entitiesFor} from './model.js?v=12';
+import {regionOf} from './frontier.js?v=12';
+import {questMarkers,trackedTarget,dungeonRoute} from './navigation.js?v=12';
 const visible=(x,y,w)=>x>=0&&y>=0&&x<=w&&y<=w;
 export function mapBounds(h,scope='local'){
  if(scope==='world')return {x:WORLD_MIN,z:WORLD_MIN,size:WORLD_MAX-WORLD_MIN};

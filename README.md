@@ -1,4 +1,4 @@
-# SINFALL · The Open Realm 2.1.1
+# SINFALL · The Open Realm 2.2.0
 
 [Play Sinfall](https://veribatum.github.io/SINFALL-Realms-of-Temptation/)
 
@@ -30,6 +30,16 @@ Mark landmarks or settlements in the atlas. Walking discovers regions; reaching 
 
 ![Corsair and Moonveil outfits with swept-back elf ears, projected from the committed meshes](docs/sinfall-elf-outfits.png)
 
+## Builds, blessings and consequences
+
+Necromancers choose a **Grave Guardian (level 2)**, **Bone Ravager (4)** or **Crypt Arcanist (6)** in Character → The gravebound pact. The guardian trades damage for health/armor; the ravager attacks faster; the arcanist fires ranged soul bolts. Summon one servant in combat or while exploring: 10 mana, 60 seconds, a shared 16-second recovery. New campaigns clear temporary servants.
+
+Each defeated undercrypt guardian offers three seeded blessings. Claim one at victory or later in Character. Blessings alter armor, damage, mana, recovery or minions for that campaign. One blessing per guardian; reload does not reroll or duplicate the reward.
+
+At 5 reputation, townsfolk grant +1 armor, scholars reduce ability cost by 1, and the Veil grants +2 spell damage. Character shows earned benefits. NPC reactions acknowledge actual alliances, deeds, summons and endings. AI context includes the real build and these earned facts. **Hosted live AI remains unconnected.**
+
+[Comparison with Skyrim, Diablo IV, Baldur’s Gate 3 and Hades, including remaining gaps](docs/RPG-SYSTEMS-COMPARISON.md).
+
 ## Main town and game HUD
 
 The starting settlement has a tighter footprint with occupied inner streets, two-storey houses and shops, six market stalls, workshop supplies, courtyard seating, planters and market bunting. The same households, interiors and quests remain available; the map follows their new door coordinates. Returning saves are moved to nearby clear ground if a relocated building occupies the saved position.
@@ -40,7 +50,7 @@ The game HUD uses compact health/mana bars, a slim objective tracker, small mini
 
 Combat takes place in the world. Move with the joystick or WASD while selecting Strike, your class ability, Guard, Dodge, Heal or Withdraw. Enemy wind-ups give you time to react; your health and the enemy’s health stay visible. Keyboard shortcuts 1–7 select actions. Settings also retains Classic round combat.
 
-Necromancers unlock **Raise Skeleton at level 2**: 10 mana summons one animated skeleton for 60 seconds to fight and draw enemy attacks. Bone Choir strengthens it. Existing heroes, equipment and campaign progress remain compatible.
+Necromancers unlock **Raise Skeleton at level 2**: 10 mana summons one animated skeleton for 60 seconds to fight, with additional specializations at levels 4 and 6. Bone Choir strengthens it. Existing heroes, equipment and campaign progress remain compatible.
 
 The HUD tracks story steps, and Journal explains what happened, why the archive matters, and what to do next. Soft grass/stone footsteps now trigger from the actual walking and running animation contacts rather than an independent timer; blocked movement stays silent.
 

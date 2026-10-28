@@ -1,5 +1,5 @@
-import {entitiesFor,BUILDINGS,townOf} from './model.js?v=11';
-import {centerOf,realmPoint} from './atlas.js?v=11';
+import {entitiesFor,BUILDINGS,townOf} from './model.js?v=12';
+import {centerOf,realmPoint} from './atlas.js?v=12';
 const live=q=>q.state==='active'||q.state==='ready';
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 function view(h,townId,type,room){

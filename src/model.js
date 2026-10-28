@@ -1,8 +1,9 @@
-import {CLASSES,RACES,ORIGINS,MOTIFS,ENEMIES,SETTLEMENT_PREFIX,SETTLEMENT_SUFFIX,NPC_FIRST,NPC_LAST,QUALITY} from './content.js?v=11';
-import {appearanceOf,APPEARANCE_OPTIONS} from './appearance.js?v=11';
-import {REGION_COUNT,regionOf,roadLinks,frontierSites,siteKey,surveyState} from './frontier.js?v=11';
-import {populationFor} from './population.js?v=11';
-import {centerOf,regionAt,realmArea,realmPoint,realmSites,homePlan} from './atlas.js?v=11';
+import {BLESSINGS,SERVANTS,patronage} from './progression.js?v=12';
+import {CLASSES,RACES,ORIGINS,MOTIFS,ENEMIES,SETTLEMENT_PREFIX,SETTLEMENT_SUFFIX,NPC_FIRST,NPC_LAST,QUALITY} from './content.js?v=12';
+import {appearanceOf,APPEARANCE_OPTIONS} from './appearance.js?v=12';
+import {REGION_COUNT,regionOf,roadLinks,frontierSites,siteKey,surveyState} from './frontier.js?v=12';
+import {populationFor} from './population.js?v=12';
+import {centerOf,regionAt,realmArea,realmPoint,realmSites,homePlan} from './atlas.js?v=12';
 
 export const SCHEMA=4;
 export const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
@@ -23,7 +24,7 @@ export const BUILDINGS=[
 export const buildingOf=h=>h.location.room==='home'?{...homePlan(townOf(h))[h.location.homeId],id:'home'}:BUILDINGS.find(b=>b.id===h.location.room);
 export const locationId=h=>h.location.type+'-'+h.location.townId+(h.location.type==='interior'?'-'+h.location.room+(h.location.room==='home'?'-'+h.location.homeId:''):'');
 export function addLog(h,text,kind='story'){h.history.unshift({id:uid(),text:String(text).slice(0,2000),kind,day:h.world?.day||1});h.history=h.history.slice(0,160);h.updatedAt=Date.now();return text}
-export function effects(h){const out={};for(const id of h.talents){const t=classOf(h).talents.find(t=>t.id===id);if(t)for(const[k,v]of Object.entries(t.effect))out[k]=(out[k]||0)+v}return out}
+export function effects(h){const out={};for(const entry of[...(h.world?.blessings||[]).map(b=>BLESSINGS.find(x=>x.id===b.id)),...patronage(h).filter(p=>p.earned)])if(entry)for(const[k,v]of Object.entries(entry.effect))out[k]=(out[k]||0)+v;for(const id of h.talents){const t=classOf(h).talents.find(t=>t.id===id);if(t)for(const[k,v]of Object.entries(t.effect))out[k]=(out[k]||0)+v}return out}
 export function stats(h){const s={...classOf(h).stats};for(const[k,v]of Object.entries(raceOf(h).stats))s[k]=(s[k]||0)+v;const o=ORIGINS.find(o=>o.id===h.originId);if(o)s[o.stat]++;const e=effects(h);for(const k of Object.keys(s))s[k]+=(e[k]||0)+Math.floor((h.level-1)/3);return s}
 export function maxHp(h){return classOf(h).hp+(h.raceId==='dwarf'?8:0)+(h.level-1)*6+(h.boons?.vitality||0)}
 export function maxMp(h){return classOf(h).mp+(h.raceId==='elf'?6:0)+(h.level-1)*3}
@@ -59,7 +60,7 @@ export function newCampaign(h,seed=randomSeed()){
  const r=seeded(seed),used=h.legacy.map(v=>v.motifId),available=MOTIFS.filter(m=>!used.includes(m.id));let motif=structuredClone(pick(available.length?available:MOTIFS.filter(m=>m.id!==h.campaign?.motifId),r));
  const names=new Set(),npcNames=new Set();const climates=['green','autumn','mist'],climateOffset=Math.floor(r()*3);const towns=[];for(let i=0;i<3;i++){let name;do{name=pick(SETTLEMENT_PREFIX,r)+pick(SETTLEMENT_SUFFIX,r)}while(names.has(name));names.add(name);const npcs={};for(const role of['innkeeper','smith','scholar','warden','healer','witness','stranger']){let npcName;do{npcName=pick(NPC_FIRST,r)+' '+pick(NPC_LAST,r)}while(npcNames.has(npcName));npcNames.add(npcName);npcs[role]={id:`${i}-${role}`,name:npcName,role,portrait:Math.floor(r()*8)}};towns.push({id:i,name,seed:Math.floor(r()*1e9),climate:climates[(i+climateOffset)%3],npcs,description:['A river village caught between the old woods and an older secret.','Amber leaves gather around a hilltop settlement of miners and itinerant scholars.','A trading town at the edge of a marsh where the lanterns never go out.'][(i+climateOffset)%3],dungeon:generateDungeon(Math.floor(r()*1e9))})}
  h.campaign={...motif,id:uid(),number:h.completed+1,motifId:motif.id,stage:'arrival',flags:{},decisions:[],ai:false,startedAt:Date.now(),ending:null};
- h.world={seed,towns,day:1,hour:17,visits:{},rumors:[],quests:[],events:[],claimed:[],ledger:{},discovered:['town-0'],weather:pick(['clear','mist','rain'],r)};h.location={type:'town',townId:0};h.position={x:0,z:20,yaw:Math.PI};h.combat=null;
+ h.world={seed,towns,day:1,hour:17,visits:{},rumors:[],quests:[],events:[],claimed:[],ledger:{},discovered:['town-0'],weather:pick(['clear','mist','rain'],r)};h.location={type:'town',townId:0};h.position={x:0,z:20,yaw:Math.PI};h.combat=null;delete h.companion;h.summonCooldown=0;
  upgradeHero(h);addLog(h,`A new adventure: ${motif.title}. You arrive in ${towns[0].name}. ${h.omen}`);return h.campaign;
 }
 export function upgradeHero(h){
@@ -224,6 +225,13 @@ export function winCombat(h,text='',rng=Math.random){const c=h.combat,ef=effects
   resolveEntity(h,c.id);h.kills++;progressSide(h,'hunt');if(c.boss&&h.location.townId===0&&h.campaign.stage==='descent'){h.campaign.stage='heart';addLog(h,h.campaign.revelation)}
   const gold=10+Math.floor(rng()*16)+(c.boss?35:0),xp=c.boss?90:30;gainGold(h,gold);gainXp(h,xp);h.hp=Math.min(maxHp(h),h.hp+(ef.healOnKill||0)+(h.raceId==='hollow'?3:0));const item=c.boss||rng()<.4?loot(h,c.boss,rng):null;h.combat=null;addLog(h,`Defeated ${c.name}. +${xp} XP · +${gold} gold${item?' · '+item.name:''}.`,'combat');return{ok:true,outcome:'victory',text,gold,xp,item,boss:c.boss};
 }
+export function blessingChoices(h){
+ if(h.combat)return [];
+ for(const town of h.world.towns){if(!h.world.visits['dungeon-'+town.id]?.resolved?.includes('boss')||h.world.blessings?.some(b=>b.townId===town.id))continue;
+ const r=seeded(town.seed^0x6f24a17),pool=BLESSINGS.slice(),choices=[];for(let i=0;i<3;i++)choices.push({...pool.splice(Math.floor(r()*pool.length),1)[0],townId:town.id,townName:town.name});return choices}return [];
+}
+export function chooseBlessing(h,id,townId){const offer=blessingChoices(h).find(b=>b.id===id&&b.townId===townId);if(!offer)return false;h.world.blessings??=[];h.world.blessings.push({id,townId});addLog(h,'Guardian blessing from '+offer.townName+': '+offer.name+'. '+offer.desc,'blessing');return true}
+export function selectServant(h,id){const form=SERVANTS.find(s=>s.id===id);if(h.combat||h.classId!=='necromancer'||!form||h.level<form.level)return false;h.settings??={};h.settings.servant=id;return true}
 export function loseCombat(h,text=''){if(!h.combat)return{ok:false};delete h.companion;const lost=Math.min(h.gold,Math.max(8,Math.floor(h.gold*.1)));h.gold-=lost;h.hp=Math.ceil(maxHp(h)*.65);h.mp=Math.max(h.mp,Math.ceil(maxMp(h)*.4));h.combat=null;changeLocation(h,'town');addLog(h,`You wake at the infirmary. A traveler carried you home. Recovery cost ${lost} gold.`,'combat');return{ok:true,outcome:'defeat',text}}
 export function interactionReward(h,entity,method='finesse',rng=Math.random){
  if(isResolved(h,entity.id))return{ok:false,text:'There is nothing else to take here.'};
@@ -258,6 +266,10 @@ export function validateHero(h){
  if(!Array.isArray(h.world.events)||!Array.isArray(h.world.rumors)||!Number.isFinite(h.world.day)||!Number.isFinite(h.world.hour)||!Object.values(h.world.visits).every(v=>v&&Array.isArray(v.resolved)&&v.resolved.every(id=>str(id,100))))return false;
  if(!h.world.quests.every(q=>q&&str(q.id,100)&&str(q.title,150)&&str(q.giver,100)&&str(q.description,1500)&&['hunt','herbs','relic','courier'].includes(q.kind)&&['offered','active','ready','complete'].includes(q.state)&&Number.isFinite(q.progress)&&Number.isFinite(q.goal)&&Number.isFinite(q.reward)))return false;
  if(!Object.values(h.factions).every(Number.isFinite)||!Object.values(h.relationships).every(Number.isFinite)||!Array.isArray(h.talents)||!h.talents.every(id=>classOf(h).talents.some(t=>t.id===id)))return false;
+ if(h.summonCooldown!==undefined&&(!Number.isFinite(h.summonCooldown)||h.summonCooldown<0||h.summonCooldown>16))return false;
+ if(h.settings?.servant!==undefined&&!SERVANTS.some(s=>s.id===h.settings.servant))return false;
+ if(h.world.blessings!==undefined&&(!Array.isArray(h.world.blessings)||h.world.blessings.length>9||new Set(h.world.blessings.map(b=>b?.townId)).size!==h.world.blessings.length||!h.world.blessings.every(b=>b&&Number.isInteger(b.townId)&&b.townId>=0&&b.townId<h.world.towns.length&&BLESSINGS.some(x=>x.id===b.id)&&h.world.visits['dungeon-'+b.townId]?.resolved?.includes('boss'))))return false;
+ if(h.companion?.form!==undefined&&!SERVANTS.some(s=>s.id===h.companion.form))return false;
  if(h.companion&&(!h.companion||h.companion.kind!=='skeleton'||!['hp','maxHp','remaining','cooldown','x','z'].every(k=>Number.isFinite(h.companion[k]))||h.companion.hp<0||h.companion.hp>h.companion.maxHp||h.companion.maxHp<=0||h.companion.maxHp>20000||h.companion.remaining<0||h.companion.remaining>60||typeof h.companion.scene!=='string'))return false;
  if(h.combat?.mode==='action'){const c=h.combat;if(!['x','z','homeX','homeZ','clock','nextAttack','guardFor','dodgeFor','stunFor','wardFor','wardPower'].every(k=>Number.isFinite(c[k]))||!c.cooldowns||!Object.values(c.cooldowns).every(n=>Number.isFinite(n)&&n>=0&&n<=60)||!Array.isArray(c.pending)||c.pending.length>20||!c.pending.every(p=>p&&['eta','damage','heal','weaken','stun','poison','ward'].every(k=>Number.isFinite(p[k]))&&p.eta>=0&&p.damage>=0)||c.windup&&(!['quick','heavy','hex'].includes(c.windup.intent)||!['hero','companion'].includes(c.windup.target)||!Number.isFinite(c.windup.left)||!Number.isFinite(c.windup.total)))return false}
  if(h.combat&&(!Array.isArray(h.combat.intents)||!Number.isFinite(h.combat.hp)||!Number.isFinite(h.combat.attack)||typeof h.combat.id!=='string'))return false;

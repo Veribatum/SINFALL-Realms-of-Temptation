@@ -1,0 +1,33 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import * as M from '../src/model.js';
+import * as A from '../src/action-combat.js';
+import {SERVANTS,patronage,reactionTo} from '../src/progression.js';
+import {skeletonModel} from '../src/combat-scene.js';
+import {Realm} from '../src/world.js';
+import {directorContext} from '../src/director.js';
+const make=(level=6)=>{const h=M.makeHero({name:'Sylvanas',raceId:'elf',classId:'necromancer',originId:'scholar'},13254);M.enterRealm(h);h.level=level;h.hp=M.maxHp(h);h.mp=M.maxMp(h);return h};
+const env={rng:()=>.5,canMove:()=>true,lineOfSight:()=>true};
+const foe=h=>({id:'test-foe',name:'Reaver',kind:'bandit',type:'enemy',x:h.position.x+2,z:h.position.z});
+function tick(h,n=1,options=env){const events=[];for(let i=0;i<n/.05;i++)events.push(...A.advanceAction(h,.05,options).events);return events}
+test('servants unlock at distinct levels and selection cannot change mid-combat',()=>{const h=make(2);assert(M.selectServant(h,'guardian'));assert(!M.selectServant(h,'ravager'));assert(!M.selectServant(h,'arcanist'));h.level=4;assert(M.selectServant(h,'ravager'));h.level=6;assert(M.selectServant(h,'arcanist'));A.prepareActionCombat(h,foe(h));assert(!M.selectServant(h,'guardian'));assert(M.validateHero(h));});
+test('exploration summoning spends mana once, survives encounter changes and shares its recovery with combat',()=>{const h=make(2),mp=h.mp;assert(A.summonCompanion(h,env).ok);assert.equal(h.mp,mp-10);const ally=h.companion;assert.equal(ally.form,'guardian');assert(!A.summonCompanion(h,env).ok);A.prepareActionCombat(h,foe(h));assert(!A.performAction(h,'summon',env).ok);assert.equal(h.mp,mp-10);A.fleeAction(h);tick(h,17);assert(A.summonCompanion(h,env).ok);assert.notEqual(h.companion,ally);assert(M.validateHero(h));});
+test('guardian, ravager and arcanist have different survivability, damage and real attack range',()=>{
+ const results={};for(const form of SERVANTS){const h=make();M.selectServant(h,form.id);A.summonCompanion(h,env);const hp=h.companion.hp;A.prepareActionCombat(h,foe(h));h.combat.hp=h.combat.maxHp=10000;h.combat.nextAttack=60;h.companion.cooldown=0;h.companion.x=h.combat.x-1;h.companion.z=h.combat.z;const events=tick(h,.05);results[form.id]={hp,damage:events.find(e=>e.kind==='minionStrike').amount};assert(M.validateHero(h));}
+ assert(results.guardian.hp>results.ravager.hp);assert(results.ravager.damage>results.guardian.damage);
+ const mage=make();M.selectServant(mage,'arcanist');A.summonCompanion(mage,env);A.prepareActionCombat(mage,foe(mage));mage.combat.hp=10000;mage.companion.x=mage.combat.x-7;mage.companion.z=mage.combat.z;mage.companion.cooldown=0;assert(tick(mage,.05).some(e=>e.kind==='minionProjectile'));const hp=mage.combat.hp;mage.companion.cooldown=0;tick(mage,.05,{...env,lineOfSight:()=>false});assert.equal(mage.combat.hp,hp,'magic cannot pass through a wall');
+});
+test('all servant specializations have finite geometry and visible class equipment',()=>{for(const form of SERVANTS){const g=skeletonModel(form.id);assert.equal(g.userData.form,form.id);assert(g.userData.joints.armR.children.length>=3);g.traverse(o=>{if(o.geometry)assert(o.geometry.attributes.position.array.every(Number.isFinite))})}});
+test('guardian blessing offers are deterministic, earned once, mechanically active and limited to their campaign',()=>{
+ const h=make();assert.equal(M.blessingChoices(h).length,0);assert(!M.chooseBlessing(h,'iron-vow',0));M.changeLocation(h,'dungeon');M.resolveEntity(h,'boss');const offers=M.blessingChoices(h);assert.equal(offers.length,3);assert.equal(new Set(offers.map(b=>b.id)).size,3);assert.deepEqual(M.blessingChoices(JSON.parse(JSON.stringify(h))),offers);
+ const b=offers[0],before=M.effects(h);assert(!M.chooseBlessing(h,b.id,1));assert(M.chooseBlessing(h,b.id,0));assert(!M.chooseBlessing(h,b.id,0));for(const[k,v]of Object.entries(b.effect))assert.equal(M.effects(h)[k],(before[k]||0)+v);assert(M.validateHero(h));const copy=JSON.parse(JSON.stringify(h));assert.deepEqual(M.effects(copy),M.effects(h));copy.world.blessings.push({...copy.world.blessings[0]});assert(!M.validateHero(copy));
+ const id=h.id,gear=structuredClone(h.equipment);M.newCampaign(h,74);assert.equal(M.blessingChoices(h).length,0);assert(!h.world.blessings);assert.equal(h.id,id);assert.deepEqual(h.equipment,gear);assert(M.validateHero(h));
+ const combinations=new Set();for(let seed=1;seed<=20;seed++){const q=M.makeHero({name:'Tester'},seed);M.changeLocation(q,'dungeon');M.resolveEntity(q,'boss');combinations.add(M.blessingChoices(q).map(b=>b.id).sort().join(','))}assert(combinations.size>5,'different campaigns offer different build choices');
+});
+test('earned patronage affects actual combat and NPC reactions track real decisions',()=>{const h=make(),armor=M.armor(h),cost=M.abilityCost(h);assert(patronage(h).every(p=>!p.earned));h.factions={town:5,scholars:5,veil:5};assert.equal(M.armor(h),armor+1);assert.equal(M.abilityCost(h),cost-1);assert.equal(M.effects(h).spell,2);assert(reactionTo(h,'merchant').includes('trust'));assert.equal(reactionTo(h,'witness'),'');h.campaign.stage='heart';assert(reactionTo(h,'merchant').includes('guardian'));h.campaign.stage='complete';h.campaign.ending='destroy';assert(reactionTo(h,'merchant').includes('broke the relic'));});
+test('the dungeon master context includes the real build, earned support and summoned companion',()=>{const h=make();M.selectServant(h,'arcanist');A.summonCompanion(h,env);h.factions.scholars=5;const context=directorContext(h);assert.equal(context.hero.servant.name,'Crypt Arcanist');assert.deepEqual(context.hero.equipment,h.equipment);assert.equal(context.hero.patronage[0].name,'Scholars');assert.equal(context.hero.blessings.length,0);});
+test('enemies and summoned allies can navigate a dungeon bend rather than attack through the corner',()=>{
+ const h=make();M.changeLocation(h,'dungeon');const grid=M.townOf(h).dungeon.grid,r=Object.assign(Object.create(Realm.prototype),{hero:h,crypt:true});let pair;
+ for(let z=1;z<16&&!pair;z++)for(let x=1;x<16&&!pair;x++){if(grid[z][x])continue;const a={x:x*4+2,z:z*4+2};for(let zz=1;zz<16&&!pair;zz++)for(let xx=1;xx<16&&!pair;xx++){const b={x:xx*4+2,z:zz*4+2};if(!grid[zz][xx]&&!r.lineOfSight(a,b)&&Math.hypot(a.x-b.x,a.z-b.z)<12)pair=[a,b]}}
+ assert(pair);const[a,b]=pair;let p={...a};for(let i=0;i<400;i++){const next=r.navigate(p,b,.15);assert(r.canMove(next.x,next.z));p=next;if(Math.hypot(p.x-b.x,p.z-b.z)<.3)break}assert(Math.hypot(p.x-b.x,p.z-b.z)<.3,'follows a walkable corridor around the wall');
+});
