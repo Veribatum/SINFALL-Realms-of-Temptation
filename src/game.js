@@ -1,18 +1,18 @@
-import {RACES,CLASSES,ORIGINS,OMENS,STAT_LABELS,LORE} from './content.js?v=10';
-import * as M from './model.js?v=10';
-import * as S from './saves.js?v=10';
-import * as AI from './director.js?v=10';
-import {Realm} from './world.js?v=10';
-import {appearanceOf,APPEARANCE_OPTIONS,wardrobeOptions,PALETTES,weaponStyle,armorStyle} from './appearance.js?v=10';
-import {regionOf,frontierSites,surveyState,roadLinks,siteKey} from './frontier.js?v=10';
-import {CharacterPreview} from './preview.js?v=10';
-import {centerOf,realmSites,worldStats} from './atlas.js?v=10';
-import {styleActor} from './actor-style.js?v=10';
-import {Soundscape,audioMode} from './audio.js?v=10';
-import {trackedTarget,trackedQuest,questTarget,targetDistance,directionTo} from './navigation.js?v=10';
-import * as Action from './action-combat.js?v=10';
-import {storyBrief} from './story-guide.js?v=10';
-import {drawAtlas} from './map-view.js?v=10';
+import {RACES,CLASSES,ORIGINS,OMENS,STAT_LABELS,LORE} from './content.js?v=11';
+import * as M from './model.js?v=11';
+import * as S from './saves.js?v=11';
+import * as AI from './director.js?v=11';
+import {Realm} from './world.js?v=11';
+import {appearanceOf,APPEARANCE_OPTIONS,wardrobeOptions,PALETTES,weaponStyle,armorStyle} from './appearance.js?v=11';
+import {regionOf,frontierSites,surveyState,roadLinks,siteKey} from './frontier.js?v=11';
+import {CharacterPreview} from './preview.js?v=11';
+import {centerOf,realmSites,worldStats} from './atlas.js?v=11';
+import {styleActor} from './actor-style.js?v=11';
+import {Soundscape,audioMode} from './audio.js?v=11';
+import {trackedTarget,trackedQuest,questTarget,targetDistance,directionTo} from './navigation.js?v=11';
+import * as Action from './action-combat.js?v=11';
+import {storyBrief} from './story-guide.js?v=11';
+import {drawAtlas} from './map-view.js?v=11';
 
 const $=id=>document.getElementById(id),app=$('app'),modalRoot=$('modal-root');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -49,7 +49,7 @@ function appearanceDialog(){const copy={...hero,...appearanceOf(hero)};const d=d
 
 function menu(){
  if(hero)persist();disposeWorld();dismiss();screen='menu';sound.setMode('menu');const last=S.lastHero(),heroes=S.listHeroes();
- app.innerHTML='<main class="title-screen"><div class="title-landscape"></div><div class="title-shade"></div><div class="title-top"><span class="seal">✧</span><span>A WORLD THAT REMEMBERS</span></div><section class="title-content"><div class="eyebrow">REALMS OF TEMPTATION</div><h1>SINFALL</h1><p class="title-quote">Every road hides a story.<br>Every choice leaves a scar.</p><nav id="main-menu" aria-label="Main menu"></nav><div id="continue-summary"></div></section><div class="title-footer"><span>THE OPEN REALM · 2.1.0</span><button id="how-to">How to play</button><span>Your legends live on this device</span></div></main>';
+ app.innerHTML='<main class="title-screen"><div class="title-landscape"></div><div class="title-shade"></div><div class="title-top"><span class="seal">✧</span><span>A WORLD THAT REMEMBERS</span></div><section class="title-content"><div class="eyebrow">REALMS OF TEMPTATION</div><h1>SINFALL</h1><p class="title-quote">Every road hides a story.<br>Every choice leaves a scar.</p><nav id="main-menu" aria-label="Main menu"></nav><div id="continue-summary"></div></section><div class="title-footer"><span>THE OPEN REALM · 2.1.1</span><button id="how-to">How to play</button><span>Your legends live on this device</span></div></main>';
  const nav=$('main-menu');if(last){nav.append(btn('Continue',()=>load(last.id),'menu-button primary'));$('continue-summary').textContent=`${last.name} · Level ${last.level} ${M.classOf(last).name} · ${last.campaign.title}`}
  nav.append(btn('New Game',creator,'menu-button '+(!last?'primary':'')),btn('Load Game'+(heroes.length?' · '+heroes.length:''),()=>loadScreen(),'menu-button'),btn('Dungeon Master & Settings',()=>settings(),'menu-button subtle'));
  $('how-to').onclick=howTo;
@@ -93,6 +93,8 @@ function introduction(){dialog({tag:`CHAPTER I · ${hero.world.towns[0].name.toU
 function startGame(){
  disposeWorld();dismiss();M.enterRealm(hero);screen='world';saveClock=0;sound.setMode(audioMode(hero));
  app.innerHTML='<main class="game-screen"><canvas id="realm" aria-label="Walkable game world"></canvas><div id="world-fallback" hidden><div></div><p>Your browser could not start the 3D view. Nearby places remain playable below.</p><div id="fallback-actions"></div></div><div class="vignette"></div><header class="game-top"><button id="pause" class="crest-button" aria-label="Pause menu">✧</button><div class="hero-hud"><div id="hud-portrait"></div><div><strong id="hud-name"></strong><div class="resource-bar vitality"><span id="hp-fill"></span><small id="hp-label"></small></div><div class="resource-bar mana"><span id="mp-fill"></span><small id="mp-label"></small></div></div></div><div class="compass"><span>N</span><i></i><strong id="compass-heading">N</strong><i></i><span>S</span></div><button id="sound-toggle" class="sound-toggle" aria-label="Mute sound">♫</button><button id="quick-save" class="save-indicator">◇ Saved</button></header><section class="quest-hud"><div class="eyebrow" id="hud-campaign"></div><small id="hud-story" class="story-context"></small><p id="hud-objective"></p><div id="quest-guide" class="quest-guide" aria-live="polite"></div><button id="quest-map" class="text-button">Show on map →</button> <button id="quest-details" class="text-button">Journal</button></section><aside class="map-hud"><button id="minimap-button" aria-label="Open world map"><canvas id="minimap" width="136" height="136"></canvas></button><div id="hud-location"></div><small id="hud-day"></small><small id="waypoint-distance"></small></aside><div class="world-caption"><span id="world-location-name"></span><span id="world-location-desc"></span></div><div id="interaction-prompt" hidden><div><span id="near-role"></span><strong id="near-name"></strong></div><button id="interact" class="primary"><kbd>E</kbd> Interact</button></div><div class="movement-hint">W A S D <span>walk</span> · drag <span>look</span> · E <span>interact</span> · Shift <span>run</span></div><div id="joystick" aria-label="Movement joystick" role="application"><span></span></div><button id="touch-run" aria-label="Toggle run" class="touch-run">⇧</button><nav class="game-nav" aria-label="Game panels"><button data-panel="character"><span>♙</span>Character</button><button data-panel="inventory"><span>♧</span>Satchel</button><button data-panel="journal"><span>▤</span>Journal</button><button data-panel="map"><span>⌖</span>Map</button><button data-panel="director"><span>✧</span>Dungeon Master</button><button id="nearby"><span>◎</span>Nearby</button></nav><div id="combat-layer"></div><div id="combat-floats" aria-hidden="true"></div><div id="companion-status" hidden></div><div id="side-panel"></div><div id="save-warning" hidden></div></main>';
+ const icons={character:['♙ Character','M8 21v-3a4 4 0 0 1 8 0v3M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8'],inventory:['♧ Satchel','M6 8h12l2 12H4L6 8Zm3 0V6a3 3 0 0 1 6 0v2M9 13h6'],journal:['▤ Journal','M5 3h12a2 2 0 0 1 2 2v16H7a2 2 0 0 1-2-2V3Zm0 14h14M9 7h6M9 11h6'],map:['⌖ Map','m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Zm6-3v15M15 6v15'],director:['✧ Dungeon Master','m12 2 2.6 7.4L22 12l-7.4 2.6L12 22l-2.6-7.4L2 12l7.4-2.6L12 2Z'],nearby:['◎ Nearby','M12 8v8M8 12h8M21 12a9 9 0 1 0-18 0 9 9 0 0 0 18 0']};
+ for(const button of document.querySelectorAll('.game-nav button')){const key=button.dataset.panel||'nearby',[label,path]=icons[key];button.setAttribute('aria-label',label);button.title=label.replace(/^[^ ]+ /,'');button.querySelector('span').innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+path+'"/></svg>'}
  $('hud-portrait').append(portrait(hero.portrait));updateSoundButton();$('sound-toggle').onclick=()=>{sound.toggle();updateSoundButton()};$('pause').onclick=pauseMenu;$('quick-save').onclick=()=>{persist(true);notify('Checkpoint saved.');};$('quest-details').onclick=()=>openPanel('journal');$('quest-map').onclick=()=>openPanel('map');$('minimap-button').onclick=()=>openPanel('map');for(const b of document.querySelectorAll('[data-panel]'))b.onclick=()=>openPanel(b.dataset.panel);$('nearby').onclick=nearbyMenu;$('interact').onclick=()=>interact(near);$('touch-run').onclick=()=>{if(realm){if(realm.keys.has('shift'))realm.keys.delete('shift');else realm.keys.add('shift');$('touch-run').classList.toggle('active',realm.keys.has('shift'))}};
  updateHud();
  try{realm=new Realm($('realm'),{hero,onRegion:town=>{persist();notify('Discovered '+town.name,'location')},onNear:e=>{near=e;updateNear()},onInteract:interact,onRumor:overhear,onEncounter:interact,onTick:dt=>{saveClock+=dt;if(saveClock>15){saveClock=0;persist()}},paused:()=>!!modalRoot.children.length||!!panel||!!hero.combat&&hero.combat.mode!=='action',onStep:(surface,running,foot)=>sound.footstep(surface,running,foot),onHostile:e=>{if(performance.now()>combatGrace)beginCombat(e)},onCombatAction:combatAction,quality:prefs.quality||'high'})}

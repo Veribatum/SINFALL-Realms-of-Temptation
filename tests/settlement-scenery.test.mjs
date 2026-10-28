@@ -59,3 +59,12 @@ test('atlas paths and building fronts follow the same settlement plan as the wor
  for(const street of settlementStreets(hero.world.towns[0])){const a=project(street.from),b=project(street.to);assert(paths.some(p=>p.length===2&&close(p[0][0],a[0])&&close(p[0][1],a[1])&&close(p[1][0],b[0])&&close(p[1][1],b[1])),'street is drawn at its world coordinates')}
  for(const b of [...homePlan(hero.world.towns[0]),...SETTLEMENT_CORE]){const[x,z]=project(b),front=fronts.find(f=>close(f.translation[0],x)&&close(f.translation[1],z));assert(front,'building footprint matches world center');assert(close(front.rotation,-b.rotation),'map front faces the world door')}
 });
+
+
+test('main settlement is denser than outlying villages and a relocated building cannot trap a returning hero',()=>{
+ const hero=make(),homes=homePlan(hero.world.towns[0]),village=homePlan(hero.world.towns[1]);
+ const area=list=>(Math.max(...list.map(h=>h.x))-Math.min(...list.map(h=>h.x)))*(Math.max(...list.map(h=>h.z))-Math.min(...list.map(h=>h.z)));
+ assert(area(homes)<area(village)*.75,'same households occupy a materially smaller main-town footprint');assert(homes.filter(h=>Math.abs(h.x)<35&&Math.abs(h.z)<35).length>=4,'occupied inner streets replace the empty ring');
+ const restore=documentStub();M.enterRealm(hero);hero.position={x:homes[0].x,z:homes[0].z,yaw:0};const r=headless(hero);
+ try{r.build();assert(r.canMove(hero.position.x,hero.position.z));assert(Math.hypot(hero.position.x-homes[0].x,hero.position.z-homes[0].z)<12);assert.equal(hero.position.yaw,0);const town=[...r.openChunks.values()].find(g=>g.userData.towns?.includes(0));assert(town);assert(r.root.getObjectByName('Main town market and courtyards'));}finally{r.clearScene();restore()}
+});

@@ -1,5 +1,5 @@
-import {frontierSites} from './frontier.js?v=10';
-import {townWardrobe} from './appearance.js?v=10';
+import {frontierSites} from './frontier.js?v=11';
+import {townWardrobe} from './appearance.js?v=11';
 export const REGION_SIZE=1200,CHUNK_SIZE=300,WORLD_MIN=-600,WORLD_MAX=3000,GRID_STEP=12.5;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const centerOf=id=>({x:id%3*REGION_SIZE,z:Math.floor(id/3)*REGION_SIZE});
@@ -17,9 +17,22 @@ export const SETTLEMENT_CORE=[
  {id:'chapel',x:28,z:-35,rotation:0,index:0,doorX:28,doorZ:-30.8}
 ];
 const HOME_FRONTAGE=[-42,-26,-10,22,40],SIDE_FRONTAGE=[-40,-22,-7,16,36];
-function homePlacement(i){const side=Math.floor(i/5),v=HOME_FRONTAGE[i%5],s=SIDE_FRONTAGE[i%5];return side===0?{x:v,z:-54,rotation:0}:side===1?{x:56,z:s,rotation:-Math.PI/2}:side===2?{x:-v,z:58,rotation:Math.PI}:{x:-56,z:-s,rotation:Math.PI/2}}
+const MAIN_HOMES=[
+ ...[-44,44].flatMap(x=>[-34,-20,12,33].map(z=>({x,z,rotation:x<0?Math.PI/2:-Math.PI/2}))),
+ ...[-30,-18,-6,8].map(x=>({x,z:-47,rotation:0})),
+ ...[-30,-18,18,30].map(x=>({x,z:46,rotation:Math.PI})),
+ ...[-28,28].flatMap(x=>[-7,30].map(z=>({x,z,rotation:x<0?Math.PI/2:-Math.PI/2})))
+];
+function homePlacement(i,town){if(town.id===0)return MAIN_HOMES[i];const side=Math.floor(i/5),v=HOME_FRONTAGE[i%5],s=SIDE_FRONTAGE[i%5];return side===0?{x:v,z:-54,rotation:0}:side===1?{x:56,z:s,rotation:-Math.PI/2}:side===2?{x:-v,z:58,rotation:Math.PI}:{x:-56,z:-s,rotation:Math.PI/2}}
 export function settlementStreets(town){
  const streets=[],add=(ax,az,bx,bz,width=4.5)=>streets.push({from:{x:ax,z:az},to:{x:bx,z:bz},width});
+ if(town.id===0){
+  for(const x of[-36,-22,0,22,36])add(x,-38,x,38,x===0?6:3.2);
+  for(const z of[-38,-25,0,26,38])add(-36,z,36,z,z===0?6:3.2);
+  for(const b of SETTLEMENT_CORE)add(b.doorX,b.doorZ,0,b.doorZ,3.2);
+  for(const h of homePlan(town)){const sideways=Math.abs(Math.sin(h.rotation))>.5;add(h.doorX,h.doorZ,sideways?Math.sign(h.x)*(Math.abs(h.x)>36?36:22):h.doorX,sideways?h.doorZ:h.z<0?-38:38,2.8)}
+  return streets;
+ }
  add(-48,-46,48,-46);add(48,-46,48,50);add(48,50,-48,50);add(-48,50,-48,-46);
  add(-48,0,48,0,6);add(0,-46,0,50,6);add(-48,27,48,27);add(-34,-46,-34,50,3.6);add(36,-46,36,50,3.6);
  for(const b of SETTLEMENT_CORE)add(b.doorX,b.doorZ,0,b.doorZ,3.2);
@@ -64,5 +77,5 @@ const STORIES=[
  ['My maps grew another coastline overnight. The old observatory appears on the wrong side of it.','ruin'],
  ['Someone has been leaving fresh bread on the standing stones. Every loaf contains one of our lost house keys.','stones']
 ];
-export function homePlan(town){return Array.from({length:20},(_,i)=>{const{x,z,rotation}=homePlacement(i);const owner=FIRST[(i+town.id*3)%20]+' '+LAST[(i+town.id)%10],kind=i%5===0?'merchant':i===7?'guild':i===13?'lodge':i===19?'barracks':'home',name=kind==='home'?owner+'’s Home':kind==='merchant'?['Silver Thread Trading','The Copper Cup','Wren’s Provisions','Moonfall Goods'][Math.floor(i/5)]:kind==='guild'?'The Cartographers’ Guild':kind==='lodge'?'The Trailkeeper’s Lodge':'The Watch Barracks';const[story,trail]=STORIES[i];return{id:i,x,z,rotation,doorX:x+Math.sin(rotation)*4.3,doorZ:z+Math.cos(rotation)*4.3,owner,name,kind,role:kind==='merchant'?'merchant':kind==='barracks'?'guard':kind==='guild'?'guildmaster':kind==='lodge'?'ranger':'resident',story,trailId:'site-'+['tower','camp','ruin','stones','farm','mine','shrine','bridge'].indexOf(trail),description:kind==='home'?'A lived-in home with a hearth, a table and a story.':'A busy '+kind+' with supplies, maps and local news.',appearance:{gender:i%2?'female':'male',raceId:['human','elf','dwarf','fae','duskborn','exile','beastkin','human'][(i+town.id)%8],build:['slender','balanced','broad'][i%3],height:['short','average','tall'][i%3],face:['soft','angular','round','regal'][i%4],hairStyle:['cropped','swept','long','braid','buns','bald'][i%6],beard:i%2===0&&i%4===0?'full':'none',skin:['#c39c7a','#8c6248','#d5bba2','#795644'][i%4],hair:['#45342e','#ddd7bf','#7b422e','#262c34'][i%4],outfit:['#49675c','#65527d','#88534a','#647d8a'][i%4],eyes:'#718d92',wardrobe:townWardrobe(i%2?'female':'male',kind==='barracks'?'guard':kind==='merchant'?'merchant':kind==='lodge'?'ranger':'resident',Math.floor(i/2)+town.id)}}})}
+export function homePlan(town){return Array.from({length:20},(_,i)=>{const{x,z,rotation}=homePlacement(i,town);const owner=FIRST[(i+town.id*3)%20]+' '+LAST[(i+town.id)%10],kind=i%5===0?'merchant':i===7?'guild':i===13?'lodge':i===19?'barracks':'home',name=kind==='home'?owner+'’s Home':kind==='merchant'?['Silver Thread Trading','The Copper Cup','Wren’s Provisions','Moonfall Goods'][Math.floor(i/5)]:kind==='guild'?'The Cartographers’ Guild':kind==='lodge'?'The Trailkeeper’s Lodge':'The Watch Barracks';const[story,trail]=STORIES[i];return{id:i,x,z,rotation,doorX:x+Math.sin(rotation)*4.3,doorZ:z+Math.cos(rotation)*4.3,owner,name,kind,role:kind==='merchant'?'merchant':kind==='barracks'?'guard':kind==='guild'?'guildmaster':kind==='lodge'?'ranger':'resident',story,trailId:'site-'+['tower','camp','ruin','stones','farm','mine','shrine','bridge'].indexOf(trail),description:kind==='home'?'A lived-in home with a hearth, a table and a story.':'A busy '+kind+' with supplies, maps and local news.',appearance:{gender:i%2?'female':'male',raceId:['human','elf','dwarf','fae','duskborn','exile','beastkin','human'][(i+town.id)%8],build:['slender','balanced','broad'][i%3],height:['short','average','tall'][i%3],face:['soft','angular','round','regal'][i%4],hairStyle:['cropped','swept','long','braid','buns','bald'][i%6],beard:i%2===0&&i%4===0?'full':'none',skin:['#c39c7a','#8c6248','#d5bba2','#795644'][i%4],hair:['#45342e','#ddd7bf','#7b422e','#262c34'][i%4],outfit:['#49675c','#65527d','#88534a','#647d8a'][i%4],eyes:'#718d92',wardrobe:townWardrobe(i%2?'female':'male',kind==='barracks'?'guard':kind==='merchant'?'merchant':kind==='lodge'?'ranger':'resident',Math.floor(i/2)+town.id)}}})}
 export function worldStats(){return{width:WORLD_MAX-WORLD_MIN,areaKm2:12.96,settlements:9,buildings:225,landmarks:72,dungeons:9}}

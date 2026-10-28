@@ -1,4 +1,4 @@
-import * as M from './model.js?v=10';
+import * as M from './model.js?v=11';
 
 export const SUMMON_LEVEL=2;
 const magicClasses=new Set(['necromancer','spellbinder','druid','bard']);

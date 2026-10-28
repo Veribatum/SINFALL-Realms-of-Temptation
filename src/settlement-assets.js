@@ -1,5 +1,5 @@
 import * as T from '../vendor/three.module.js';
-import {centerOf,cryptAnchor} from './atlas.js?v=10';
+import {centerOf,cryptAnchor} from './atlas.js?v=11';
 
 // The gate anchor is the open threshold, rather than the center of a solid
 // prop. Side colliders leave the arrival point and the north road passable.
@@ -45,16 +45,31 @@ export function buildUndercrypt(r,town){
 export function buildCivicScenery(r,town){
  const c=centerOf(town.id),at=(x,z)=>({x:c.x+x,z:c.z+z}),g=new T.Group();g.name='Village civic spaces · '+town.id;g.position.set(c.x,0,c.z);r.root.add(g);
  const plaza=r.mesh(new T.CircleGeometry(9,32),r.openRoad,g,0,.075,0);plaza.rotation.x=-Math.PI/2;
- for(const[x,z]of[[-19,34],[-10,39],[-26,42]]){const p=at(x,z);r.market(p.x,p.z)}
+ for(const[x,z]of(town.id===0?[[24,10],[32,10],[24,19],[32,19],[-21,20],[-29,20]]:[[-19,34],[-10,39],[-26,42]])){const p=at(x,z);r.market(p.x,p.z)}
  // The west green and garden occupy the space between streets, away from NPC
  // and doorway anchors. Small props leave generous walking routes around them.
- for(const[x,z,rot]of[[-28,15,0],[-28,22,Math.PI]]){
+ for(const[x,z,rot]of(town.id===0?[[-25,14,0],[-34,14,0],[-25,24,Math.PI]]:[[-28,15,0],[-28,22,Math.PI]])){
   const bench=new T.Group();bench.position.set(x,0,z);bench.rotation.y=rot;g.add(bench);r.box(3,.18,.8,r.m.wood,bench,0,.68,0);r.box(3,.65,.12,r.m.wood,bench,0,1.08,-.35);for(const side of[-1,1])r.box(.16,.65,.6,r.m.iron,bench,side*1.2,.34,0);
  }
- for(const z of[-35,-27]){
+ for(const z of(town.id===0?[-56,-63]:[-35,-27])){
   r.box(6,.18,5,r.material('#514c35'),g,-43,.09,z);
   for(const x of[-45,-43,-41])for(const zz of[-1.5,0,1.5]){const sprout=r.mesh(new T.ConeGeometry(.35,.75,5),r.m.leaves,g,x,.5,z+zz);sprout.rotation.z=(x+zz)*.06}
   for(const side of[-1,1])r.box(6.2,.25,.18,r.m.wood,g,-43,.2,z+side*2.5);
+ }
+ if(town.id===0){
+  g.name='Main town market and courtyards';
+  // Workshop yard and stacks stay off the connected pedestrian streets.
+  for(const[x,z]of[[-30,-29],[29,-25],[-29,35],[15,34]]){
+   r.barrel(c.x+x,c.z+z);r.box(.9,.7,.9,r.m.wood,g,x+1.2,.35,z);r.box(.7,.6,.7,r.m.wood,g,x+1.2,1,z);
+  }
+  for(const[x,z]of[[-10,31],[10,31],[-8,-27],[8,-27]]){
+   r.box(2,.4,.8,r.m.stone,g,x,.2,z);for(const dx of[-.6,0,.6])r.mesh(new T.ConeGeometry(.35,.8,5),r.m.leaves,g,x+dx,.8,z);
+  }
+  for(const[x,z]of[[-34,-12],[34,-12],[-12,36],[12,36]]){const p=at(x,z);r.lamp(p.x,p.z)}
+  // A canvas-covered communal table and hanging bunting frame the market.
+  r.box(4,.18,1.5,r.m.wood,g,28,1.05,24);for(const x of[26.4,29.6])for(const z of[23.5,24.5])r.box(.16,1,.16,r.m.wood,g,x,.5,z);
+  for(let i=0;i<12;i++){const flag=r.mesh(new T.ConeGeometry(.24,.6,3),r.material(i%2?'#a96e49':'#647d83'),g,20+i*1.25,4.1-Math.sin(i/11*Math.PI)*.5,5);flag.rotation.z=Math.PI}
+  g.userData.marketStalls=6;
  }
  r.box(3,.35,2,r.m.stone,g,23,.17,-26);r.box(2.7,.15,1.7,r.material('#5a684e'),g,23,.42,-26);for(const x of[22.2,23,23.8])r.sphere(.25,r.material('#b6ba86'),g,x,.65,-26);
  return g;

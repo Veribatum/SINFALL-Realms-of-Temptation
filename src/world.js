@@ -1,17 +1,17 @@
 import * as T from '../vendor/three.module.js';
-import {trackedTarget,targetDistance,directionTo,isTargetHere} from './navigation.js?v=10';
-import {seeded,entitiesFor,locationId,townOf,visitState,objective,syncRealm} from './model.js?v=10';
-import {loadActor,createActor,animateActor,disposeActor,playActorAction} from './actors.js?v=10';
-import {batchScenery,cameraPosition} from './scene-utils.js?v=10';
-import {buildInterior} from './interiors.js?v=10';
-import {appearanceKey,townWardrobe} from './appearance.js?v=10';
-import {styleActor} from './actor-style.js?v=10';
-import {BOUNDS,regionOf,frontierSites,roadLinks} from './frontier.js?v=10';
-import {buildFrontier,buildOutskirts} from './landscape.js?v=10';
-import {surfaceHeight,navigable,centerOf} from './atlas.js?v=10';
-import {CombatScene} from './combat-scene.js?v=10';
-import {contactEvents} from './gait.js?v=10';
-import {buildOpenWorld,updateOpenWorld} from './overworld.js?v=10';
+import {trackedTarget,targetDistance,directionTo,isTargetHere} from './navigation.js?v=11';
+import {seeded,entitiesFor,locationId,townOf,visitState,objective,syncRealm} from './model.js?v=11';
+import {loadActor,createActor,animateActor,disposeActor,playActorAction} from './actors.js?v=11';
+import {batchScenery,cameraPosition} from './scene-utils.js?v=11';
+import {buildInterior} from './interiors.js?v=11';
+import {appearanceKey,townWardrobe} from './appearance.js?v=11';
+import {styleActor} from './actor-style.js?v=11';
+import {BOUNDS,regionOf,frontierSites,roadLinks} from './frontier.js?v=11';
+import {buildFrontier,buildOutskirts} from './landscape.js?v=11';
+import {surfaceHeight,navigable,centerOf} from './atlas.js?v=11';
+import {CombatScene} from './combat-scene.js?v=11';
+import {contactEvents} from './gait.js?v=11';
+import {buildOpenWorld,updateOpenWorld} from './overworld.js?v=11';
 const sceneKey=h=>h.world.seed+':'+(h.location.type==='realm'?'realm':locationId(h));
 
 const TAU=Math.PI*2;
@@ -39,7 +39,9 @@ export class Realm {
   this.clearScene();this.root=new T.Group();this.scene.add(this.root);this.staticKey=sceneKey(this.hero);this.colliders=[];this.entities=[];this.animals=[];this.people=[];this.particles=[];this.fires=[];this.dynamic=new T.Group();this.root.add(this.dynamic);this.r=seeded(townOf(this.hero).seed);this.crypt=this.hero.location.type==='dungeon';this.indoor=this.hero.location.type==='interior';this.firstPerson=false;this.open=this.hero.location.type==='realm';this.wild=this.hero.location.type==='wilds'||this.open&&this.hero.location.area==='wilds';this.entityRegion=this.hero.location.townId;this.openChunks=null;this.encounterNoticed=new Set();this.waypoint=null;
   const p=this.hero.position;this.yaw=p.yaw??Math.PI;
   this.m={wood:this.material('#5b4430',{map:this.texture('wood')}),timber:this.material('#30291f'),stone:this.material('#a49b82',{map:this.texture('stone')}),roof:this.material(townOf(this.hero).climate==='autumn'?'#786451':'#627077',{map:this.texture('roof')}),plaster:this.material('#cebea0'),gold:this.material('#c99b4c',{metalness:.65,roughness:.35}),iron:this.material('#465052',{metalness:.7,roughness:.5}),water:this.material('#527f81',{metalness:.6,roughness:.2,transparent:true,opacity:.82}),leaves:this.material(townOf(this.hero).climate==='autumn'?'#8d713c':'#3b6548'),dark:this.material('#222c2c'),glow:this.material('#ecc07a',{emissive:'#e6a442',emissiveIntensity:1.5}),white:this.material('#dfd6bb')};
-  if(this.crypt)this.buildDungeon();else if(this.indoor)buildInterior(this);else if(this.open)buildOpenWorld(this);else this.buildLandscape();this.spawnEntities();
+  if(this.crypt)this.buildDungeon();else if(this.indoor)buildInterior(this);else if(this.open)buildOpenWorld(this);else this.buildLandscape();
+  if(this.open&&!this.canMove(p.x,p.z)){let clear=null;for(let radius=.5;radius<=12&&!clear;radius+=.5)for(let i=0;i<24;i++){const a=i*Math.PI/12,x=p.x+Math.sin(a)*radius,z=p.z+Math.cos(a)*radius;if(this.canMove(x,z)){clear={x,z};break}}if(clear)Object.assign(p,clear)}
+  this.spawnEntities();
   this.player=this.humanoid(this.hero.skin,this.hero.outfit,this.hero.hair,this.hero.raceId,this.hero.classId,{hero:this.hero});this.root.add(this.player);this.player.position.set(p.x,this.groundAt(p.x,p.z),p.z);this.player.rotation.y=this.yaw;this.playerStyleKey=appearanceKey(this.hero);
   this.addParticles();this.batchStats=this.open?{savedDraws:0}:batchScenery(this.root,[this.dynamic,this.player,...this.people.map(p=>p.g),...this.animals.map(a=>a.g)]);this.lastNearId=null;this.near=null;this.resize();if(this.renderer)this.combatScene=new CombatScene(this);
  }
@@ -78,12 +80,13 @@ export class Realm {
   const blades=new T.InstancedMesh(new T.ConeGeometry(.12,.45,3),this.material('#657849'),this.quality==='high'?1400:500),dummy=new T.Object3D();
   for(let i=0;i<blades.count;i++){let x=(this.r()-.5)*(this.wild?290:155),z=(this.wild?125:70)-this.r()*(this.wild?295:150);if(Math.abs(x)<6)x+=x<0?-8:8;dummy.position.set(x,.15,z);dummy.rotation.set((this.r()-.5)*.3,this.r()*TAU,0);dummy.scale.setScalar(.5+this.r());dummy.updateMatrix();blades.setMatrixAt(i,dummy.matrix)}this.root.add(blades);
  }
- house(x,z,rot,index){
-  const g=new T.Group();g.position.set(x,0,z);g.rotation.y=rot;this.root.add(g);const w=7,d=6,h=index%2?4.8:4.2;
+ house(x,z,rot,index,options={}){
+  const g=new T.Group();g.position.set(x,0,z);g.rotation.y=rot;this.root.add(g);const w=7,d=6,h=(index%2?4.8:4.2)+(options.upper?2.8:0);g.name=options.upper?'Two-storey town house':'Town house';
   this.box(w,.7,d,this.m.stone,g,0,.35,0);this.box(w-.15,h-.5,d-.15,this.m.plaster,g,0,(h+.5)/2,0);
   for(const xx of[-w/2+.08,0,w/2-.08])this.box(.18,h,.22,this.m.timber,g,xx,h/2,d/2);for(const yy of[.9,2.7,h-.05])this.box(w,.18,.2,this.m.timber,g,0,yy,d/2);
   for(const xx of[-w/2,w/2]){this.box(.17,h,d,this.m.timber,g,xx,h/2,0);for(const zz of[-2,0,2])this.box(.18,h,.18,this.m.timber,g,xx,h/2,zz)}
   const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute([-4,h,-3.6,4,h,-3.6,0,h+2.6,-3.6,-4,h,3.6,0,h+2.6,3.6,4,h,3.6,-4,h,-3.6,0,h+2.6,-3.6,-4,h,3.6,-4,h,3.6,0,h+2.6,-3.6,0,h+2.6,3.6,4,h,-3.6,4,h,3.6,0,h+2.6,-3.6,4,h,3.6,0,h+2.6,3.6,0,h+2.6,-3.6],3));const roofPositions=geo.attributes.position;for(let i=0;i<roofPositions.count;i+=3){const x=roofPositions.getX(i+1),y=roofPositions.getY(i+1),z=roofPositions.getZ(i+1);roofPositions.setXYZ(i+1,roofPositions.getX(i+2),roofPositions.getY(i+2),roofPositions.getZ(i+2));roofPositions.setXYZ(i+2,x,y,z)}geo.computeVertexNormals();this.mesh(geo,this.m.roof,g);
+  if(options.upper){this.box(w,.2,.2,this.m.timber,g,0,h-2.7,3.1);for(const xx of[-2.2,2.2]){this.box(1.3,1.35,.15,this.m.timber,g,xx,h-1.4,3.04);this.box(1.05,1.1,.17,this.m.glow,g,xx,h-1.4,3.1);this.box(.08,1.15,.08,this.m.wood,g,xx,h-1.4,3.22);this.box(1.1,.08,.08,this.m.wood,g,xx,h-1.4,3.22)}}
   this.box(.26,.25,7.5,this.m.timber,g,0,h+2.6,0);this.box(.8,2.1,.8,this.m.stone,g,2,h+1.2,-1.2);
   this.box(1.25,2.35,.15,this.m.wood,g,0,1.22,3.04);this.cylinder(.68,.68,.12,this.m.wood,g,0,2.35,3.04,16).rotation.x=Math.PI/2;this.sphere(.065,this.m.gold,g,.42,1.12,3.15);
   for(const xx of[-2.2,2.2]){this.box(1.1,1.2,.12,this.m.timber,g,xx,2.05,3.05);this.box(.85,.95,.14,this.m.glow,g,xx,2.05,3.1);this.box(.07,1.1,.08,this.m.wood,g,xx,2.05,3.21);this.box(.92,.07,.08,this.m.wood,g,xx,2.05,3.21);this.box(1.28,.16,.6,this.m.wood,g,xx,1.38,3.22)}

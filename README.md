@@ -1,4 +1,4 @@
-# SINFALL · The Open Realm 2.1.0
+# SINFALL · The Open Realm 2.1.1
 
 [Play Sinfall](https://veribatum.github.io/SINFALL-Realms-of-Temptation/)
 
@@ -29,6 +29,12 @@ Follow the gold marker to the witness. Investigate the road evidence, visit the 
 Mark landmarks or settlements in the atlas. Walking discovers regions; reaching a settlement unlocks fast travel. The minimap follows global position and shows destination distance. Synthesized music covers menus, towns, wilderness, interiors, dungeons and combat; effects and ambience have independent volume controls and persistent mute settings.
 
 ![Corsair and Moonveil outfits with swept-back elf ears, projected from the committed meshes](docs/sinfall-elf-outfits.png)
+
+## Main town and game HUD
+
+The starting settlement has a tighter footprint with occupied inner streets, two-storey houses and shops, six market stalls, workshop supplies, courtyard seating, planters and market bunting. The same households, interiors and quests remain available; the map follows their new door coordinates. Returning saves are moved to nearby clear ground if a relocated building occupies the saved position.
+
+The game HUD uses compact health/mana bars, a slim objective tracker, small minimap, floating icon dock and subtler combat controls. Portrait and landscape phone layouts keep more of the world visible.
 
 ## Action combat and story guidance
 

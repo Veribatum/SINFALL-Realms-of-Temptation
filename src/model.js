@@ -1,8 +1,8 @@
-import {CLASSES,RACES,ORIGINS,MOTIFS,ENEMIES,SETTLEMENT_PREFIX,SETTLEMENT_SUFFIX,NPC_FIRST,NPC_LAST,QUALITY} from './content.js?v=10';
-import {appearanceOf,APPEARANCE_OPTIONS} from './appearance.js?v=10';
-import {REGION_COUNT,regionOf,roadLinks,frontierSites,siteKey,surveyState} from './frontier.js?v=10';
-import {populationFor} from './population.js?v=10';
-import {centerOf,regionAt,realmArea,realmPoint,realmSites,homePlan} from './atlas.js?v=10';
+import {CLASSES,RACES,ORIGINS,MOTIFS,ENEMIES,SETTLEMENT_PREFIX,SETTLEMENT_SUFFIX,NPC_FIRST,NPC_LAST,QUALITY} from './content.js?v=11';
+import {appearanceOf,APPEARANCE_OPTIONS} from './appearance.js?v=11';
+import {REGION_COUNT,regionOf,roadLinks,frontierSites,siteKey,surveyState} from './frontier.js?v=11';
+import {populationFor} from './population.js?v=11';
+import {centerOf,regionAt,realmArea,realmPoint,realmSites,homePlan} from './atlas.js?v=11';
 
 export const SCHEMA=4;
 export const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
