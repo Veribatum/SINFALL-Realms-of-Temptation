@@ -13,13 +13,21 @@ This is a design comparison against published developer descriptions, combined w
 
 Engine checks cover unlock levels, exploration summons, shared recovery, actual ranged attacks and wall checks, guardian reward eligibility, duplicate prevention, campaign reset, save validation, patronage effects, AI context, and navigation around a dungeon corner. Existing character, quest, loot, map, scenery and save regressions remain required. Browser checks exercise combat, specialization selection, blessing selection and reload on phone dimensions.
 
-## Remaining gaps, in order
+## Implemented in 2.3
 
-1. **Hosted AI dungeon master.** The phone release remains offline. Text generated from a seed is not live AI. The current integration uses an HTTP loopback sign-in callback for a locally running open-source client. The hosted edition needs an approved OAuth client with a registered website callback, plan-usage authorization, and a deployed session/inference backend. No such hosted client is configured in this repository. OpenAI’s plan-usage overview directs remotely hosted apps to its interest form; the open-source flow is not a drop-in hosted website authorization. Sign-in alone is identity, not inference access. User account consent and a successful real inference request are required before claiming connection.
-2. **Quest topology.** Add authored multi-stage faction quests and alternative methods with real scene changes. AI prose alone does not create these mechanics. NPC motives, route changes and persistent world consequences must be represented in engine data and validated.
-3. **Encounter variety.** Current combat supports one active opponent. Group encounter coordination, enemy locomotion and stronger impact animation remain separate work; no claim that this update adds them.
-4. **Exploration density.** Expand genuinely interactive destinations and distinctive interiors before adding more empty map area. Town density changes shipped in 2.1.1; this release does not claim another settlement expansion.
-5. **Campaign identity.** Branching quest graphs, distinct guardians and persistent story facts must supplement fresh wording and seeded rewards. The existing six authored mystery frameworks are a fallback, not unlimited AI campaigns.
+- Three authored faction quest graphs, with actual alternative destinations, paid and checked approaches, failure routes, negotiation/combat alternatives and regional endings. Their current objectives integrate with Journal, HUD, world markers and map routing.
+- Visible quest contacts, a restored Watch station with guards, a changed observatory and sanctuary, plus a removed regional road reaver after the Watch resolution. Mechanical ending benefits are explicit in Character and the quest outcome.
+- Three-opponent scripted combat groups, target switching, independent pursuit and telegraphs, shared hero cooldowns, nearby ability splash, per-kill reward accounting and persistence of partial group progress. Classic combat remains individual rounds.
+- Six guardian patterns tied to the six authored mystery frameworks, with an accelerated second phase below half health. Enemy rigs animate pursuit and attacks.
+- Distinct guild/lodge/barracks details and one-time rewards. The guild atlas makes local landmark study checks easier without completing surveys for the player.
+- Faction choices retained in campaign legacy and supplied as real state to any connected director. No live hosted AI has been enabled.
+
+## Remaining gaps after 2.3
+
+1. **Hosted AI dungeon master:** still blocked by the approved hosted integration and backend described above. The phone build remains explicitly offline. A working account consent and real inference request must be verified before this can be called connected.
+2. **Broader quest content:** three faction graphs supplement the existing five-stage main plot. They are finite authored stories; arbitrary AI-authored quest graphs and unlimited new mechanics remain unimplemented.
+3. **Larger battles:** coordinated groups are capped at three and currently used by scripted faction blockades. General large battles, complex enemy roles and cinematic impact animation remain future work.
+4. **World variety:** the new activities and state changes add reasons to visit existing locations. Entirely distinct settlement architecture, many more bespoke interiors and extensive civilian schedules remain future work.
 
 ## Primary sources consulted
 

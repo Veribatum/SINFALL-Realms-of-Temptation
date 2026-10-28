@@ -1,5 +1,6 @@
-import {entitiesFor,BUILDINGS,townOf} from './model.js?v=12';
-import {centerOf,realmPoint} from './atlas.js?v=12';
+import {FACTION_STORIES,factionQuest,factionNode,factionSite,activeFactionIds,factionCombatIds} from './faction-quests.js?v=14';
+import {entitiesFor,BUILDINGS,townOf} from './model.js?v=14';
+import {centerOf,realmPoint} from './atlas.js?v=14';
 const live=q=>q.state==='active'||q.state==='ready';
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 function view(h,townId,type,room){
@@ -16,7 +17,16 @@ function destination(h,townId,id,inside,room){
  }
  return {door,target:[door],scene:'realm'};
 }
+function factionTarget(h,id){
+ const q=factionQuest(h,id),node=factionNode(h,id),def=FACTION_STORIES[id];if(!q||!node)return null;const townId=q.townId;let setup,target,instruction=node.goal;
+ if(node.npc){const building=BUILDINGS.find(b=>b.role===node.npc);setup=building?destination(h,townId,'door-'+building.id,'interior',building.id):destination(h,townId,node.npc);target=setup?.target.find(e=>setup.scene==='realm'||e.role===node.npc)}
+ else{const site=outside(h,townId,factionSite(h,id));target=node.combat?outside(h,townId,factionCombatIds(id).find(key=>outside(h,townId,key))):outside(h,townId,'faction-'+id+'-contact')||site;setup=site&&{door:site,scene:'realm',target:[target]}}
+ if(!setup?.door||!target)return null;const global={x:setup.door.x,z:setup.door.z};let scene=setup.scene;
+ if(h.location.type!=='realm'&&(h.location.type!==scene||h.location.townId!==townId||h.location.type==='interior'&&setup.room!==h.location.room)){target=entities(h,h.location.townId,h.location.type,h.location.room).find(e=>e.type==='exit');scene=h.location.type;instruction='Leave this place; then '+instruction.charAt(0).toLowerCase()+instruction.slice(1)}
+ return target?{...target,townId,interactionTownId:target.type==='exit'?h.location.townId:townId,scene,questId:'faction-'+id,faction:def.name,title:def.title,instruction,worldX:global.x,worldZ:global.z}:null;
+}
 export function questTarget(h,questId='main'){
+ if(questId.startsWith('faction-'))return factionTarget(h,questId.slice(8));
  const q=questId==='main'?null:h.world.quests.find(q=>q.id===questId&&live(q));
  if(questId!=='main'&&!q)return null;
  const townId=q?q.townId:0,town=h.world.towns[townId];if(!town)return null;
@@ -55,9 +65,9 @@ export function questTarget(h,questId='main'){
  if(!target)return null;
  return {...target,townId,interactionTownId:target.type==='exit'?h.location.townId:townId,scene,questId,title:q?.title||h.campaign.title,instruction,worldX:global.x,worldZ:global.z};
 }
-export function trackedQuest(h){const id=h.settings?.trackedQuest;return id&&h.world.quests.some(q=>q.id===id&&live(q))?id:'main'}
+export function trackedQuest(h){const id=h.settings?.trackedQuest;return id&&(id.startsWith('faction-')&&factionNode(h,id.slice(8))||h.world.quests.some(q=>q.id===id&&live(q)))?id:'main'}
 export function trackedTarget(h){return questTarget(h,trackedQuest(h))}
-export function questMarkers(h){return [questTarget(h),...h.world.quests.filter(live).map(q=>questTarget(h,q.id))].filter(Boolean)}
+export function questMarkers(h){return [questTarget(h),...h.world.quests.filter(live).map(q=>questTarget(h,q.id)),...activeFactionIds(h).map(id=>factionTarget(h,id))].filter(Boolean)}
 export function targetDistance(h,target){
  if(!target)return null;
  const p=h.location.type==='realm'?h.position:h.location.type===target.scene?h.position:h.world.realmReturn?.position||centerOf(h.location.townId);

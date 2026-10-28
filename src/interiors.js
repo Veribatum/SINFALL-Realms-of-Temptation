@@ -1,5 +1,5 @@
 import * as T from '../vendor/three.module.js';
-import {homePlan} from './atlas.js?v=12';
+import {homePlan} from './atlas.js?v=14';
 // Furnished, walkable rooms. The interaction anchors sit in free aisle space;
 // furniture collision belongs to the prop, rather than its interaction marker.
 export function buildInterior(r){
@@ -31,6 +31,17 @@ export function buildInterior(r){
   r.box(2,2.6,1,m.stone,r.root,-5.5,1.3,5.8);r.box(1.3,1.2,1.1,m.dark,r.root,-5.5,.7,5.8);r.sphere(.32,m.glow,r.root,-5.5,.55,6.4);collide(-5.5,5.8,2.1,1.2);
   if(home.kind==='merchant'){table(4.4,-2.2,2,1.4);for(let i=0;i<4;i++)r.box(.4,.4,.5,bookColors[i],r.root,3.7+i*.45,1.34,-2.2)}
   if(['guild','lodge'].includes(home.kind)){table(3.8,-2.6,2.4,1.6);r.box(1.8,.03,1.15,m.white,r.root,3.8,1.16,-2.6);r.sphere(.12,m.gold,r.root,4,1.25,-2.6)}
+  if(home.kind==='guild'){
+   const chart=r.box(.08,2.7,4.8,m.white,r.root,-6.7,2.5,-2);chart.name='Guild wall atlas';for(let i=0;i<8;i++){r.box(.1,.045,3,m.gold,r.root,-6.62,1.5+i*.27,-2);r.sphere(.07,m.glow,r.root,-6.55,1.7+i*.2,-3.4+i*.38)}
+   for(let i=0;i<3;i++){const ring=r.mesh(new T.TorusGeometry(.42+i*.13,.025,5,24),m.gold,r.root,3.8,2,-2.6);ring.rotation.set(i*.6,i*.8,0)}r.sphere(.15,m.glow,r.root,3.8,2,-2.6);
+  }
+  if(home.kind==='lodge'){
+   for(const side of[-1,1]){r.box(.08,.8,.65,m.wood,r.root,side*6.6,2.7,-2.5);for(const sign of[-1,1]){const antler=r.box(.06,.8,.06,m.white,r.root,side*6.5,3.2,-2.5+sign*.23);antler.rotation.x=sign*.6}}
+   const hide=r.mesh(new T.CircleGeometry(1.7,10),r.material('#6b5844'),r.root,3.5,.04,4.7);hide.rotation.x=-Math.PI/2;hide.name='Trailkeeper lodge hide';
+  }
+  if(home.kind==='barracks'){
+   for(const z of[3.9,-.6]){r.box(1.3,.18,2.4,m.wood,r.root,-5.3,1.8,z);r.box(1.2,.15,2.3,rug,r.root,-5.3,1.96,z);for(const zz of[-1.1,1.1])r.box(.12,2.6,.12,m.timber,r.root,-5.9,1.3,z+zz);collide(-5.3,z,1.5,2.5)}
+  }
   if(home.kind==='barracks')for(let i=0;i<4;i++){r.box(.08,1.5,.08,m.iron,r.root,6.5,1.5,-3+i*.6);r.box(.4,.08,.12,m.gold,r.root,6.5,1.8,-3+i*.6)}
  }else if(room==='inn'){
   r.box(9.4,1.35,1.15,m.wood,r.root,0,.675,-5.7);collide(0,-5.7,9.4,1.15);shelf(3,-7,3);

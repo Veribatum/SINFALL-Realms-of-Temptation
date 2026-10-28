@@ -1,4 +1,4 @@
-# SINFALL · The Open Realm 2.2.0
+# SINFALL · The Open Realm 2.3.0
 
 [Play Sinfall](https://veribatum.github.io/SINFALL-Realms-of-Temptation/)
 
@@ -29,6 +29,22 @@ Follow the gold marker to the witness. Investigate the road evidence, visit the 
 Mark landmarks or settlements in the atlas. Walking discovers regions; reaching a settlement unlocks fast travel. The minimap follows global position and shows destination distance. Synthesized music covers menus, towns, wilderness, interiors, dungeons and combat; effects and ambience have independent volume controls and persistent mute settings.
 
 ![Corsair and Moonveil outfits with swept-back elf ears, projected from the committed meshes](docs/sinfall-elf-outfits.png)
+
+## Branching faction stories and group encounters
+
+Ask the **warden in the Watch Chapel**, the **scholar in the Lantern Archive**, or the **stranger in the town square** for faction work. Each starts a separate multi-stage story with alternative destinations, resource costs, skill checks, failure routes and permanent regional outcomes. These are authored playable quest graphs; they do not require or claim live AI. Each faction story can be completed once per campaign in the region where you accept it.
+
+- **Lanterns on the Old Road:** rescue a scout or follow smuggler tracks, obtain evidence through negotiation or a three-enemy blockade, then decide how the Watch is reformed. The restored station gains visible guards and banners; the road reaver is removed from that region.
+- **A Map of Unlived Days:** recover an impossible chart, find another lens if needed, then publish the safe corridors, seal the mechanism or carry its geometry. Published routes reveal the local undercrypt map; other outcomes grant different build benefits.
+- **The Name Your Shadow Owes:** trace or invert a false contract, bargain with its collector or confront its enforcers, then free your name or claim the brand’s power. The sanctuary’s appearance and your magic change with the ending.
+
+Journal → **Track faction story on map** follows the next actual contact, landmark, building or combat target. Active quest contacts appear in the world. Decisions, costs, rewards and partially cleared encounters survive saves; completed faction history is included in your campaign legacy.
+
+Scripted blockades have up to **three simultaneous foes**, independent movement and attack wind-ups, clickable target selectors and shared player cooldowns. **8** cycles targets. Class abilities splash 35% damage to nearby opponents. Each kill pays once; surviving opponents keep fighting. Classic combat still handles opponents individually.
+
+The six main mysteries now use distinct guardian patterns and a faster second phase below half health. Enemy rigs walk while pursuing and play attack clips. These additions do not replace the main story’s five-stage framework with an unlimited story generator.
+
+Guild halls, trailkeeper lodges and barracks have distinctive furnishings and one-time discoveries. A guild atlas reduces local landmark study difficulty from 11 to 9; lodges provide moonwater and barracks provide a healing draught. Reading a map does not complete the actual landmark survey.
 
 ## Builds, blessings and consequences
 

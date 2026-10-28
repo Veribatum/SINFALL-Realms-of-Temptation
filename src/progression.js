@@ -1,3 +1,4 @@
+import {factionReaction} from './faction-quests.js?v=14';
 // Shared game rules: class identity, earned patronage and per-campaign rewards.
 export const SERVANTS=[
  {id:'guardian',name:'Grave Guardian',level:2,hp:1.6,damage:.9,armor:3,reach:2.4,interval:1.6,desc:'A shield-bearing skeleton with 60% more health and 3 armor. Draws nearby enemy attacks.'},
@@ -20,6 +21,7 @@ export function patronage(h){return[
 ].map(p=>({...p,earned:p.value>=5,rank:p.value>=5?'Trusted':p.value>=1?'Known':p.value<0?'Distrusted':'Unproven'}))}
 export function reactionTo(h,role){
  if(role==='witness'&&h.campaign.stage==='arrival')return '';
+ const faction=factionReaction(h,role);if(faction)return faction;
  const c=h.campaign;
  if(c.stage==='complete')return c.ending==='destroy'?'“The crypt has gone quiet since you broke the relic. We can sleep again.”':c.ending==='bind'?'“You carry the relic’s burden now. People lower their voices when you pass.”':'“The relic endures because of you. The scholars are already arguing over its future.”';
  if(c.stage==='heart')return '“Word reached us: the undercrypt guardian has fallen. Whatever you found below, finish what you started.”';

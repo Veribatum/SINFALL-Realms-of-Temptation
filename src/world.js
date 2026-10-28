@@ -1,18 +1,18 @@
 import * as T from '../vendor/three.module.js';
-import {dungeonRoute,trackedTarget,targetDistance,directionTo,isTargetHere} from './navigation.js?v=12';
-import {seeded,entitiesFor,locationId,townOf,visitState,objective,syncRealm} from './model.js?v=12';
-import {loadActor,createActor,animateActor,disposeActor,playActorAction} from './actors.js?v=12';
-import {batchScenery,cameraPosition} from './scene-utils.js?v=12';
-import {buildInterior} from './interiors.js?v=12';
-import {appearanceKey,townWardrobe} from './appearance.js?v=12';
-import {styleActor} from './actor-style.js?v=12';
-import {BOUNDS,regionOf,frontierSites,roadLinks} from './frontier.js?v=12';
-import {buildFrontier,buildOutskirts} from './landscape.js?v=12';
-import {surfaceHeight,navigable,centerOf} from './atlas.js?v=12';
-import {CombatScene} from './combat-scene.js?v=12';
-import {contactEvents} from './gait.js?v=12';
-import {buildOpenWorld,updateOpenWorld} from './overworld.js?v=12';
-const sceneKey=h=>h.world.seed+':'+(h.location.type==='realm'?'realm':locationId(h));
+import {dungeonRoute,trackedTarget,targetDistance,directionTo,isTargetHere} from './navigation.js?v=14';
+import {seeded,entitiesFor,locationId,townOf,visitState,objective,syncRealm} from './model.js?v=14';
+import {loadActor,createActor,animateActor,disposeActor,playActorAction} from './actors.js?v=14';
+import {batchScenery,cameraPosition} from './scene-utils.js?v=14';
+import {buildInterior} from './interiors.js?v=14';
+import {appearanceKey,townWardrobe} from './appearance.js?v=14';
+import {styleActor} from './actor-style.js?v=14';
+import {BOUNDS,regionOf,frontierSites,roadLinks} from './frontier.js?v=14';
+import {buildFrontier,buildOutskirts} from './landscape.js?v=14';
+import {surfaceHeight,navigable,centerOf} from './atlas.js?v=14';
+import {CombatScene} from './combat-scene.js?v=14';
+import {contactEvents} from './gait.js?v=14';
+import {buildOpenWorld,updateOpenWorld} from './overworld.js?v=14';
+const sceneKey=h=>JSON.stringify(Object.entries(h.world.factionQuests||{}).filter(([id,q])=>q.node==='complete').map(([id,q])=>[id,q.townId,q.ending]))+h.world.seed+':'+(h.location.type==='realm'?'realm':locationId(h));
 
 const TAU=Math.PI*2;
 export class Realm {
@@ -165,7 +165,7 @@ export class Realm {
  resize(){if(!this.renderer)return;const rect=this.canvas.getBoundingClientRect(),w=Math.max(1,rect.width),h=Math.max(1,rect.height);this.renderer.setSize(w,h,false);this.camera.aspect=w/h;this.camera.updateProjectionMatrix()}
  listen(target,event,fn,options){target.addEventListener(event,fn,options);this.events.push(()=>target.removeEventListener(event,fn,options))}
  inputs(){
-  this.listen(window,'keydown',e=>{if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName)||this.callbacks.paused())return;const k=e.key.toLowerCase();if(this.hero.combat?.mode==='action'&&['1','2','3','4','5','6','7',' '].includes(k)&&!e.repeat){e.preventDefault();this.callbacks.onCombatAction?.({'1':'attack','2':'ability','3':'guard','4':'dodge','5':'potion','6':'summon','7':'flee',' ':'attack'}[k]);return}if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright',' ','shift','e','v'].includes(k))e.preventDefault();this.keys.add(k);if(k==='e'&&!e.repeat)this.callbacks.onInteract(this.near);if(k==='v'&&!e.repeat)this.firstPerson=!this.firstPerson});this.listen(window,'keyup',e=>this.keys.delete(e.key.toLowerCase()));this.listen(window,'blur',()=>{this.keys.clear();this.joy={x:0,y:0};this.drag=null});
+  this.listen(window,'keydown',e=>{if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName)||this.callbacks.paused())return;const k=e.key.toLowerCase();if(this.hero.combat?.mode==='action'&&['1','2','3','4','5','6','7','8',' '].includes(k)&&!e.repeat){e.preventDefault();this.callbacks.onCombatAction?.({'1':'attack','2':'ability','3':'guard','4':'dodge','5':'potion','6':'summon','7':'flee','8':'target',' ':'attack'}[k]);return}if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright',' ','shift','e','v'].includes(k))e.preventDefault();this.keys.add(k);if(k==='e'&&!e.repeat)this.callbacks.onInteract(this.near);if(k==='v'&&!e.repeat)this.firstPerson=!this.firstPerson});this.listen(window,'keyup',e=>this.keys.delete(e.key.toLowerCase()));this.listen(window,'blur',()=>{this.keys.clear();this.joy={x:0,y:0};this.drag=null});
   this.listen(this.canvas,'pointerdown',e=>{if(this.callbacks.paused())return;this.drag={x:e.clientX,y:e.clientY};this.canvas.setPointerCapture(e.pointerId)});
   this.listen(this.canvas,'pointermove',e=>{if(!this.drag)return;this.yaw-=(e.clientX-this.drag.x)*.006;this.pitch=Math.max(.15,Math.min(.85,this.pitch+(e.clientY-this.drag.y)*.003));this.drag={x:e.clientX,y:e.clientY}});for(const ev of['pointerup','pointercancel','lostpointercapture'])this.listen(this.canvas,ev,()=>this.drag=null);
   const stick=document.getElementById('joystick');if(stick){const move=e=>{const b=stick.getBoundingClientRect(),radius=b.width*.32,dx=e.clientX-b.left-b.width/2,dy=e.clientY-b.top-b.height/2,len=Math.hypot(dx,dy)||1,scale=Math.min(1,radius/len);this.joy={x:dx*scale/radius,y:dy*scale/radius};stick.style.setProperty('--stick-x',dx*scale+'px');stick.style.setProperty('--stick-y',dy*scale+'px')};this.listen(stick,'pointerdown',e=>{e.preventDefault();stick.setPointerCapture(e.pointerId);this.stickDown=true;move(e)});this.listen(stick,'pointermove',e=>{if(this.stickDown)move(e)});for(const ev of['pointerup','pointercancel','lostpointercapture'])this.listen(stick,ev,()=>{this.stickDown=false;this.joy={x:0,y:0};stick.style.setProperty('--stick-x','0px');stick.style.setProperty('--stick-y','0px')})}
@@ -219,7 +219,7 @@ export class Realm {
   }
   const d=Math.hypot(waypoint.x-actor.x,waypoint.z-actor.z);if(d<.001)return{x:actor.x,z:actor.z};const n=Math.min(d,step);return{x:actor.x+(waypoint.x-actor.x)/d*n,z:actor.z+(waypoint.z-actor.z)/d*n};
  }
- combatEvents(events){for(const event of events){const actor=this.player.userData.rig;if(event.kind==='projectile'||event.kind==='swing')playActorAction(actor,event.kind==='projectile'||event.action==='ability'?'Spellcast_Shoot':'1H_Melee_Attack_Slice_Diagonal',1.15);if(event.kind==='guard')playActorAction(actor,'Block',1);if(event.kind==='dodge')playActorAction(actor,'Hit_A',1.4);this.combatScene?.event(event)}this.lastCombatId=this.hero.combat?.id||this.lastCombatId}
+ combatEvents(events){for(const event of events){const actor=this.player.userData.rig;if(event.kind==='projectile'||event.kind==='swing')playActorAction(actor,event.kind==='projectile'||event.action==='ability'?'Spellcast_Shoot':'1H_Melee_Attack_Slice_Diagonal',1.15);if(event.kind==='guard')playActorAction(actor,'Block',1);if(event.kind==='dodge')playActorAction(actor,'Hit_A',1.4);this.combatScene?.event(event)}if(this.hero.combat){this.lastCombatId=this.hero.combat.id;this.lastCombatIds=[this.hero.combat,...this.hero.combat.pack||[]].map(c=>c.id)}}
  dispose(){this.destroyed=true;cancelAnimationFrame(this.raf);this.resizeObserver?.disconnect();for(const remove of this.events)remove();this.clearScene();this.renderer.dispose();this.renderer.forceContextLoss()}
 }
 

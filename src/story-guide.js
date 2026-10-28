@@ -1,4 +1,4 @@
-import {objective} from './model.js?v=12';
+import {objective} from './model.js?v=14';
 const stages=['arrival','trail','counsel','descent','heart','complete'];
 export function storyBrief(h){
  const c=h.campaign,t=h.world.towns[0],index=Math.max(0,stages.indexOf(c.stage));

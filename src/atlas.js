@@ -1,5 +1,5 @@
-import {frontierSites} from './frontier.js?v=12';
-import {townWardrobe} from './appearance.js?v=12';
+import {frontierSites} from './frontier.js?v=14';
+import {townWardrobe} from './appearance.js?v=14';
 export const REGION_SIZE=1200,CHUNK_SIZE=300,WORLD_MIN=-600,WORLD_MAX=3000,GRID_STEP=12.5;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const centerOf=id=>({x:id%3*REGION_SIZE,z:Math.floor(id/3)*REGION_SIZE});

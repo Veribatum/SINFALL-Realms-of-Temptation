@@ -1,5 +1,5 @@
-import {NPC_FIRST,NPC_LAST} from './content.js?v=12';
-import {PALETTES,townWardrobe} from './appearance.js?v=12';
+import {NPC_FIRST,NPC_LAST} from './content.js?v=14';
+import {PALETTES,townWardrobe} from './appearance.js?v=14';
 const ROLES=[
  ['merchant','Market stalls',-13,29,'“A little of everything, if you have coin. I trade with every settlement on these roads.”'],
  ['farmer','South fields',-48,45,'“Frost, wolves, taxes. At least the turnips don’t argue. The old farm out on the road has been empty too long.”'],

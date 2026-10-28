@@ -68,3 +68,8 @@ test('main settlement is denser than outlying villages and a relocated building 
  const restore=documentStub();M.enterRealm(hero);hero.position={x:homes[0].x,z:homes[0].z,yaw:0};const r=headless(hero);
  try{r.build();assert(r.canMove(hero.position.x,hero.position.z));assert(Math.hypot(hero.position.x-homes[0].x,hero.position.z-homes[0].z)<12);assert.equal(hero.position.yaw,0);const town=[...r.openChunks.values()].find(g=>g.userData.towns?.includes(0));assert(town);assert(r.root.getObjectByName('Main town market and courtyards'));}finally{r.clearScene();restore()}
 });
+
+test('faction resolutions add physical landmarks and accessible guards without breaking roads or doors',()=>{
+ const restore=documentStub(),h=make();M.enterRealm(h);h.world.factionQuests={wardens:{townId:0,node:'complete',ending:'accountable',facts:[],decisions:[]},scholars:{townId:0,node:'complete',ending:'published',facts:[],decisions:[]},veil:{townId:0,node:'complete',ending:'unbound',facts:[],decisions:[]}};const r=headless(h);
+ try{for(const site of ['site-0','site-2','site-6']){const target=M.entitiesFor(h).find(e=>e.id===site);h.position={x:target.x,z:target.z+2,yaw:0};M.syncRealm(h);r.build();assert(r.root.getObjectByName('Faction landmark · '+(site==='site-0'?'wardens · accountable':site==='site-2'?'scholars · published':'veil · unbound')));assert(r.canMove(h.position.x,h.position.z));for(const guard of r.entities.filter(e=>e.id.startsWith('watch-station-')))assert(r.canMove(guard.x,guard.z));}assert(M.validateHero(h));}finally{r.clearScene();restore()}
+});
