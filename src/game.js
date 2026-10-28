@@ -11,7 +11,7 @@ import {centerOf,realmSites,worldStats} from './atlas.js?v=12';
 import {styleActor} from './actor-style.js?v=12';
 import {Soundscape,audioMode} from './audio.js?v=12';
 import {trackedTarget,trackedQuest,questTarget,targetDistance,directionTo} from './navigation.js?v=12';
-import * as Action from './action-combat.js?v=12';
+import * as Action from './action-combat.js?v=13';
 import {storyBrief} from './story-guide.js?v=12';
 import {drawAtlas} from './map-view.js?v=12';
 

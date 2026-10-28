@@ -21,7 +21,7 @@ const emit=(events,kind,data={})=>events.push({kind,...data});
 function record(c,text){c.log=[text,...c.log].slice(0,8)}
 function safeCompanionPoint(h,env){for(const[x,z]of[[1.3,0],[-1.3,0],[0,1.3],[0,-1.3],[0,0]]){const p={x:h.position.x+x,z:h.position.z+z};if(!env.canMove||env.canMove(p.x,p.z))return p}return{...h.position}}
 function summon(h,events,env){
- const effects=M.effects(h),form=servantOf({...h,companion:null}),hp=Math.round((16+h.level*5+(effects.summonHp||0))*form.hp);
+ const effects=M.effects(h),form=servantOf({...h,companion:null}),hp=Math.round((16+h.level*5)*form.hp)+(effects.summonHp||0);
  h.companion={kind:'skeleton',form:form.id,hp,maxHp:hp,remaining:60,cooldown:1,...safeCompanionPoint(h,env),scene:M.locationId(h)};
  emit(events,'summon',{x:h.companion.x,z:h.companion.z});
 }
@@ -66,7 +66,7 @@ function companionTick(h,dt,events,env){
  const c=h.combat,scene=M.locationId(h);if(s.scene!==scene||distance(s,h.position)>28){Object.assign(s,safeCompanionPoint(h,env));s.scene=scene}
  const form=servantOf(h),goal=c?{x:c.x,z:c.z}:h.position,d=distance(s,goal),stop=c?env.lineOfSight&&!env.lineOfSight(s,c)?.3:form.reach*.7:2;
  if(d>stop){const step=Math.min(d-stop,dt*(c?5:4.5));approach(s,goal,step,env)}
- if(c&&d<form.reach&&s.cooldown<=0&&(!env.lineOfSight||env.lineOfSight(s,c))){const amount=Math.max(1,Math.round((3+Math.floor(M.stats(h).lore*.45)+Math.floor(h.level/2)+(M.effects(h).summonDamage||0))*form.damage));c.hp-=amount;s.cooldown=form.interval;if(form.reach>3)emit(events,'minionProjectile',{from:{x:s.x,z:s.z},to:{x:c.x,z:c.z}});emit(events,'minionStrike',{amount,x:c.x,z:c.z});record(c,'Your skeleton strikes for '+amount+'.')}
+ if(c&&d<form.reach&&s.cooldown<=0&&(!env.lineOfSight||env.lineOfSight(s,c))){const amount=Math.max(1,Math.round((3+Math.floor(M.stats(h).lore*.45)+Math.floor(h.level/2))*form.damage)+(M.effects(h).summonDamage||0));c.hp-=amount;s.cooldown=form.interval;if(form.reach>3)emit(events,'minionProjectile',{from:{x:s.x,z:s.z},to:{x:c.x,z:c.z}});emit(events,'minionStrike',{amount,x:c.x,z:c.z});record(c,'Your skeleton strikes for '+amount+'.')}
 }
 export function advanceAction(h,seconds,env={}){
  const dt=clamp(seconds,0,.1),events=[];if(!Number.isFinite(dt))return{ok:false,events};
