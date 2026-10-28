@@ -38,3 +38,23 @@
 @media(max-height:550px) and (orientation:landscape){#summon-control{right:18px;bottom:20px}.game-screen:not(.in-action-combat) #companion-status{right:18px;bottom:72px}.game-screen:has(#summon-control:not([hidden])) #interaction-prompt{bottom:76px}}
 #battle-targets{pointer-events:auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin:8px 0}#battle-targets[hidden]{display:none}.target-choice{pointer-events:auto;touch-action:manipulation;min-width:0;padding:6px 3px;min-height:44px;border:1px solid #bdc9bc44;border-radius:5px;background:#0c1c22d9;color:#cbd8cf;font:9px/1.35 system-ui}.target-choice[aria-pressed=true]{border-color:#e6c983;color:#ffe7ad;background:#51604755}.in-action-combat:has(#battle-targets:not([hidden])) #companion-status{top:310px}.quest-card small{white-space:pre-line}
 @media(max-height:550px) and (orientation:landscape){.in-action-combat:has(#battle-targets:not([hidden])) #companion-status{top:auto;bottom:115px}#battle-targets{margin:5px 0}.target-choice{min-height:44px;font-size:9px;padding:4px 2px}}
+
+/* Thumb arc: frequent actions nearest the thumb, utilities above. */
+.battle-actions{display:block;width:232px;height:234px;right:max(22px,env(safe-area-inset-right));bottom:max(24px,env(safe-area-inset-bottom));pointer-events:none}
+.battle-action{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:56px;height:56px;min-height:0!important;padding:5px!important;border-radius:50%!important;pointer-events:auto;touch-action:manipulation;background:radial-gradient(circle at 35% 20%,#31434ae8,#09181eea);border:1px solid #b7bcaa80;box-shadow:0 3px 12px #0007,inset 0 1px 0 #ffffff12;-webkit-tap-highlight-color:transparent;isolation:isolate}
+.battle-action::before{inset:0;width:100%;height:100%;border-radius:inherit;background:conic-gradient(#080e17c9 calc(var(--recovery,0)*1turn),transparent 0);z-index:-1}
+.action-icon{display:block;width:23px;height:23px;color:#e5d7ae}.action-icon svg{display:block;width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.battle-action strong{font:500 9px/1.1 system-ui;text-align:center;max-width:62px;color:#ece7d5}.battle-action small{display:none}.battle-key{top:7px;left:auto;right:10px;font-size:7px;opacity:.5}
+.battle-action[data-action=attack]{right:0;bottom:0;width:82px;height:82px;border-color:#e4c77cbb;background:radial-gradient(circle at 35% 20%,#73623ee8,#252923ee)}
+.battle-action[data-action=attack] .action-icon{width:30px;height:30px}.battle-action[data-action=attack] strong{font-size:11px}
+.battle-action[data-action=ability]{right:89px;bottom:69px;width:66px;height:66px;border-color:#9bb9d2aa}.battle-action[data-action=ability] .action-icon{color:#a2d7ec}
+.battle-action[data-action=dodge]{right:96px;bottom:0;width:60px;height:60px}
+.battle-action[data-action=guard]{right:1px;bottom:98px}
+.battle-action[data-action=potion]{right:136px;bottom:149px;width:46px;height:46px}.battle-action[data-action=potion] .action-icon{color:#b5d9a8}
+.battle-action[data-action=summon]{right:73px;bottom:151px;width:50px;height:50px}.battle-action[data-action=summon] .action-icon{color:#bdb1df}.battle-action[data-action=summon] strong{font-size:8px}
+.battle-action[data-action=flee]{left:0;top:0;width:44px;height:44px;background:#09181ea6;border-color:#b7bcaa40}.battle-action[data-action=flee] strong{font-size:7px}.battle-action[data-action=flee] .action-icon{width:17px;height:17px}
+.battle-action[data-recovering=true] .action-icon{opacity:.35}.battle-action[data-recovering=true] small{display:block;position:absolute;top:13px;margin:0;font:600 13px/1 system-ui;color:#fff1c7;text-shadow:0 1px 3px #000}
+.battle-action:disabled{opacity:.65}.battle-action[data-recovering=true]{opacity:.9}.battle-action:active:not(:disabled){transform:scale(.94);border-color:#fff0bd;box-shadow:0 0 16px #dcc78d55}.battle-action:focus-visible{outline:2px solid #fff1be;outline-offset:3px}
+@media(pointer:coarse){.battle-key{display:none}}
+@media(max-width:760px){.battle-actions{right:max(12px,env(safe-area-inset-right));bottom:max(26px,env(safe-area-inset-bottom));width:232px;height:234px}.in-action-combat #joystick{left:14px;bottom:46px;width:102px;height:102px}}
+@media(max-height:550px) and (orientation:landscape){.battle-actions{right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));width:232px;height:234px}}
