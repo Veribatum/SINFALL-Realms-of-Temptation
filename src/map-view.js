@@ -1,7 +1,7 @@
-import {WORLD_MIN,WORLD_MAX,centerOf,realmSites,trailRoute,riverX,terrainHeight,homePlan} from './atlas.js?v=9';
-import {BUILDINGS,entitiesFor} from './model.js?v=9';
-import {regionOf} from './frontier.js?v=9';
-import {questMarkers,trackedTarget,dungeonRoute} from './navigation.js?v=9';
+import {WORLD_MIN,WORLD_MAX,centerOf,realmSites,trailRoute,riverX,terrainHeight,homePlan,settlementStreets,SETTLEMENT_CORE,cryptAnchor} from './atlas.js?v=10';
+import {entitiesFor} from './model.js?v=10';
+import {regionOf} from './frontier.js?v=10';
+import {questMarkers,trackedTarget,dungeonRoute} from './navigation.js?v=10';
 const visible=(x,y,w)=>x>=0&&y>=0&&x<=w&&y<=w;
 export function mapBounds(h,scope='local'){
  if(scope==='world')return {x:WORLD_MIN,z:WORLD_MIN,size:WORLD_MAX-WORLD_MIN};
@@ -36,10 +36,12 @@ export function drawAtlas(ctx,h,scope='local'){
    const c=centerOf(town.id);
    for(const site of realmSites(town)){line(trailRoute(c,site),'#c5b98f',Math.max(1,2.8*k),[5,4]);if(scope!=='world')pin(site,site.name.replace(/^The /,''),'#c3d8c1',5)}
    if(scope==='town'||scope==='local'){
-    for(const b of[...homePlan(town),...BUILDINGS.map(b=>({...b,x:b.x+(b.id==='chapel'?28:0),z:b.z}))]){
-     const[x,y]=project(c.x+b.x,c.z+b.z);ctx.save();ctx.translate(x,y);ctx.rotate(b.rotation||0);ctx.fillStyle='#243b38';ctx.strokeStyle='#d8cca8';ctx.lineWidth=1;ctx.fillRect(-5*k,-5*k,10*k,10*k);ctx.strokeRect(-5*k,-5*k,10*k,10*k);ctx.restore();
+    for(const street of settlementStreets(town))line([{x:c.x+street.from.x,z:c.z+street.from.z},{x:c.x+street.to.x,z:c.z+street.to.z}],'#c8b98e',Math.max(1.2,street.width*k));
+    for(const b of[...homePlan(town),...SETTLEMENT_CORE]){
+     const[x,y]=project(c.x+b.x,c.z+b.z);ctx.save();ctx.translate(x,y);ctx.rotate(-(b.rotation||0));ctx.fillStyle='#243b38';ctx.strokeStyle='#d8cca8';ctx.lineWidth=1;ctx.fillRect(-3.5*k,-3*k,7*k,6*k);ctx.strokeRect(-3.5*k,-3*k,7*k,6*k);ctx.fillStyle='#f4ddac';ctx.fillRect(-.7*k,2.6*k,1.4*k,1.2*k);ctx.restore();
     }
    }
+   const crypt=cryptAnchor(town.id);pin(crypt,scope==='world'?null:'Undercrypt','#a8c6c0',scope==='world'?5:7);
    const discovered=h.world.discovered.includes('town-'+town.id);pin(c,town.name,discovered?'#f4ddac':'#b4c2af',scope==='world'?12:7);
   }
   for(const marker of questMarkers(h))pin({x:marker.worldX,z:marker.worldZ},null,marker.questId===target?.questId?'#ffdc76':'#c99765',marker.questId===target?.questId?13:8);

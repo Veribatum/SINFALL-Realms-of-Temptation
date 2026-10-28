@@ -9,6 +9,20 @@ export const MUSIC={
  combat:{bpm:112,root:38,melody:[0,7,12,7,3,10,15,10,5,12,17,12,1,8,13,8],chords:[0,3,5,1]}
 };
 const hz=n=>440*2**((n-69)/12),limit=n=>Math.min(1,Math.max(0,Number(n)||0));
+// A muted heel impact followed by a little sole texture. These short, softly
+// filtered buffers avoid the sharp white-noise hiss used by combat effects.
+function footstepBuffer(context,surface,variant){
+ const stone=surface==='stone',duration=stone?.105:.135,buffer=context.createBuffer(1,Math.ceil(context.sampleRate*duration),context.sampleRate),samples=buffer.getChannelData(0);
+ let seed=9167+variant*7919+(stone?163:0),soft=0;
+ for(let i=0;i<samples.length;i++){
+  const t=i/context.sampleRate;seed=(Math.imul(seed,1664525)+1013904223)>>>0;const noise=seed/2147483648-1;soft+=(noise-soft)*(stone?.24:.12);
+  const attack=1-Math.exp(-t/.0018),heel=Math.sin(2*Math.PI*(stone?142:108)*(1-variant*.025)*t)*Math.exp(-t/(stone?.014:.017))*.45;
+  const soleAt=Math.max(0,t-.012),sole=(1-Math.exp(-soleAt/.004))*Math.exp(-soleAt/(stone?.024:.037))*soft*(stone?.65:.9);
+  const grit=noise*Math.exp(-t/.017)*(stone?.055:.018),fade=Math.min(1,(duration-t)/.014);
+  samples[i]=(heel+sole+grit)*attack*fade;
+ }
+ return buffer;
+}
 export function audioMode(hero,screen='world'){return screen!=='world'?'menu':hero?.combat?'combat':hero?.location?.type==='dungeon'?'dungeon':hero?.location?.type==='interior'?'interior':(hero?.location?.type==='wilds'||hero?.location?.type==='realm'&&hero?.location?.area==='wilds')?'wilds':'town'}
 export class Soundscape{
  constructor(){try{this.settings={...AUDIO_DEFAULTS,...JSON.parse(localStorage.getItem('sinfall-audio')||'{}')}}catch{this.settings={...AUDIO_DEFAULTS}}for(const k of['music','ambience','effects'])this.settings[k]=limit(this.settings[k]);this.settings.muted=!!this.settings.muted;this.mode='menu';this.context=null;this.musicNotes=new Set();this.beat=0;this.footClock=0}
@@ -42,7 +56,20 @@ export class Soundscape{
   else if(name==='discovery')play([62,69,76,74],.16,.05);
   else if(name==='defeat')play([57,53,50,45],.22,.065);
  }
- step(dt,running=false,surface='grass'){this.footClock-=dt;if(this.footClock>0)return;this.footClock=running?.29:.46;if(this.context&&!this.settings.muted)this.burst(this.context.currentTime,.075,surface==='stone'?.42:.24,surface==='stone'?350:1200)}
+ footstep(surface='grass',running=false,foot='left'){
+  const c=this.context;if(!c||c.state!=='running'||this.settings.muted||!this.settings.effects)return false;
+  const material=surface==='stone'?'stone':'grass';this.footstepBuffers??={};
+  const buffers=this.footstepBuffers[material]??=Array.from({length:3},(_,i)=>footstepBuffer(c,material,i));
+  const source=c.createBufferSource(),filter=c.createBiquadFilter(),gain=c.createGain(),pan=c.createStereoPanner?.(),at=c.currentTime+.003;
+  source.buffer=buffers[Math.floor(Math.random()*buffers.length)];source.playbackRate.value=(running?1.04:.98)*(.97+Math.random()*.06);
+  filter.type='lowpass';filter.frequency.value=material==='stone'?1700:900;filter.Q.value=.45;
+  const volume=(material==='stone'?.11:.085)*(running?1.12:1)*(.92+Math.random()*.16),end=at+source.buffer.duration/source.playbackRate.value;
+  gain.gain.setValueAtTime(0,at);gain.gain.linearRampToValueAtTime(volume,at+.002);gain.gain.setValueAtTime(volume,end-.014);gain.gain.linearRampToValueAtTime(0,end);
+  source.connect(filter);filter.connect(gain);if(pan){pan.pan.value=foot==='right'?.08:-.08;gain.connect(pan);pan.connect(this.channels.effects)}else gain.connect(this.channels.effects);
+  source.start(at);source.stop(end);source.onended=()=>{source.disconnect();filter.disconnect();gain.disconnect();pan?.disconnect()};return true;
+ }
+ // Compatibility for older callers; the world uses animation contact events.
+ step(dt,running=false,surface='grass'){if(!Number.isFinite(dt)||dt<=0)return false;this.footClock-=dt;if(this.footClock>0)return false;this.footClock=(running?.933333333:1.333333333)/2;this.footIndex=(this.footIndex||0)+1;return this.footstep(surface,running,this.footIndex%2?'left':'right')}
  pause(){this.context?.suspend().catch(()=>{})}
- dispose(){clearInterval(this.timer);this.context?.close().catch(()=>{});this.context=null}
+ dispose(){clearInterval(this.timer);this.context?.close().catch(()=>{});this.context=null;this.footstepBuffers=null}
 }

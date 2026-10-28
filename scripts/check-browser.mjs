@@ -5,6 +5,7 @@ import {mkdir,readFile} from 'node:fs/promises';
 import {setTimeout} from 'node:timers/promises';
 import {chromium} from 'playwright';
 import * as M from '../src/model.js';
+import * as A from '../src/action-combat.js';
 const server=spawn(process.execPath,['server/server.mjs','--preview','--port','8787'],{stdio:['ignore','pipe','pipe']});
 let browser;const watchdog=globalThis.setTimeout(()=>{console.error('Phone UI verification exceeded four minutes');server.kill('SIGTERM');process.exit(1)},240000);
 try{
@@ -27,6 +28,17 @@ try{
  await page.close();const questPage=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true});questPage.setDefaultTimeout(20000);questPage.on('pageerror',e=>errors.push(e.message));
  await questPage.addInitScript(book=>{localStorage.setItem('sinfall-preferences',JSON.stringify({quality:'low'}));if(!localStorage.getItem('sinfall-realms-v4'))localStorage.setItem('sinfall-realms-v4',JSON.stringify(book))},{schema:4,lastId:h.id,heroes:[h],checkpoints:{}});await questPage.goto('http://127.0.0.1:8787');await questPage.getByRole('button',{name:'Continue',exact:true}).click();await questPage.getByRole('button',{name:'▤ Journal',exact:true}).click();await questPage.getByRole('button',{name:'Track quest on map',exact:true}).click();assert((await questPage.locator('.atlas-target').textContent()).includes(q.title));
  await questPage.reload();await questPage.getByRole('button',{name:'Continue',exact:true}).click();assert((await questPage.locator('#hud-campaign').textContent()).includes(q.title));assert((await questPage.locator('#hud-objective').textContent()).includes('silverleaf'));
- console.log('PASS side-quest tracking from Journal to map and persistent phone HUD');assert.deepEqual(errors,[]);
+ console.log('PASS side-quest tracking from Journal to map and persistent phone HUD');
+ await questPage.close();
+ const fighter=M.makeHero({name:'Sylvanas',gender:'female',raceId:'elf',classId:'necromancer',originId:'wanderer'},13254);M.enterRealm(fighter);M.changeLocation(fighter,'dungeon');fighter.level=2;fighter.hp=M.maxHp(fighter);fighter.mp=M.maxMp(fighter);const foe=M.entitiesFor(fighter).find(e=>e.type==='enemy');assert(foe);fighter.position={x:foe.x-1,z:foe.z};A.prepareActionCombat(fighter,foe);fighter.combat.nextAttack=8;
+ const combatPage=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true});combatPage.setDefaultTimeout(20000);combatPage.on('pageerror',e=>errors.push(e.message));
+ await combatPage.addInitScript(book=>{localStorage.setItem('sinfall-preferences',JSON.stringify({quality:'low'}));if(!localStorage.getItem('sinfall-realms-v4'))localStorage.setItem('sinfall-realms-v4',JSON.stringify(book))},{schema:4,lastId:fighter.id,heroes:[fighter],checkpoints:{}});
+ await combatPage.goto('http://127.0.0.1:8787');await combatPage.getByRole('button',{name:'Continue',exact:true}).click();
+ const health=combatPage.getByRole('progressbar',{name:'Your health',exact:true});assert(await health.isVisible());assert.equal(await health.getAttribute('aria-valuenow'),String(M.maxHp(fighter)));
+ await combatPage.getByRole('button',{name:'Raise Skeleton',exact:true}).click();await combatPage.locator('#companion-status').waitFor({state:'visible'});assert((await combatPage.locator('#companion-status').textContent()).includes('Skeleton'));
+ await combatPage.getByRole('button',{name:'Guard',exact:true}).click();await combatPage.getByRole('button',{name:'Strike',exact:true}).click();
+ for(const viewport of [{width:390,height:844},{width:844,height:390}]){await combatPage.setViewportSize(viewport);const bounds=await combatPage.locator('.battle-actions').boundingBox();assert(bounds&&bounds.x>=0&&bounds.y>=0&&bounds.x+bounds.width<=viewport.width+1&&bounds.y+bounds.height<=viewport.height+1,'combat controls fit phone viewport');assert(await health.isVisible());await combatPage.screenshot({path:'browser-proof/action-'+viewport.width+'.png',timeout:10000})}
+ await combatPage.getByRole('button',{name:'Withdraw',exact:true}).click();await combatPage.locator('#action-battle').waitFor({state:'hidden'});assert(await combatPage.locator('#companion-status').isVisible());
+ console.log('PASS live action controls, visible player health, level-2 skeleton, portrait/landscape layout and withdrawal');assert.deepEqual(errors,[]);
 }catch(error){if(browser){const pages=browser.contexts().flatMap(c=>c.pages());await mkdir('browser-proof',{recursive:true});for(let i=0;i<pages.length;i++)await pages[i].screenshot({path:'browser-proof/failure-'+i+'.png',timeout:5000}).catch(()=>{})}throw error}
 finally{await browser?.close();server.kill('SIGTERM');clearTimeout(watchdog)}

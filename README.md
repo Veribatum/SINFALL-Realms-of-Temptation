@@ -1,4 +1,4 @@
-# SINFALL · The Open Realm 2.0.3
+# SINFALL · The Open Realm 2.1.0
 
 [Play Sinfall](https://veribatum.github.io/SINFALL-Realms-of-Temptation/)
 
@@ -6,7 +6,7 @@ A browser RPG with persistent characters, a connected countryside, occupied sett
 
 The realm spans **3.6 × 3.6 km**. Walk between **nine settlements** across woodland, highlands, wetlands, snowfields, coast, ashlands, enchanted forest, borderlands and haunted marsh. Physical roads and bridges connect the towns. Nearby terrain, trees and buildings stream as you move, with distant terrain filling the horizon.
 
-Each settlement has an inn, forge, archive, apothecary and chapel, plus twenty homes, shops or halls: **225 enterable buildings** across the realm. Homes have named occupants, furnishings, independent persistent discoveries and stories leading to wilderness landmarks. Explore **72 landmarks and nine seeded undercrypts**. Three street plans, fortified towns and regional building colors give settlements different silhouettes.
+Each settlement has an inn, forge, archive, apothecary and chapel, plus twenty homes, shops or halls: **225 enterable buildings** across the realm. Homes have named occupants, furnishings, independent persistent discoveries and stories leading to wilderness landmarks. Explore **72 landmarks and nine seeded undercrypts**. Compact street loops, paths to every doorstep, fortified towns and regional building colors connect the settlements. Every undercrypt gate now has a visible stone tomb, entrance stairs, lamps and signage.
 
 ![Actual streamed scenery geometry, software verification view](docs/sinfall-open-realm.jpg)
 
@@ -30,6 +30,14 @@ Mark landmarks or settlements in the atlas. Walking discovers regions; reaching 
 
 ![Corsair and Moonveil outfits with swept-back elf ears, projected from the committed meshes](docs/sinfall-elf-outfits.png)
 
+## Action combat and story guidance
+
+Combat takes place in the world. Move with the joystick or WASD while selecting Strike, your class ability, Guard, Dodge, Heal or Withdraw. Enemy wind-ups give you time to react; your health and the enemy’s health stay visible. Keyboard shortcuts 1–7 select actions. Settings also retains Classic round combat.
+
+Necromancers unlock **Raise Skeleton at level 2**: 10 mana summons one animated skeleton for 60 seconds to fight and draw enemy attacks. Bone Choir strengthens it. Existing heroes, equipment and campaign progress remain compatible.
+
+The HUD tracks story steps, and Journal explains what happened, why the archive matters, and what to do next. Soft grass/stone footsteps now trigger from the actual walking and running animation contacts rather than an independent timer; blocked movement stays silent.
+
 ## Quest navigation and character proportions
 
 Female adult heroes have a **Bust size** slider (70–160%, default 100%) in creation and Character → Change appearance. It shapes the actual skinned torso and fitted clothing, keeps equipment in the preview, and is saved independently for each hero. Existing saves retain their authored proportions.
@@ -42,7 +50,9 @@ Map now draws the game's seeded terrain, river, roads, trails, settlement buildi
 
 ## ChatGPT dungeon master
 
-Live ChatGPT is **not connected on the hosted phone edition**. OpenAI's direct open-source plan flow uses a local callback; website sign-in requires an approved client registration. A hosted authentication/inference service is still needed. The game does not present a working-phone sign-in button when that service is unavailable.\n\nThe GitHub Pages edition uses six authored mystery frameworks with seeded terrain, names and encounter variation. Import a ChatGPT-written campaign pack for a new story in that edition.
+Live ChatGPT is **not connected on the hosted phone edition**. OpenAI's direct open-source plan flow uses a local callback; website sign-in requires an approved client registration. A hosted authentication/inference service is still needed. The game does not present a working-phone sign-in button when that service is unavailable.
+
+The GitHub Pages edition uses six authored mystery frameworks with seeded terrain, names and encounter variation. Import a ChatGPT-written campaign pack for a new story in that edition.
 
 Live ChatGPT uses the local edition and OpenAI's loopback sign-in flow:
 

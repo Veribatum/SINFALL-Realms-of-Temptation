@@ -1,8 +1,8 @@
-import {CLASSES,RACES,ORIGINS,MOTIFS,ENEMIES,SETTLEMENT_PREFIX,SETTLEMENT_SUFFIX,NPC_FIRST,NPC_LAST,QUALITY} from './content.js?v=9';
-import {appearanceOf,APPEARANCE_OPTIONS} from './appearance.js?v=9';
-import {REGION_COUNT,regionOf,roadLinks,frontierSites,siteKey,surveyState} from './frontier.js?v=9';
-import {populationFor} from './population.js?v=9';
-import {centerOf,regionAt,realmArea,realmPoint,realmSites,homePlan} from './atlas.js?v=9';
+import {CLASSES,RACES,ORIGINS,MOTIFS,ENEMIES,SETTLEMENT_PREFIX,SETTLEMENT_SUFFIX,NPC_FIRST,NPC_LAST,QUALITY} from './content.js?v=10';
+import {appearanceOf,APPEARANCE_OPTIONS} from './appearance.js?v=10';
+import {REGION_COUNT,regionOf,roadLinks,frontierSites,siteKey,surveyState} from './frontier.js?v=10';
+import {populationFor} from './population.js?v=10';
+import {centerOf,regionAt,realmArea,realmPoint,realmSites,homePlan} from './atlas.js?v=10';
 
 export const SCHEMA=4;
 export const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
@@ -74,7 +74,7 @@ export function surveyLandmark(h,id,method='study',rng=Math.random){
  if(success){gainGold(h,method==='salvage'?24:12);if(['tower','mine','ruin','bridge'].includes(site.kind)){const visual={tower:'spear',mine:'axe',ruin:'staff',bridge:'dagger'}[site.kind];item={id:uid(),type:'weapon',name:{tower:'Watchkeeper’s Spear',mine:'Quarryman’s Veilsteel Axe',ruin:'Astronomer’s Moonstaff',bridge:'Ferryman’s Dagger'}[site.kind],visual,power:5+h.level*2,quality:1};h.items.push(item)}else if(site.kind==='camp'||site.kind==='stones'){item={id:uid(),type:'armor',name:site.kind==='camp'?'Wayfarer’s Leather Armor':'Circlekeeper’s Mantle',visual:site.kind==='camp'?'leather':'cloth',power:3+h.level,quality:1};h.items.push(item)}else h.items.push({id:uid(),type:'potion',name:'Healing Draught',qty:1});if(item)text+=' Recovered '+item.name+'. Equip it from your satchel.'}
  const survey=surveyState(h);if(survey.done===survey.total&&!survey.claimed){h.world.exploration.rewards.push(h.location.townId);gainGold(h,120);gainXp(h,80);text+=' Region surveyed: +120 gold and +80 XP.'}if(roll)text+=` D20 ${roll.roll} + ${roll.bonus} against ${roll.dc}.`;addLog(h,site.name+': '+text,'discovery');return{ok:true,text,item,success};
 }
-export function locationName(h){const t=townOf(h);return h.location.type==='interior'?buildingOf(h)?.name||t.name:['town','realm'].includes(h.location.type)?t.name:h.location.type==='wilds'?`The ${t.name} Road`:`${t.name} Undercrypt`}
+export function locationName(h){const t=townOf(h);if(h.location.type==='realm'&&h.location.area==='wilds')return t.name+' · Wilds';return h.location.type==='interior'?buildingOf(h)?.name||t.name:['town','realm'].includes(h.location.type)?t.name:h.location.type==='wilds'?`The ${t.name} Road`:`${t.name} Undercrypt`}
 export function objective(h){const t=h.world.towns[0],c=h.campaign;if(h.combat)return'Defeat your foe or find a way out.';if(c.stage==='arrival')return`Speak with ${t.npcs.witness.name} in ${t.name}’s square.`;if(c.stage==='trail')return`Investigate the strange remains on the road outside ${t.name}.`;if(c.stage==='counsel')return`Bring the evidence to ${t.npcs.scholar.name} at ${t.name}’s archive.`;if(c.stage==='descent')return`Enter the undercrypt outside ${t.name}. Find ${c.enemy}.`;if(c.stage==='heart')return`Return to the final chamber and decide the fate of ${c.artifact}.`;return'Your adventure is complete. Explore, or set out on a new story.'}
 export function visitState(h){const id=locationId(h);return h.world.visits[id]??={resolved:[],discovered:[],searched:false}}
 export function resolveEntity(h,id){const v=visitState(h);if(!v.resolved.includes(id))v.resolved.push(id)}
@@ -212,17 +212,19 @@ export function combatTurn(h,action,rng=Math.random){
   if(hit){const magic=special&&ab.magic;damage=Math.max(1,(special?ab.power:4)+s[stat]+Math.floor(h.equipment.weapon.power*.6)+Math.floor(rng()*6)+(magic?ef.spell||0:ef.physical||0)+(critical?7+(ef.critDamage||0):0)-(magic?0:c.armor)-(intent==='guard'?3:0)+(h.equipment.trinket?Math.floor(h.equipment.trinket.power/3):0));c.hp-=damage;stun=special&&ab.stun;if(special&&ab.heal)h.hp=Math.min(maxHp(h),h.hp+ab.heal);if(special&&ab.weaken)c.weaken=ab.weaken;if(!magic&&ef.poison)c.poison=ef.poison;text.push(`${special?ab.name:'Strike'}: ${damage} damage${critical?' · critical!':''}. D20 ${rolled}.`)}else text.push(`Your ${special?'ability':'strike'} misses. D20 ${rolled}.`);
  }
  if(c.poison&&c.hp>0){c.hp-=c.poison;text.push(`Venom deals ${c.poison}.`)}
- if(c.hp<=0){
-  resolveEntity(h,c.id);h.kills++;progressSide(h,'hunt');if(c.boss&&h.location.townId===0&&h.campaign.stage==='descent'){h.campaign.stage='heart';addLog(h,h.campaign.revelation)}
-  const gold=10+Math.floor(rng()*16)+(c.boss?35:0),xp=c.boss?90:30;gainGold(h,gold);gainXp(h,xp);h.hp=Math.min(maxHp(h),h.hp+(ef.healOnKill||0)+(h.raceId==='hollow'?3:0));const item=c.boss||rng()<.4?loot(h,c.boss,rng):null;h.combat=null;addLog(h,`Defeated ${c.name}. +${xp} XP · +${gold} gold${item?' · '+item.name:''}.`,'combat');return{ok:true,outcome:'victory',text:text.join(' '),gold,xp,item,boss:c.boss};
- }
+ if(c.hp<=0)return winCombat(h,text.join(' '),rng);
  if(!stun&&intent!=='guard'){
   const hitPower=c.attack+(intent==='heavy'?6:intent==='hex'?2:0)-c.weaken;const defense=armor(h)+ward+(intent==='hex'&&h.raceId==='duskborn'?2:0);const hurt=Math.max(1,Math.round(hitPower-defense-(rng()*3)));h.hp=Math.max(0,h.hp-hurt);text.push(`${intent==='heavy'?'The heavy blow':intent==='hex'?'The hex':'The strike'} deals ${hurt} vitality.`);
  }else text.push(stun?'Your foe is interrupted.':'Your foe takes a defensive stance.');
  c.round++;h.mp=Math.min(maxMp(h),h.mp+(ef.manaRegen||0));c.log=[text.join(' '),...c.log].slice(0,8);
- if(h.hp<=0){const lost=Math.min(h.gold,Math.max(8,Math.floor(h.gold*.1)));h.gold-=lost;h.hp=Math.ceil(maxHp(h)*.65);h.mp=Math.max(h.mp,Math.ceil(maxMp(h)*.4));h.combat=null;changeLocation(h,'town');addLog(h,`You wake at the infirmary. A traveler carried you home. Recovery cost ${lost} gold.`,'combat');return{ok:true,outcome:'defeat',text:text.join(' ')}}
+ if(h.hp<=0)return loseCombat(h,text.join(' '));
  return{ok:true,outcome:'round',text:text.join(' '),damage,roll:rolled};
 }
+export function winCombat(h,text='',rng=Math.random){const c=h.combat,ef=effects(h);if(!c||c.hp>0)return{ok:false};
+  resolveEntity(h,c.id);h.kills++;progressSide(h,'hunt');if(c.boss&&h.location.townId===0&&h.campaign.stage==='descent'){h.campaign.stage='heart';addLog(h,h.campaign.revelation)}
+  const gold=10+Math.floor(rng()*16)+(c.boss?35:0),xp=c.boss?90:30;gainGold(h,gold);gainXp(h,xp);h.hp=Math.min(maxHp(h),h.hp+(ef.healOnKill||0)+(h.raceId==='hollow'?3:0));const item=c.boss||rng()<.4?loot(h,c.boss,rng):null;h.combat=null;addLog(h,`Defeated ${c.name}. +${xp} XP · +${gold} gold${item?' · '+item.name:''}.`,'combat');return{ok:true,outcome:'victory',text,gold,xp,item,boss:c.boss};
+}
+export function loseCombat(h,text=''){if(!h.combat)return{ok:false};delete h.companion;const lost=Math.min(h.gold,Math.max(8,Math.floor(h.gold*.1)));h.gold-=lost;h.hp=Math.ceil(maxHp(h)*.65);h.mp=Math.max(h.mp,Math.ceil(maxMp(h)*.4));h.combat=null;changeLocation(h,'town');addLog(h,`You wake at the infirmary. A traveler carried you home. Recovery cost ${lost} gold.`,'combat');return{ok:true,outcome:'defeat',text}}
 export function interactionReward(h,entity,method='finesse',rng=Math.random){
  if(isResolved(h,entity.id))return{ok:false,text:'There is nothing else to take here.'};
  if(entity.type==='chest'){
@@ -256,6 +258,8 @@ export function validateHero(h){
  if(!Array.isArray(h.world.events)||!Array.isArray(h.world.rumors)||!Number.isFinite(h.world.day)||!Number.isFinite(h.world.hour)||!Object.values(h.world.visits).every(v=>v&&Array.isArray(v.resolved)&&v.resolved.every(id=>str(id,100))))return false;
  if(!h.world.quests.every(q=>q&&str(q.id,100)&&str(q.title,150)&&str(q.giver,100)&&str(q.description,1500)&&['hunt','herbs','relic','courier'].includes(q.kind)&&['offered','active','ready','complete'].includes(q.state)&&Number.isFinite(q.progress)&&Number.isFinite(q.goal)&&Number.isFinite(q.reward)))return false;
  if(!Object.values(h.factions).every(Number.isFinite)||!Object.values(h.relationships).every(Number.isFinite)||!Array.isArray(h.talents)||!h.talents.every(id=>classOf(h).talents.some(t=>t.id===id)))return false;
+ if(h.companion&&(!h.companion||h.companion.kind!=='skeleton'||!['hp','maxHp','remaining','cooldown','x','z'].every(k=>Number.isFinite(h.companion[k]))||h.companion.hp<0||h.companion.hp>h.companion.maxHp||h.companion.maxHp<=0||h.companion.maxHp>20000||h.companion.remaining<0||h.companion.remaining>60||typeof h.companion.scene!=='string'))return false;
+ if(h.combat?.mode==='action'){const c=h.combat;if(!['x','z','homeX','homeZ','clock','nextAttack','guardFor','dodgeFor','stunFor','wardFor','wardPower'].every(k=>Number.isFinite(c[k]))||!c.cooldowns||!Object.values(c.cooldowns).every(n=>Number.isFinite(n)&&n>=0&&n<=60)||!Array.isArray(c.pending)||c.pending.length>20||!c.pending.every(p=>p&&['eta','damage','heal','weaken','stun','poison','ward'].every(k=>Number.isFinite(p[k]))&&p.eta>=0&&p.damage>=0)||c.windup&&(!['quick','heavy','hex'].includes(c.windup.intent)||!['hero','companion'].includes(c.windup.target)||!Number.isFinite(c.windup.left)||!Number.isFinite(c.windup.total)))return false}
  if(h.combat&&(!Array.isArray(h.combat.intents)||!Number.isFinite(h.combat.hp)||!Number.isFinite(h.combat.attack)||typeof h.combat.id!=='string'))return false;
  return true;
 }

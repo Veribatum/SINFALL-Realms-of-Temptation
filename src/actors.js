@@ -1,9 +1,9 @@
 import * as T from '../vendor/three.module.js';
 import {GLTFLoader} from '../vendor/GLTFLoader.js';
 import {clone} from '../vendor/SkeletonUtils.js';
-import {appearanceOf} from './appearance.js?v=9';
-import {styleActor} from './actor-style.js?v=9';
-import {updateAdultGrip} from './adult-style.js?v=9';
+import {appearanceOf} from './appearance.js?v=10';
+import {styleActor} from './actor-style.js?v=10';
+import {updateAdultGrip} from './adult-style.js?v=10';
 
 const models=new Map();
 const equipment=/^(?:Knife|Throwable|\dH_|Badge_Shield|Rectangle_Shield|Round_Shield|Spike_Shield|Barbarian_Round_Shield|Mug|Spellbook)/;
@@ -15,7 +15,7 @@ export function modelFor(kind){
 }
 export function loadActor(kind,heroOrAppearance){
  const name=heroOrAppearance?'adult-'+appearanceOf(heroOrAppearance).gender:modelFor(kind);
- if(!models.has(name))models.set(name,new GLTFLoader().loadAsync(new URL(`../assets/models/${name}.glb?v=9`,import.meta.url).href).catch(error=>{models.delete(name);throw error}));
+ if(!models.has(name))models.set(name,new GLTFLoader().loadAsync(new URL(`../assets/models/${name}.glb?v=10`,import.meta.url).href).catch(error=>{models.delete(name);throw error}));
  return models.get(name);
 }
 export function createActor(source,{race='human',color='#ffffff',skin='#c39c7a',hair='#382b24',kind='citizen',hero=null,appearance=null}={}){
@@ -44,10 +44,13 @@ export function createActor(source,{race='human',color='#ffffff',skin='#c39c7a',
 }
 export function animateActor(group,dt,speed=0,pose){
  const a=group.userData.animation;if(!a)return;
- const clip=pose|| (speed>.8?'Running_A':speed>.02?'Walking_A':'Idle');
- if(a.current!==clip&&a.actions.has(clip)){const next=a.actions.get(clip);a.actions.get(a.current)?.fadeOut(.18);next.reset().fadeIn(.18).play();a.current=clip}
+ if(a.pose){a.pose.remaining-=dt;if(a.pose.remaining<=0)a.pose=null}
+ const clip=a.pose?.clip||pose|| (speed>.8?'Running_A':speed>.02?'Walking_A':'Idle');
+ if(a.current!==clip&&a.actions.has(clip)){const next=a.actions.get(clip);a.actions.get(a.current)?.fadeOut(.12);next.reset().setLoop(a.pose?T.LoopOnce:T.LoopRepeat,a.pose?1:Infinity);next.clampWhenFinished=!!a.pose;next.setEffectiveTimeScale(a.pose?.speed||1);next.fadeIn(.12).play();a.current=clip}
+ const active=a.actions.get(clip);if(active&&!a.pose)active.setEffectiveTimeScale(a.locomotionScale||1);
  a.mixer.update(Math.min(.1,dt));if(group.userData.adult)updateAdultGrip(group);
 }
+export function playActorAction(group,clip,speed=1){const a=group?.userData.animation,action=a?.actions.get(clip);if(!action)return false;a.pose={clip,speed,remaining:action.getClip().duration/speed};if(a.current===clip)a.current=null;return true}
 export function disposeActor(group){
  const a=group.userData.animation;a?.mixer.stopAllAction();if(a)a.mixer.uncacheRoot(a.mixer.getRoot());
  group.traverse(o=>{o.geometry?.dispose();if(o.isMesh)o.material?.dispose()});
