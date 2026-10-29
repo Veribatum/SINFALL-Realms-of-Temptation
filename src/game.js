@@ -29,7 +29,7 @@ const prefs=(()=>{try{return JSON.parse(localStorage.getItem('sinfall-preference
 const portrait=(n,cls='')=>{const p=node('div','portrait '+cls);n=M.clamp(Number(n)||0,0,7);p.style.backgroundPosition=`${(n%4)*100/3}% ${Math.floor(n/4)*100}%`;p.setAttribute('role','img');p.setAttribute('aria-label','Adventurer portrait');return p};
 const glyph=(s)=>node('span','glyph',s);
 function notify(text,type=''){const n=node('div','toast '+type,text);$('notifications').append(n);setTimeout(()=>n.remove(),5200)}
-function persist(checkpoint=false){if(!hero)return;const ok=S.saveHero(hero,{checkpoint});if(!ok)notify(S.storageError(),'warning');updateHud();return ok}
+function persist(checkpoint=false){if(!hero)return;const ok=S.saveHero(hero,{checkpoint});if(!ok)notify(S.storageError(),'warning');updateHud();if(screen==='world')paintActionUI();return ok}
 function dismiss(){if(preview&&modalRoot.contains(preview.canvas))disposePreview();modalRoot.replaceChildren();lastFocus?.focus?.({preventScroll:true});lastFocus=null}
 function dialog({tag='',title='',text='',image=null,choices=[],closable=true,wide=false,portraitId=null}){
  lastFocus=document.activeElement;const wrap=node('div','modal-overlay');const d=node('section','dialog '+(wide?'wide-dialog':''));d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');d.setAttribute('aria-label',title);
