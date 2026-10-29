@@ -43,3 +43,5 @@ test('a side quest turn-in returns tracking to the main plot without completing 
 });
 
 test('normal vertical drag looks up in both camera modes, with an explicit inversion option',()=>{assert(lookPitch(.48,-50,true)>.48);assert(lookPitch(.48,-50,false)<.48);assert(lookPitch(.48,-50,true,true)<.48);assert.equal(lookPitch(.48,-999,true),.85);assert.equal(lookPitch(.48,999,true),.15)});
+
+test('changing an exploration servant form dismisses the old form without bypassing summon recovery',()=>{const h=make();h.level=6;h.mp=M.maxMp(h);A.summonCompanion(h,env);assert.equal(h.companion.form,'guardian');assert(M.selectServant(h,'arcanist'));assert(!h.companion);assert(!A.summonCompanion(h,env).ok);tick(h,17);assert(A.summonCompanion(h,env).ok);assert.equal(h.companion.form,'arcanist');assert(M.validateHero(h))});

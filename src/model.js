@@ -258,7 +258,7 @@ export function blessingChoices(h){
  const r=seeded(town.seed^0x6f24a17),pool=BLESSINGS.slice(),choices=[];for(let i=0;i<3;i++)choices.push({...pool.splice(Math.floor(r()*pool.length),1)[0],townId:town.id,townName:town.name});return choices}return [];
 }
 export function chooseBlessing(h,id,townId){const offer=blessingChoices(h).find(b=>b.id===id&&b.townId===townId);if(!offer)return false;h.world.blessings??=[];h.world.blessings.push({id,townId});addLog(h,'Guardian blessing from '+offer.townName+': '+offer.name+'. '+offer.desc,'blessing');return true}
-export function selectServant(h,id){const form=SERVANTS.find(s=>s.id===id);if(h.combat||h.classId!=='necromancer'||!form||h.level<form.level)return false;h.settings??={};h.settings.servant=id;return true}
+export function selectServant(h,id){const form=SERVANTS.find(s=>s.id===id);if(h.combat||h.classId!=='necromancer'||!form||h.level<form.level)return false;h.settings??={};h.settings.servant=id;if(h.companion&&h.companion.form!==id)delete h.companion;return true}
 export function loseCombat(h,text=''){if(!h.combat)return{ok:false};delete h.companion;const lost=Math.min(h.gold,Math.max(8,Math.floor(h.gold*.1)));h.gold-=lost;h.hp=Math.ceil(maxHp(h)*.65);h.mp=Math.max(h.mp,Math.ceil(maxMp(h)*.4));h.combat=null;changeLocation(h,'town');addLog(h,`You wake at the infirmary. A traveler carried you home. Recovery cost ${lost} gold.`,'combat');return{ok:true,outcome:'defeat',text}}
 export function interactionReward(h,entity,method='finesse',rng=Math.random){
  if(isResolved(h,entity.id))return{ok:false,text:'There is nothing else to take here.'};

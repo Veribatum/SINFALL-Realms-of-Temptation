@@ -24,7 +24,7 @@ export function skeletonModel(form='guardian'){
  }else if(form==='ravager'){
   const scythe=new T.Group();scythe.position.set(0,-.27,0);joints.elbowR.add(scythe);rod(scythe,1.15,0,.12,0,.024);const blade=add(scythe,new T.TorusGeometry(.28,.035,4,18,Math.PI*.8),metal,.19,.7,0);blade.rotation.z=.4;ball(torso,.075,0,.4,.16,metal);
  }else{
-  const staff=new T.Group();staff.position.set(0,-.28,0);joints.elbowR.add(staff);rod(staff,1.25,0,.22,0,.022);ball(staff,.095,0,.88,0,eye);add(staff,new T.TorusGeometry(.14,.018,5,16),metal,0,.88,0);const hood=add(head,new T.SphereGeometry(.2,10,8,0,Math.PI*2,0,Math.PI*.72),cloth,0,.12,-.035);hood.scale.z=1.1;
+  const staff=new T.Group();staff.position.set(0,-.28,0);joints.elbowR.add(staff);rod(staff,1.25,0,.22,0,.022);ball(staff,.095,0,.88,0,eye);add(staff,new T.TorusGeometry(.14,.018,5,16),metal,0,.88,0);const hood=add(head,new T.SphereGeometry(.2,10,8,Math.PI*.8,Math.PI*1.4,0,Math.PI*.85),cloth,0,.12,-.035);hood.scale.z=1.1;
  }
  for(const side of[-1,1]){const rag=add(torso,new T.ConeGeometry(.2,.38,5,1,true,0,Math.PI),cloth,side*.08,-.16,-.015);rag.rotation.y=side*1.3}
  group.userData.form=form;group.userData.joints=joints;return group;
