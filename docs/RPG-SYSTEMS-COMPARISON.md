@@ -22,12 +22,24 @@ Engine checks cover unlock levels, exploration summons, shared recovery, actual 
 - Distinct guild/lodge/barracks details and one-time rewards. The guild atlas makes local landmark study checks easier without completing surveys for the player.
 - Faction choices retained in campaign legacy and supplied as real state to any connected director. No live hosted AI has been enabled.
 
-## Remaining gaps after 2.3
+## Implemented in 2.4
 
-1. **Hosted AI dungeon master:** still blocked by the approved hosted integration and backend described above. The phone build remains explicitly offline. A working account consent and real inference request must be verified before this can be called connected.
-2. **Broader quest content:** three faction graphs supplement the existing five-stage main plot. They are finite authored stories; arbitrary AI-authored quest graphs and unlimited new mechanics remain unimplemented.
-3. **Larger battles:** coordinated groups are capped at three and currently used by scripted faction blockades. General large battles, complex enemy roles and cinematic impact animation remain future work.
-4. **World variety:** the new activities and state changes add reasons to visit existing locations. Entirely distinct settlement architecture, many more bespoke interiors and extensive civilian schedules remain future work.
+This pass takes the playable loop, rather than the size of the map, as its comparison point. Last Epoch's published skill descriptions emphasize changing a skill's role; Blizzard's necromancer description gives each undead form a combat purpose. Sinfall now makes those choices easier to understand and adds actual interactions between guard, siphon and the summoned servant. This is a small authored system, not a claim of equivalent depth.
+
+- Inventory icons and held weapons use the same stable visual descriptor. Straight, leaf, curved, heavy and rapier blades, bone/thorn/astral staves and other weapon families use different original geometry. Materials and runes reflect quality. Blades use a lowered carry grip, weapons track the palm through animation, and basic action-combat range/damage type follow the equipped weapon. Supplies stack visually and gear shows the difference against the equipped slot.
+- Enemy rigs enter an evaluated idle pose immediately and animate outside combat. The dungeon's vertical drag direction is corrected, with an explicit inversion setting.
+- Each settlement has 25 ambient residents, in addition to quest contacts and staffed establishments. Household identities have clock-based breakfast, work, shopping, evening and home phases; watchmen patrol after dark. Changes route existing actors toward new destinations without repositioning them each frame. Bounded pathfinding avoids buildings; residents retire at their thresholds and appear in their own homes at night. These are scheduled activities, not a full needs/economy simulation. Main quest contacts remain available.
+- Main-town market stalls are moved away from the street network. Shutters, flower boxes, evening inn guests and the household population add detail to existing neighborhoods. All nine settlements' scheduled route endpoints and market clearance are checked against world geometry.
+- The necromancer has nine talents arranged in Soulcraft, Gravebound and Bone Wards, with explicit prerequisites, level gates and a paid full point refund. Other classes show their existing connected offense/survival paths. Hero, Skills and Servant pages keep the long character screen usable on a phone. Existing learned talent IDs remain valid.
+- The servant has an anatomical rib cage, skull/jaw, articulated elbows/knees and distinct equipment. Its lifetime is consumed during combat; it recovers health while exploring. Rally heals the existing ally and increases damage for six seconds. New talents extend combat lifetime/armor, mend the servant on guard, and restore servant health/mana when Soul Siphon lands. Retraining dismisses an existing servant so old build bonuses cannot linger.
+- A tracked optional quest no longer borrows the main plot's chapter label. Turning it in returns tracking to the same main story and offers an explicit resume action. The relic choice is labeled as the main plot's final decision. Completing it leaves the player in the existing world; starting another campaign is a deliberate Journal action.
+
+## Remaining gaps after 2.4
+
+1. **Hosted AI dungeon master:** remains unconnected. A verified approved integration and backend are still required; authored quests and manual story-pack imports do not enable live AI.
+2. **Broader content:** the six main mystery frameworks and three faction graphs remain finite authored content. More distinct plots, enemy behaviors, architecture and bespoke interiors would improve replay depth.
+3. **Presentation:** equipment and the servant now have distinct silhouettes, but these remain small procedural models. More authored animation, sound and environmental art would improve combat weight and atmosphere.
+4. **Simulation:** schedules and obstacle-aware walks are implemented; complex needs, crowd avoidance, jobs/economy and fully simulated indoor/outdoor navigation remain future work.
 
 ## Primary sources consulted
 
@@ -36,3 +48,5 @@ Engine checks cover unlock levels, exploration summons, shared recovery, actual 
 - Larian, [Community Update #21: Forging Your Legacy](https://baldursgate3.game/news/community-update-21-forging-your-legacy_77) — character identity, reactive crowds and consequences.
 - Supergiant Games, [Hades: The Superstar Update](https://www.supergiantgames.com/blog/hades-superstar-update-patch-notes/) — weapon aspects, boons, permanent upgrades and variable rewards.
 - OpenAI, [Sign in with ChatGPT quickstart](https://developers.openai.com/siwc/quickstart), [website integration](https://developers.openai.com/siwc/website), [plan-usage overview](https://developers.openai.com/siwc/token-sharing-open-source), [open-source registration and sign-in](https://developers.openai.com/siwc/token-sharing-open-source/sign-in) — hosted identity, separate plan-usage scopes, registered clients, and loopback callback requirement for the current open-source flow.
+
+- Eleventh Hour Games, [Skills](https://lastepoch.com/skills/) and [Skill Specialization](https://support.lastepoch.com/hc/en-us/articles/46363203944859-Skill-Specialization) — skill trees alter abilities and support changing a build. Used as a design reference, not a replication of its progression rules.

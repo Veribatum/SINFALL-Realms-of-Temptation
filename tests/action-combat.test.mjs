@@ -26,7 +26,7 @@ test('a timed guard reduces damage, a timed dodge avoids it, and moving out of r
 test('Raise Skeleton unlocks at level 2, costs mana, fights, takes damage, follows and expires',()=>{
  const low=make('necromancer',1);A.prepareActionCombat(low,enemy(low));const mp=low.mp;assert(!A.performAction(low,'summon',env).ok);assert.equal(low.mp,mp);
  const h=make();A.prepareActionCombat(h,enemy(h));const before=h.mp,foe=h.combat.hp;assert(A.performAction(h,'summon',env).ok);assert.equal(h.mp,before-10);assert(h.companion);const hp=h.hp;assert(!A.performAction(h,'summon',env).ok);advance(h,2);assert(h.combat.hp<foe);assert(h.companion.hp<h.companion.maxHp);assert.equal(h.hp,hp,'the skeleton draws the blow');assert(M.validateHero(h));
- h.combat=null;h.position.x+=6;const x=h.companion.x;advance(h,1);assert(h.companion.x>x);h.companion.remaining=.1;advance(h,.2);assert.equal(h.companion,undefined);
+ h.combat=null;h.position.x+=6;const x=h.companion.x;advance(h,1);assert(h.companion.x>x);h.companion.remaining=.1;advance(h,.2);assert(h.companion,'exploration does not consume combat lifetime');A.prepareActionCombat(h,enemy(h));advance(h,.2);assert.equal(h.companion,undefined);
 });
 test('summoning and scene changes choose a safe companion position',()=>{
  const h=make();A.prepareActionCombat(h,enemy(h));const blocked={...env,canMove:(x,z)=>x<=h.position.x};A.performAction(h,'summon',blocked);assert(h.companion.x<=h.position.x);h.combat=null;M.changeLocation(h,'interior',0,'archive');A.advanceAction(h,.05,blocked);assert(h.companion.x<=h.position.x);assert.equal(h.companion.scene,M.locationId(h));assert(M.validateHero(h));

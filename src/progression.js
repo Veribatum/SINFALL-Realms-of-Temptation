@@ -1,4 +1,4 @@
-import {factionReaction} from './faction-quests.js?v=14';
+import {factionReaction} from './faction-quests.js?v=17';
 // Shared game rules: class identity, earned patronage and per-campaign rewards.
 export const SERVANTS=[
  {id:'guardian',name:'Grave Guardian',level:2,hp:1.6,damage:.9,armor:3,reach:2.4,interval:1.6,desc:'A shield-bearing skeleton with 60% more health and 3 armor. Draws nearby enemy attacks.'},

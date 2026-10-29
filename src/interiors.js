@@ -1,5 +1,5 @@
 import * as T from '../vendor/three.module.js';
-import {homePlan} from './atlas.js?v=14';
+import {homePlan} from './atlas.js?v=17';
 // Furnished, walkable rooms. The interaction anchors sit in free aisle space;
 // furniture collision belongs to the prop, rather than its interaction marker.
 export function buildInterior(r){

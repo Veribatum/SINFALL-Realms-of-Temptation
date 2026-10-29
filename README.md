@@ -1,4 +1,4 @@
-# SINFALL · The Open Realm 2.3.0
+# SINFALL · The Open Realm 2.4.0
 
 [Play Sinfall](https://veribatum.github.io/SINFALL-Realms-of-Temptation/)
 
@@ -6,7 +6,7 @@ A browser RPG with persistent characters, a connected countryside, occupied sett
 
 The realm spans **3.6 × 3.6 km**. Walk between **nine settlements** across woodland, highlands, wetlands, snowfields, coast, ashlands, enchanted forest, borderlands and haunted marsh. Physical roads and bridges connect the towns. Nearby terrain, trees and buildings stream as you move, with distant terrain filling the horizon.
 
-Each settlement has an inn, forge, archive, apothecary and chapel, plus twenty homes, shops or halls: **225 enterable buildings** across the realm. Homes have named occupants, furnishings, independent persistent discoveries and stories leading to wilderness landmarks. Explore **72 landmarks and nine seeded undercrypts**. Compact street loops, paths to every doorstep, fortified towns and regional building colors connect the settlements. Every undercrypt gate now has a visible stone tomb, entrance stairs, lamps and signage.
+Each settlement has an inn, forge, archive, apothecary and chapel, plus twenty homes, shops or halls: **225 enterable buildings** across the realm. Homes have named occupants who return at night, furnishings, independent persistent discoveries and stories leading to wilderness landmarks. Explore **72 landmarks and nine seeded undercrypts**. Compact street loops, paths to every doorstep, fortified towns and regional building colors connect the settlements. Every undercrypt gate now has a visible stone tomb, entrance stairs, lamps and signage.
 
 ![Actual streamed scenery geometry, software verification view](docs/sinfall-open-realm.jpg)
 
@@ -112,3 +112,14 @@ WebGL is disabled in the managed verification browser. Normal UI flows were chec
 Entry point: `index.html` → `src/game.js`. World coordinates and terrain: `src/atlas.js`; scenery streaming: `src/overworld.js`; adult models/style: `src/actors.js` and `src/adult-style.js`; local ChatGPT support: `server/`. Older root scripts remain for history and are not loaded.
 
 Three.js r170: MIT. Adult characters, clothing and animations: Quaternius, CC0. Original KayKit models: CC0. Original licenses and sources are retained in [assets/models/CREDITS.md](assets/models/CREDITS.md). Painted interface artwork is locally bundled in `assets/`.
+
+## Living-world and equipment pass · 2.4
+
+- Clear main/side quest labels, a side-quest reward screen that returns to the existing main plot, and no automatic next-adventure offer after the relic ending. A new campaign is chosen deliberately in the Journal after the main plot is finished.
+- Immediate enemy idle poses and continuous dungeon idle animation; normal vertical camera movement in first and third person, with a Settings inversion option.
+- Inventory art, visual supply stacks, gear comparisons and quality trim. Weapon silhouettes vary by family, name and quality; rapiers, maces, greatswords, curved blades and bone staves are recognized. Swords carry low; magical staves remain upright. Equipped weapon types determine basic action-combat range and magic/physical damage.
+- Twenty-five ambient residents per town, including named household occupants, with work/leisure/home schedules and night patrols. Retiring residents return to their homes; evening visitors gather at the inn. Pedestrians route around buildings. Story contacts remain available. Clear market lanes, shutters and window flowers add detail to the existing town plan.
+- Character pages for Hero, Skill tree and (for necromancers) Servant. Nine necromancer talents in three paths, level gates on new advanced nodes and retraining for 25 + 5 × hero level gold. Other classes retain their six talents in connected paths.
+- Rebuilt skeleton anatomy and equipment. Exploration does not consume its 60 combat seconds (90 with Eternal Watch), and restores 2 servant health per second. Rally costs 5 mana, heals 18 servant health and increases its attack damage by 30% for six seconds. Raise/Rally share a 16-second recovery. Guard and Soul Siphon can support the servant through the new talents.
+
+All new state is optional in schema 4, preserving existing heroes, equipment, appearance, quest progress and learned talent IDs. Hosted live AI remains unconnected.

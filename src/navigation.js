@@ -1,6 +1,6 @@
-import {FACTION_STORIES,factionQuest,factionNode,factionSite,activeFactionIds,factionCombatIds} from './faction-quests.js?v=14';
-import {entitiesFor,BUILDINGS,townOf} from './model.js?v=14';
-import {centerOf,realmPoint} from './atlas.js?v=14';
+import {FACTION_STORIES,factionQuest,factionNode,factionSite,activeFactionIds,factionCombatIds} from './faction-quests.js?v=17';
+import {entitiesFor,BUILDINGS,townOf} from './model.js?v=17';
+import {centerOf,realmPoint} from './atlas.js?v=17';
 const live=q=>q.state==='active'||q.state==='ready';
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 function view(h,townId,type,room){

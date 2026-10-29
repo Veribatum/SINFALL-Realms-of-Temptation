@@ -1,4 +1,4 @@
-import {bustSize} from './body-shape.js?v=14';
+import {bustSize} from './body-shape.js?v=17';
 export const APPEARANCE_OPTIONS={
  gender:[['male','Male'],['female','Female']],
  build:[['slender','Slender'],['balanced','Balanced'],['broad','Broad']],
@@ -21,7 +21,7 @@ export function appearanceOf(h={}){
 }
 export function weaponStyle(item={},kind='ranger'){
  if(item.visual&&['sword','dagger','axe','bow','staff','spear','hammer','wand'].includes(item.visual))return item.visual;
- const n=item.name||'';return /bow|recurve/i.test(n)?'bow':/knife|dagger/i.test(n)?'dagger':/axe|halberd/i.test(n)?'axe':/spear|pike|lance/i.test(n)?'spear':/hammer|maul/i.test(n)?'hammer':/wand/i.test(n)?'wand':/staff|scepter|sceptre/i.test(n)?'staff':/blade|sword|oath/i.test(n)?'sword':['spellbinder','cleric','druid','necromancer'].includes(kind)?'staff':kind==='ranger'?'bow':kind==='rogue'?'dagger':'sword';
+ const n=item.name||'';return /bow|recurve/i.test(n)?'bow':/knife|dagger/i.test(n)?'dagger':/axe|halberd/i.test(n)?'axe':/spear|pike|lance/i.test(n)?'spear':/hammer|maul|mace/i.test(n)?'hammer':/wand/i.test(n)?'wand':/staff|scepter|sceptre/i.test(n)?'staff':/blade|sword|oath|rapier/i.test(n)?'sword':['spellbinder','cleric','druid','necromancer'].includes(kind)?'staff':kind==='ranger'?'bow':kind==='rogue'?'dagger':'sword';
 }
 export function armorStyle(item={}){return item.visual&&['cloth','leather','mail','plate'].includes(item.visual)?item.visual:/cuirass|plate|brigandine|guard|custodian/i.test(item.name||'')?'plate':/mail|warden|coat/i.test(item.name||'')?'mail':/leather|hide/i.test(item.name||'')?'leather':'cloth'}
 export function appearanceKey(h){return JSON.stringify([appearanceOf(h),h.equipment?.weapon,h.equipment?.armor,h.equipment?.trinket,h.classId,h.raceId])}

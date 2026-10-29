@@ -1,6 +1,6 @@
 import * as T from '../vendor/three.module.js';
-import {fitBust} from './body-shape.js?v=14';
-import {appearanceOf,armorStyle} from './appearance.js?v=14';
+import {fitBust} from './body-shape.js?v=17';
+import {appearanceOf,armorStyle,weaponStyle} from './appearance.js?v=17';
 const findBone=(rig,name)=>{let b;rig.traverse(o=>{if(o.isBone&&o.name.toLowerCase().replace(/[._]/g,'')===name)b=o});return b};
 function clear(rig){const old=rig.userData.adultDetails;if(!old)return;old.removeFromParent();old.traverse(o=>{o.geometry?.dispose();o.material?.dispose()});delete rig.userData.adultDetails}
 function detail(parent,geo,material,x,y,z){const m=new T.Mesh(geo,material);m.position.set(x,y,z);m.castShadow=true;parent.add(m);return m}
@@ -67,7 +67,7 @@ export function styleAdult(group,h,applyEquipment){
   const weapon=rig.userData.weapon;weapon.scale.setScalar(.8);
   // Quaternius hand axes differ from the former KayKit weapon slot. This
   // rest grip puts the shaft upright in the relaxed carry pose.
-  weapon.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),new T.Vector3(.156,-.862,.482).normalize());
+  const style=weaponStyle(h.equipment.weapon,h.classId),blade=['sword','dagger','axe','hammer'].includes(style);weapon.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),new T.Vector3(...(blade?[.24,.61,-.75]:[.38,-.86,.34])).normalize());weapon.userData.carry=blade?'low':'upright';
   weapon.userData.adultGrip={hand:weapon.parent,index:findBone(rig,'index02r'),thumb:findBone(rig,'thumb02r'),point:new T.Vector3(),thumbPoint:new T.Vector3()};
   updateAdultGrip(group);
  }

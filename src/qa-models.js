@@ -1,4 +1,4 @@
-import {loadActor,createActor,animateActor,disposeActor} from './actors.js?v=14';
+import {loadActor,createActor,animateActor,disposeActor} from './actors.js?v=17';
 
 // Preview-only integration check: exercise browser downloads and embedded PNG
 // decoding even when the verification browser cannot create a WebGL context.

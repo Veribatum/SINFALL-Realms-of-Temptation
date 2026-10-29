@@ -1,5 +1,5 @@
 import * as T from '../vendor/three.module.js';
-import {centerOf,cryptAnchor} from './atlas.js?v=14';
+import {centerOf,cryptAnchor} from './atlas.js?v=17';
 
 // The gate anchor is the open threshold, rather than the center of a solid
 // prop. Side colliders leave the arrival point and the north road passable.
@@ -45,7 +45,7 @@ export function buildUndercrypt(r,town){
 export function buildCivicScenery(r,town){
  const c=centerOf(town.id),at=(x,z)=>({x:c.x+x,z:c.z+z}),g=new T.Group();g.name='Village civic spaces · '+town.id;g.position.set(c.x,0,c.z);r.root.add(g);
  const plaza=r.mesh(new T.CircleGeometry(9,32),r.openRoad,g,0,.075,0);plaza.rotation.x=-Math.PI/2;
- for(const[x,z]of(town.id===0?[[24,10],[32,10],[24,19],[32,19],[-21,20],[-29,20]]:[[-19,34],[-10,39],[-26,42]])){const p=at(x,z);r.market(p.x,p.z)}
+ for(const[x,z]of(town.id===0?[[28,6],[28,13],[28,20],[-28,6],[-28,20],[-14,32]]:[[-19,34],[-10,39],[-26,42]])){const p=at(x,z);r.market(p.x,p.z)}
  // The west green and garden occupy the space between streets, away from NPC
  // and doorway anchors. Small props leave generous walking routes around them.
  for(const[x,z,rot]of(town.id===0?[[-25,14,0],[-34,14,0],[-25,24,Math.PI]]:[[-28,15,0],[-28,22,Math.PI]])){
