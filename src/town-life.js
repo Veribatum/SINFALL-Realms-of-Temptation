@@ -1,13 +1,13 @@
 // Civilian routines are derived from the world's clock and stable household
 // identity. They resume on reload without a second save system or random jumps.
 export function dailyRoutine(resident,hour=12){
- const h=((hour%24)+24)%24,offset=(resident.index||0)%3*.25,home=resident.home||[0,20],work=resident.work||[28,17],green=resident.green||[-28,17];
+ const h=((hour%24)+24)%24,offset=(resident.index||0)%3*.25,i=resident.index||0,home=resident.home||[0,20],work=resident.work||[28,17],green=resident.green||[(i%2?1:-1)*(5.4+i%3*1.1),-14+Math.floor(i/2)*2.4];
  if(resident.role==='guard'||resident.role==='ranger')return{phase:h>=19||h<6?'night-watch':'watch',activity:h>=19||h<6?'Night patrol':'Keeping watch',points:resident.patrol||(resident.role==='ranger'?[[6,31],[6,0],[6,-25]]:[[-6,31],[-6,0],[-6,-25]]),retire:false};
  if(h<6+offset||h>=22+offset)return{phase:'home',activity:'Resting at home',points:[home],retire:true};
  if(h<8+offset)return{phase:'breakfast',activity:'Breakfast on the green',points:[green,[green[0]+1.2,green[1]]],retire:false};
  if(h<17+offset)return{phase:'work',activity:resident.job||'Working in the market',points:[work,[work[0]+.9,work[1]+.5]],retire:false};
- if(h<19+offset)return{phase:'market',activity:'Shopping and sharing news',points:[[resident.index%2?-7:7,4],[resident.index%2?-7:7,20]],retire:false};
- return{phase:'evening',activity:'An evening near the inn',points:[[-7,8+(resident.index%5)*2],[-5,10+(resident.index%5)*2]],retire:false};
+ if(h<19+offset)return{phase:'market',activity:'Shopping and sharing news',points:[[(i%2?1:-1)*(5.4+i%3*1.1),4+i%8*2],[(i%2?1:-1)*(5.4+i%3*1.1),4+(i+3)%8*2]],retire:false};
+ return{phase:'evening',activity:'An evening near the inn',points:[[-5.5-i%3*1.2,4+Math.floor(i/3)*1.8],[-5.5-i%3*1.2,5+Math.floor(i/3)*1.8]],retire:false};
 }
 
 // Small bounded A* for pedestrian detours. Routes are cached per destination
