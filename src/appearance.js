@@ -1,4 +1,4 @@
-import {bustSize} from './body-shape.js?v=17';
+import {bustSize} from './body-shape.js?v=18';
 export const APPEARANCE_OPTIONS={
  gender:[['male','Male'],['female','Female']],
  build:[['slender','Slender'],['balanced','Balanced'],['broad','Broad']],

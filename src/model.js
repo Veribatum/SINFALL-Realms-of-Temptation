@@ -1,11 +1,12 @@
-import {guardianFor} from './encounters.js?v=17';
-import {FACTION_STORIES,factionQuest,factionNode,factionHere,factionChoices,factionSite,factionCombatIds,factionEffects,validFactionQuests} from './faction-quests.js?v=17';
-import {BLESSINGS,SERVANTS,patronage} from './progression.js?v=17';
-import {CLASSES,RACES,ORIGINS,MOTIFS,ENEMIES,SETTLEMENT_PREFIX,SETTLEMENT_SUFFIX,NPC_FIRST,NPC_LAST,QUALITY} from './content.js?v=17';
-import {appearanceOf,APPEARANCE_OPTIONS} from './appearance.js?v=17';
-import {REGION_COUNT,regionOf,roadLinks,frontierSites,siteKey,surveyState} from './frontier.js?v=17';
-import {populationFor} from './population.js?v=17';
-import {centerOf,regionAt,realmArea,realmPoint,realmSites,homePlan} from './atlas.js?v=17';
+import {guardianFor} from './encounters.js?v=18';
+import {validPattern,CHAIN_WINDOW,PARRY_WINDOW,EXPOSE_TIME} from './combat-rules.js?v=18';
+import {FACTION_STORIES,factionQuest,factionNode,factionHere,factionChoices,factionSite,factionCombatIds,factionEffects,validFactionQuests} from './faction-quests.js?v=18';
+import {BLESSINGS,SERVANTS,patronage} from './progression.js?v=18';
+import {CLASSES,RACES,ORIGINS,MOTIFS,ENEMIES,SETTLEMENT_PREFIX,SETTLEMENT_SUFFIX,NPC_FIRST,NPC_LAST,QUALITY} from './content.js?v=18';
+import {appearanceOf,APPEARANCE_OPTIONS} from './appearance.js?v=18';
+import {REGION_COUNT,regionOf,roadLinks,frontierSites,siteKey,surveyState} from './frontier.js?v=18';
+import {populationFor} from './population.js?v=18';
+import {centerOf,regionAt,realmArea,realmPoint,realmSites,homePlan} from './atlas.js?v=18';
 
 export const SCHEMA=4;
 export const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
@@ -301,6 +302,13 @@ export function validateHero(h){
  if(h.companion?.form!==undefined&&!SERVANTS.some(s=>s.id===h.companion.form))return false;
  if(h.companion&&(!h.companion||h.companion.kind!=='skeleton'||!['hp','maxHp','remaining','cooldown','x','z'].every(k=>Number.isFinite(h.companion[k]))||h.companion.hp<0||h.companion.hp>h.companion.maxHp||h.companion.maxHp<=0||h.companion.maxHp>20000||h.companion.remaining<0||h.companion.remaining>120||h.companion.rallyFor!==undefined&&(!Number.isFinite(h.companion.rallyFor)||h.companion.rallyFor<0||h.companion.rallyFor>6)||typeof h.companion.scene!=='string'))return false;
  if(h.combat?.mode==='action'){const c=h.combat;if(!['x','z','homeX','homeZ','clock','nextAttack','guardFor','dodgeFor','stunFor','wardFor','wardPower'].every(k=>Number.isFinite(c[k]))||!c.cooldowns||!Object.values(c.cooldowns).every(n=>Number.isFinite(n)&&n>=0&&n<=60)||!Array.isArray(c.pending)||c.pending.length>20||!c.pending.every(p=>p&&['eta','damage','heal','weaken','stun','poison','ward'].every(k=>Number.isFinite(p[k]))&&p.eta>=0&&p.damage>=0)||c.windup&&(!['quick','heavy','hex'].includes(c.windup.intent)||!['hero','companion'].includes(c.windup.target)||!Number.isFinite(c.windup.left)||!Number.isFinite(c.windup.total)))return false}
+ if(h.combat?.mode==='action'){
+  const c=h.combat;
+  for(const[key,max]of[['parryFor',PARRY_WINDOW],['exposedFor',EXPOSE_TIME]])if(c[key]!==undefined&&(!Number.isFinite(c[key])||c[key]<0||c[key]>max))return false;
+  if(c.chain!==undefined&&(!c.chain||!Number.isInteger(c.chain.index)||c.chain.index<1||c.chain.index>3||!Number.isFinite(c.chain.remaining)||c.chain.remaining<0||c.chain.remaining>CHAIN_WINDOW))return false;
+  if(c.windup?.pattern!==undefined&&!validPattern(c.windup.pattern))return false;
+  if(c.pending.some(p=>p.reach!==undefined&&(!Number.isFinite(p.reach)||p.reach<=0||p.reach>4)||p.chain!==undefined&&(!Number.isInteger(p.chain)||p.chain<0||p.chain>3)||p.finisher!==undefined&&typeof p.finisher!=='boolean'))return false;
+ }
  if(h.combat?.pack!==undefined&&(h.combat.mode!=='action'||!Array.isArray(h.combat.pack)||h.combat.pack.length>2||new Set([h.combat.id,...h.combat.pack.map(e=>e?.id)]).size!==h.combat.pack.length+1||!h.combat.pack.every(e=>e&&!e.pack&&e.mode==='action'&&validateHero({...h,combat:e}))))return false;
  if(h.combat?.rewards&&(!['xp','gold'].every(k=>Number.isFinite(h.combat.rewards[k])&&h.combat.rewards[k]>=0)||!Array.isArray(h.combat.rewards.names)||h.combat.rewards.names.length>3||!h.combat.rewards.names.every(n=>str(n,100))||!Array.isArray(h.combat.rewards.items)||h.combat.rewards.items.length>3||!h.combat.rewards.items.every(validItem)))return false;
  if(h.combat?.phase!==undefined&&![1,2].includes(h.combat.phase))return false;

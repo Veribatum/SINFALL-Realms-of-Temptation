@@ -50,6 +50,7 @@ export class Soundscape{
   else if(name==='attack'){this.burst(at,.18,.45,600);this.note('effects',45,at+.06,.16,.12,'triangle')}
   else if(name==='ability')play([62,69,74,81],.055,.085);
   else if(name==='guard'){this.burst(at,.1,.4,2000);play([50,57],.04,.06)}
+  else if(name==='parry'){this.burst(at,.075,.35,2600);play([74,81,86],.035,.07)}
   else if(name==='potion')play([62,65,69],.09,.065);
   else if(name==='victory'||name==='level')play([62,65,69,74,77,81],.11,.065);
   else if(name==='loot')play([81,86,88],.06,.04);

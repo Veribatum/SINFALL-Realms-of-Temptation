@@ -1,6 +1,7 @@
-import {weaponStyle} from './appearance.js?v=17';
-import {servantOf,SERVANTS} from './progression.js?v=17';
-import * as M from './model.js?v=17';
+import {weaponStyle} from './appearance.js?v=18';
+import {servantOf,SERVANTS} from './progression.js?v=18';
+import * as M from './model.js?v=18';
+import {attackPattern,insidePattern,nextChain,CHAIN_WINDOW,PARRY_WINDOW,EXPOSE_TIME} from './combat-rules.js?v=18';
 
 export const SUMMON_LEVEL=2;
 const magicClasses=new Set(['necromancer','spellbinder','druid','bard']);
@@ -15,7 +16,7 @@ export function prepareActionCombat(h,entity,others=[]){
  const members=others.filter(e=>e.id!==entity.id&&!M.isResolved(h,e.id)).slice(0,2);if(members.length){c.pack=members.map((e,i)=>{const shadow={...h,combat:null};prepareActionCombat(shadow,e);shadow.combat.nextAttack=1.6+i*.7;return shadow.combat});for(const foe of[c,...c.pack]){foe.attack*=.65;foe.hp=Math.round(foe.hp*.78);foe.maxHp=foe.hp}}return true;
 }
 export const combatants=h=>h.combat?[h.combat,...h.combat.pack||[]]:[];
-const sharedKeys=['cooldowns','guardFor','dodgeFor','wardFor','wardPower','clock','rewards','homeX','homeZ'];
+const sharedKeys=['cooldowns','guardFor','dodgeFor','wardFor','wardPower','clock','rewards','homeX','homeZ','parryFor','chain'];
 const sharedOf=c=>Object.fromEntries(sharedKeys.map(k=>[k,c[k]]));
 function focusOn(h,all,id,shared){const selected=all.find(c=>c.id===id)||all[0];for(const foe of all)delete foe.pack;Object.assign(selected,shared);if(all.length>1)selected.pack=all.filter(c=>c!==selected);h.combat=selected}
 export function selectTarget(h,id){const all=combatants(h);if(!all.some(c=>c.id===id&&c.hp>0))return false;focusOn(h,all,id,sharedOf(h.combat));return true}
@@ -24,6 +25,7 @@ export function resumeActionCombat(h){
  const c=h.combat;if(!c)return;const previousMode=c.mode;if(previousMode!=='action')c.location=M.locationId(h);
  const entity=M.entitiesFor(h).find(e=>e.id===c.id),x=Number.isFinite(c.x)?c.x:entity?.x??h.position.x+2,z=Number.isFinite(c.z)?c.z:entity?.z??h.position.z;
  Object.assign(c,{mode:'action',x,z,homeX:c.homeX??x,homeZ:c.homeZ??z,clock:c.clock||0,cooldowns:c.cooldowns||{},pending:c.pending||[],nextAttack:Number.isFinite(c.nextAttack)?c.nextAttack:1,windup:c.windup||null,guardFor:c.guardFor||0,dodgeFor:c.dodgeFor||0,stunFor:c.stunFor||0,wardFor:c.wardFor||0,wardPower:c.wardPower||0});
+ if(c.windup&&!c.windup.pattern)c.windup.pattern=attackPattern(c,c.windup.target==='companion'?(h.companion||h.position):h.position,c.windup.intent);
  for(const member of c.pack||[]){const shadow={...h,combat:member};resumeActionCombat(shadow)}
 }
 const emit=(events,kind,data={})=>events.push({kind,...data});
@@ -52,14 +54,16 @@ export function performAction(h,action,env={}){
   if(env.lineOfSight&&!env.lineOfSight(h.position,c))return{ok:false,reason:'A wall blocks the attack.',events};
   if(action==='ability'&&h.mp<M.abilityCost(h))return{ok:false,reason:'Not enough mana.',events};
   const special=action==='ability',magic=special?ability.magic:['staff','wand'].includes(weaponStyle(h.equipment.weapon,h.classId)),stat=special?ability.scale:magic?'lore':stats.finesse>stats.might?'finesse':'might';
+  const chain=!special&&range<=3.8?nextChain(c.chain):0;
+  if(chain)c.chain={index:chain,remaining:CHAIN_WINDOW};
   if(special){h.mp-=M.abilityCost(h);h.hp=Math.max(1,h.hp-(ability.selfDamage||0))}
   const critical=rng()*100<(effects.crit||0)+(h.raceId==='beastkin'?5:0)+(special?ability.crit||0:0);
   const damage=Math.max(1,Math.round((special?ability.power:4)+stats[stat]+h.equipment.weapon.power*.65+rng()*3+(magic?effects.spell||0:effects.physical||0)+(critical?6+(effects.critDamage||0):0)-(magic?0:c.armor)));
-  const ranged=range>3;c.pending.push({eta:ranged?.18+distance(h.position,c)/35:.15,damage,heal:special?ability.heal||0:0,weaken:special?ability.weaken||0:0,stun:special&&ability.stun?.9:0,poison:!magic?effects.poison||0:0,ward:special?ability.ward||0:0,action,critical});
-  emit(events,ranged?'projectile':'swing',{from:{...h.position},to:{x:c.x,z:c.z},action,magic:!!magic});record(c,special?ability.name:'Strike');
+  const ranged=range>3.8;c.pending.push({eta:ranged?.18+distance(h.position,c)/35:.15,damage:Math.round(damage*(chain===3?1.5:chain===2?1.12:1)),heal:special?ability.heal||0:0,weaken:special?ability.weaken||0:0,stun:special&&ability.stun?.9:0,poison:!magic?effects.poison||0:0,ward:special?ability.ward||0:0,action,critical,chain,...(!ranged?{reach:range}:{}),finisher:chain===3});
+  emit(events,ranged?'projectile':'swing',{from:{...h.position},to:{x:c.x,z:c.z},action,magic:!!magic,chain});record(c,special?ability.name:chain===3?'Finishing strike':'Strike');
   if(special)for(const other of c.pack||[])if(distance(other,c)<3.5&&(!env.lineOfSight||env.lineOfSight(h.position,other))){other.pending.push({eta:ranged?.18+distance(h.position,other)/35:.15,damage:Math.max(1,Math.round(damage*.35)),heal:0,weaken:0,stun:0,poison:0,ward:0,action:'splash'});emit(events,ranged?'projectile':'swing',{from:{...h.position},to:{x:other.x,z:other.z},action,magic:!!magic})}
  }else if(action==='guard'){
-  c.guardFor=1.2+(effects.guardTime||0);if(h.companion)h.companion.hp=Math.min(h.companion.maxHp,h.companion.hp+(effects.guardMend||0));h.mp=Math.min(M.maxMp(h),h.mp+3);emit(events,'guard');record(c,'Guard raised · brace for the next blow.');
+  c.guardFor=1.2+(effects.guardTime||0);c.parryFor=PARRY_WINDOW;if(h.companion)h.companion.hp=Math.min(h.companion.maxHp,h.companion.hp+(effects.guardMend||0));h.mp=Math.min(M.maxMp(h),h.mp+3);emit(events,'guard');record(c,'Guard raised · catch a melee blow as it lands to parry.');
  }else if(action==='dodge'){
   c.dodgeFor=.4;env.dodge?.();emit(events,'dodge');record(c,'You dodge. Time it against the enemy’s wind-up.');
  }else if(action==='potion'){
@@ -84,7 +88,7 @@ function companionTick(h,dt,events,env){
 function defeatFoes(h,events,rng){
  const all=combatants(h),dead=all.filter(c=>c.hp<=0);if(!dead.length)return null;const shared=sharedOf(h.combat),rewards=shared.rewards||{xp:0,gold:0,names:[],items:[],boss:false};
  for(const foe of dead){h.combat=foe;const result=M.winCombat(h,foe.log[0],rng);rewards.xp+=result.xp;rewards.gold+=result.gold;rewards.names.push(foe.name);if(result.item)rewards.items.push(result.item);rewards.boss||=result.boss;emit(events,'foeDefeated',{id:foe.id,x:foe.x,z:foe.z})}
- const alive=all.filter(c=>c.hp>0);if(!alive.length){h.combat=null;return{ok:true,outcome:'victory',text:'Defeated '+rewards.names.join(', ')+'.',xp:rewards.xp,gold:rewards.gold,item:rewards.items[0]||null,boss:rewards.boss,events:[...events,{kind:'victory'}]}}
+ const alive=all.filter(c=>c.hp>0);if(!alive.length){h.combat=null;return{ok:true,outcome:'victory',mode:'action',text:'Defeated '+rewards.names.join(', ')+'.',xp:rewards.xp,gold:rewards.gold,item:rewards.items[0]||null,items:rewards.items,boss:rewards.boss,events:[...events,{kind:'victory'}]}}
  shared.rewards=rewards;focusOn(h,alive,h.combat?.id,shared);return null;
 }
 function enemyTick(h,c,dt,env,events){
@@ -94,29 +98,44 @@ function enemyTick(h,c,dt,env,events){
  const intent=M.combatIntent({...h,combat:c}),s=h.companion,focus=s&&s.hp>0&&distance(s,c)<(servantOf(h).id==='guardian'?6:4)?s:h.position,enemyRange=intent==='hex'?8:2.65,d=distance(c,focus),player=h.combat;
  if(!c.windup&&(d>enemyRange*.8||env.lineOfSight&&!env.lineOfSight(c,focus))){const step=Math.min(d,dt*(c.kind==='wolf'?3.7:2.7));approach(c,focus,step,env)}
  if(c.windup){
-  c.windup.left-=dt;if(c.windup.left<=0){const wind=c.windup,target=wind.target==='companion'?h.companion:h.position,reach=wind.intent==='hex'?9:wind.intent==='heavy'?3.2:2.7;
-   if(target&&distance(c,target)<reach&&(!env.lineOfSight||env.lineOfSight(c,target))){
+  c.windup.left-=dt;if(c.windup.left<=0){const wind=c.windup,target=wind.target==='companion'?h.companion:h.position,pattern=wind.pattern||attackPattern(c,target||h.position,wind.intent);
+   if(target&&insidePattern(pattern,target)&&(!env.lineOfSight||env.lineOfSight(c,target))){
     if(wind.target==='hero'&&player.dodgeFor>0){emit(events,'evade',{id:c.id});record(c,'You dodge the blow.')}else{
+     if(wind.target==='hero'&&wind.intent!=='hex'&&player.parryFor>0){
+      c.stunFor=.85;c.exposedFor=EXPOSE_TIME;player.parryFor=0;player.guardFor=0;h.mp=Math.min(M.maxMp(h),h.mp+4);emit(events,'parry',{id:c.id,x:c.x,z:c.z});record(c,'Perfect parry · the enemy is exposed.');
+     }else{
      const base=c.attack+(wind.intent==='heavy'?5:wind.intent==='hex'?2:0)-c.weaken,block=wind.target==='hero'&&player.guardFor>0,hurt=Math.max(1,Math.round((base-(wind.target==='hero'?M.armor(h)+(player.wardFor>0?player.wardPower:0):1+servantOf(h).armor+(M.effects(h).summonArmor||0))-rng()*2)*(block?.25:1)));
      if(wind.target==='companion'&&h.companion)h.companion.hp=Math.max(0,h.companion.hp-hurt);else h.hp=Math.max(0,h.hp-hurt);
      emit(events,wind.target==='companion'?'minionHurt':'hurt',{id:c.id,amount:hurt,x:target.x,z:target.z,blocked:block});record(c,(wind.target==='companion'?'Skeleton':block?'Guarded':'You')+' · −'+hurt+' health');
+     }
     }
    }else{emit(events,'evade',{id:c.id});record(c,'The attack misses. You moved clear.')}
-   emit(events,'enemyStrike',{id:c.id,x:c.x,z:c.z});c.windup=null;c.round++;c.nextAttack=c.boss?(c.phase===2?1:1.25):1.6;
+   if(!c.stunFor)emit(events,'enemyStrike',{id:c.id,x:c.x,z:c.z});c.windup=null;c.round++;c.nextAttack=c.boss?(c.phase===2?1:1.25):1.6;
    if(c.poison){c.hp-=c.poison;emit(events,'hit',{amount:c.poison,x:c.x,z:c.z})}
   }
  }else{
-  c.nextAttack-=dt;if(c.nextAttack<=0&&d<enemyRange+1&&(!env.lineOfSight||env.lineOfSight(c,focus))){if(intent==='guard'){record(c,'Your foe braces. Press the attack.');c.round++;c.nextAttack=1.2}else{const duration=(intent==='heavy'?1.05:intent==='hex'?1.2:.75)*(c.phase===2?.85:1);c.windup={intent,left:duration,total:duration,target:focus===s?'companion':'hero'};emit(events,'windup',{id:c.id,intent,x:c.x,z:c.z})}}
+  c.nextAttack-=dt;if(c.nextAttack<=0&&d<enemyRange+1&&(!env.lineOfSight||env.lineOfSight(c,focus))){if(intent==='guard'){record(c,'Your foe braces. Press the attack.');c.round++;c.nextAttack=1.2}else{const duration=(intent==='heavy'?1.05:intent==='hex'?1.2:.75)*(c.phase===2?.85:1);c.windup={intent,left:duration,total:duration,target:focus===s?'companion':'hero',pattern:attackPattern(c,focus,intent)};emit(events,'windup',{id:c.id,intent,x:c.x,z:c.z})}}
  }
 }
 export function advanceAction(h,seconds,env={}){
  const dt=clamp(seconds,0,.1),events=[];if(!Number.isFinite(dt))return{ok:false,events};
  h.summonCooldown=Math.max(0,(h.summonCooldown||0)-dt);companionTick(h,dt,events,env);const c=h.combat;if(!c||c.mode!=='action')return{ok:true,events};
  if(c.location!==M.locationId(h)||distance(h.position,{x:c.homeX,z:c.homeZ})>28){h.combat=null;emit(events,'fled');return{ok:true,outcome:'fled',events}}
- c.clock+=dt;for(const key of Object.keys(c.cooldowns))c.cooldowns[key]=Math.max(0,c.cooldowns[key]-dt);for(const key of['guardFor','dodgeFor','wardFor'])c[key]=Math.max(0,c[key]-dt);
+ c.clock+=dt;for(const key of Object.keys(c.cooldowns))c.cooldowns[key]=Math.max(0,c.cooldowns[key]-dt);for(const key of['guardFor','dodgeFor','wardFor','parryFor'])c[key]=Math.max(0,(c[key]||0)-dt);
+ if(c.chain)c.chain.remaining=Math.max(0,c.chain.remaining-dt);
  const rng=env.rng||Math.random;
  for(const foe of combatants(h)){
-  for(const hit of foe.pending){hit.eta-=dt;if(hit.eta>0)continue;foe.hp-=hit.damage;if(hit.action==='ability'){const fx=M.effects(h);h.mp=Math.min(M.maxMp(h),h.mp+(fx.soulMana||0));if(h.companion)h.companion.hp=Math.min(h.companion.maxHp,h.companion.hp+(fx.soulMend||0))}const healed=hit.heal?Math.min(M.maxHp(h)-h.hp,hit.heal):0;h.hp+=healed;if(hit.weaken)foe.weaken=hit.weaken;if(hit.stun){foe.stunFor=hit.stun;foe.windup=null;foe.nextAttack=1}if(hit.poison)foe.poison=hit.poison;if(hit.ward){c.wardFor=1.2;c.wardPower=hit.ward}emit(events,'hit',{amount:hit.damage,critical:hit.critical,x:foe.x,z:foe.z,action:hit.action});if(healed)emit(events,'heal',{amount:healed,x:h.position.x,z:h.position.z});record(foe,(hit.action==='ability'?M.classOf(h).ability.name:hit.action==='splash'?'Spell splash':'Strike')+' · '+hit.damage+' damage'+(healed?' · +'+healed+' health':''))}
+  foe.exposedFor=Math.max(0,(foe.exposedFor||0)-dt);
+  for(const hit of foe.pending){
+   hit.eta-=dt;if(hit.eta>0)continue;
+   if(hit.reach!==undefined&&(distance(h.position,foe)>hit.reach||env.lineOfSight&&!env.lineOfSight(h.position,foe))){if(hit.chain)delete c.chain;emit(events,'miss',{id:foe.id,x:foe.x,z:foe.z});record(foe,'Your swing misses.');continue}
+   const exposed=foe.exposedFor>0,amount=Math.round(hit.damage*(exposed?1.35:1));foe.hp-=amount;
+   if(hit.action==='ability'){const fx=M.effects(h);h.mp=Math.min(M.maxMp(h),h.mp+(fx.soulMana||0));if(h.companion)h.companion.hp=Math.min(h.companion.maxHp,h.companion.hp+(fx.soulMend||0))}
+   const healed=hit.heal?Math.min(M.maxHp(h)-h.hp,hit.heal):0;h.hp+=healed;if(hit.weaken)foe.weaken=hit.weaken;
+   if(hit.stun||hit.finisher){foe.stunFor=Math.max(hit.stun||0,hit.finisher?.65:0);foe.windup=null;foe.nextAttack=1;emit(events,'stagger',{id:foe.id,x:foe.x,z:foe.z})}
+   if(hit.poison)foe.poison=hit.poison;if(hit.ward){c.wardFor=1.2;c.wardPower=hit.ward}
+   emit(events,'hit',{amount,critical:hit.critical,finisher:!!hit.finisher,exposed,x:foe.x,z:foe.z,action:hit.action});if(healed)emit(events,'heal',{amount:healed,x:h.position.x,z:h.position.z});record(foe,(hit.finisher?'Finishing strike':hit.action==='ability'?M.classOf(h).ability.name:hit.action==='splash'?'Spell splash':'Strike')+' · '+amount+' damage'+(exposed?' · exposed':'')+(healed?' · +'+healed+' health':''));
+  }
   foe.pending=foe.pending.filter(hit=>hit.eta>0);
  }
  let result=defeatFoes(h,events,rng);if(result)return result;

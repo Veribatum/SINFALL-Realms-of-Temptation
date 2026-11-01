@@ -1,21 +1,21 @@
-import {itemArt,gearLook} from './gear.js?v=17';
-import {FACTION_STORIES,factionQuest,factionNode,factionHere,factionChoices,activeFactionIds,factionCombatIds} from './faction-quests.js?v=17';
-import {SERVANTS,BLESSINGS,servantOf,patronage,reactionTo} from './progression.js?v=17';
-import {RACES,CLASSES,ORIGINS,OMENS,STAT_LABELS,LORE} from './content.js?v=17';
-import * as M from './model.js?v=17';
-import * as S from './saves.js?v=17';
-import * as AI from './director.js?v=17';
-import {Realm} from './world.js?v=17';
-import {appearanceOf,APPEARANCE_OPTIONS,wardrobeOptions,PALETTES,weaponStyle,armorStyle} from './appearance.js?v=17';
-import {regionOf,frontierSites,surveyState,roadLinks,siteKey} from './frontier.js?v=17';
-import {CharacterPreview} from './preview.js?v=17';
-import {centerOf,realmSites,worldStats} from './atlas.js?v=17';
-import {styleActor} from './actor-style.js?v=17';
-import {Soundscape,audioMode} from './audio.js?v=17';
-import {trackedTarget,trackedQuest,questTarget,targetDistance,directionTo} from './navigation.js?v=17';
-import * as Action from './action-combat.js?v=17';
-import {storyBrief} from './story-guide.js?v=17';
-import {drawAtlas} from './map-view.js?v=17';
+import {itemArt,gearLook} from './gear.js?v=18';
+import {FACTION_STORIES,factionQuest,factionNode,factionHere,factionChoices,activeFactionIds,factionCombatIds} from './faction-quests.js?v=18';
+import {SERVANTS,BLESSINGS,servantOf,patronage,reactionTo} from './progression.js?v=18';
+import {RACES,CLASSES,ORIGINS,OMENS,STAT_LABELS,LORE} from './content.js?v=18';
+import * as M from './model.js?v=18';
+import * as S from './saves.js?v=18';
+import * as AI from './director.js?v=18';
+import {Realm} from './world.js?v=18';
+import {appearanceOf,APPEARANCE_OPTIONS,wardrobeOptions,PALETTES,weaponStyle,armorStyle} from './appearance.js?v=18';
+import {regionOf,frontierSites,surveyState,roadLinks,siteKey} from './frontier.js?v=18';
+import {CharacterPreview} from './preview.js?v=18';
+import {centerOf,realmSites,worldStats} from './atlas.js?v=18';
+import {styleActor} from './actor-style.js?v=18';
+import {Soundscape,audioMode} from './audio.js?v=18';
+import {trackedTarget,trackedQuest,questTarget,targetDistance,directionTo} from './navigation.js?v=18';
+import * as Action from './action-combat.js?v=18';
+import {storyBrief} from './story-guide.js?v=18';
+import {drawAtlas} from './map-view.js?v=18';
 
 let characterTab='overview',inventoryFilter='all';
 const $=id=>document.getElementById(id),app=$('app'),modalRoot=$('modal-root');
@@ -24,6 +24,7 @@ const node=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.classNa
 const btn=(label,fn,cls='')=>{const b=node('button',cls,label);b.type='button';b.onclick=fn;return b};
 let hero=null,realm=null,panel=null,near=null,step=0,draft=null,aiStatus={available:false},aiModel='',saveClock=0,screen='menu',lastFocus=null;
 let combatRAF=null,combatGrace=0,lastCombatPaint=0;
+let lootTimer=0,feedbackTimer=0;
 let preview=null;const sound=new Soundscape();
 const prefs=(()=>{try{return JSON.parse(localStorage.getItem('sinfall-preferences')||'{}')}catch{return{}}})();
 const portrait=(n,cls='')=>{const p=node('div','portrait '+cls);n=M.clamp(Number(n)||0,0,7);p.style.backgroundPosition=`${(n%4)*100/3}% ${Math.floor(n/4)*100}%`;p.setAttribute('role','img');p.setAttribute('aria-label','Adventurer portrait');return p};
@@ -41,7 +42,7 @@ function confirmAction(title,text,fn){dialog({tag:'A CHOICE TO MAKE',title,text,
 function download(name,text,type='application/json'){const u=URL.createObjectURL(new Blob([text],{type})),a=node('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
 async function copyText(text){try{await navigator.clipboard.writeText(text);notify('Copied.')}catch{const d=dialog({tag:'COPY THIS TEXT',title:'Story request',text:'Select and copy the request below.',choices:[['Done',dismiss]]});const t=node('textarea','copy-area');t.value=text;t.readOnly=true;d.body.insertBefore(t,d.list);t.focus();t.select()}}
 function disposePreview(){preview?.dispose();preview=null}
-function disposeWorld(){cancelAnimationFrame(combatRAF);combatRAF=null;disposePreview();realm?.dispose();realm=null;near=null;panel=null}
+function disposeWorld(){cancelAnimationFrame(combatRAF);combatRAF=null;clearTimeout(lootTimer);clearTimeout(feedbackTimer);disposePreview();realm?.dispose();realm=null;near=null;panel=null}
 function mountPreview(parent,h,cls=''){disposePreview();const canvas=node('canvas','character-model-preview '+cls);canvas.setAttribute('aria-label','3D character preview · drag to rotate');parent.append(canvas);preview=new CharacterPreview(canvas,h);return canvas}
 function appearanceControls(parent,target,changed,{gender=true}={}){
  const grid=node('div','customization-grid'),titles={gender:'Gender',build:'Build',height:'Height',hairStyle:'Hairstyle',face:'Face',beard:'Facial hair',marking:'Face marking',wardrobe:'Outfit style'};
@@ -53,7 +54,7 @@ function appearanceDialog(){const copy={...hero,...appearanceOf(hero)};const d=d
 
 function menu(){
  if(hero)persist();disposeWorld();dismiss();screen='menu';sound.setMode('menu');const last=S.lastHero(),heroes=S.listHeroes();
- app.innerHTML='<main class="title-screen"><div class="title-landscape"></div><div class="title-shade"></div><div class="title-top"><span class="seal">✧</span><span>A WORLD THAT REMEMBERS</span></div><section class="title-content"><div class="eyebrow">REALMS OF TEMPTATION</div><h1>SINFALL</h1><p class="title-quote">Every road hides a story.<br>Every choice leaves a scar.</p><nav id="main-menu" aria-label="Main menu"></nav><div id="continue-summary"></div></section><div class="title-footer"><span>THE OPEN REALM · 2.4.0</span><button id="how-to">How to play</button><span>Your legends live on this device</span></div></main>';
+ app.innerHTML='<main class="title-screen"><div class="title-landscape"></div><div class="title-shade"></div><div class="title-top"><span class="seal">✧</span><span>A WORLD THAT REMEMBERS</span></div><section class="title-content"><div class="eyebrow">REALMS OF TEMPTATION</div><h1>SINFALL</h1><p class="title-quote">Every road hides a story.<br>Every choice leaves a scar.</p><nav id="main-menu" aria-label="Main menu"></nav><div id="continue-summary"></div></section><div class="title-footer"><span>THE OPEN REALM · 2.5.0</span><button id="how-to">How to play</button><span>Your legends live on this device</span></div></main>';
  const nav=$('main-menu');if(last){nav.append(btn('Continue',()=>load(last.id),'menu-button primary'));$('continue-summary').textContent=`${last.name} · Level ${last.level} ${M.classOf(last).name} · ${last.campaign.title}`}
  nav.append(btn('New Game',creator,'menu-button '+(!last?'primary':'')),btn('Load Game'+(heroes.length?' · '+heroes.length:''),()=>loadScreen(),'menu-button'),btn('Dungeon Master & Settings',()=>settings(),'menu-button subtle'));
  $('how-to').onclick=howTo;
@@ -194,17 +195,33 @@ function combatDialog(){
 }
 function fight(action){const result=M.combatTurn(hero,action);if(!result.ok){notify(result.reason||'That action is unavailable.');return}sound.effect(action==='flee'?'ui':action);if(result.outcome==='victory')sound.effect('victory');if(result.outcome==='defeat')sound.effect('defeat');persist();finishCombatResult(result)}
 function blessingDialog(){const offers=M.blessingChoices(hero);if(!offers.length){notify('No unclaimed guardian blessing.');return}dialog({tag:'A GUARDIAN’S LEGACY',title:'Choose a blessing',text:'The guardian of '+offers[0].townName+' is defeated. Claim one power for this campaign. This choice is permanent until your next adventure.',choices:[...offers.map(b=>[b.name,()=>{if(M.chooseBlessing(hero,b.id,b.townId)){sound.effect('level');persist();dismiss();panel=null;$('side-panel')?.replaceChildren();notify(b.name+' claimed.','level')}},b.desc]),['Decide later',dismiss]]})}
-function finishCombatResult(result){paintActionUI();if(result.outcome==='round'){combatDialog();return}if(result.outcome==='victory'){dialog({tag:'VICTORY',title:result.boss?'The guardian falls':'The road is yours',text:result.text+`\n\n+${result.xp} XP · +${result.gold} gold${result.item?'\n'+result.item.name:''}`+(result.boss&&hero.location.townId===0?'\n\n'+hero.campaign.revelation:''),choices:[...(result.item?lootChoices(result.item):[['Continue',()=>{dismiss();updateHud();if(result.boss&&hero.location.townId===0)notify('The artifact waits in the chamber.','quest')}]]),...(result.boss&&M.blessingChoices(hero).length?[['Choose a guardian blessing',blessingDialog,'Claim one power for this campaign. Your loot stays in your satchel.']]:[])]});return}if(result.outcome==='defeat'){dialog({tag:'STILL BREATHING',title:'The infirmary',text:hero.history[0].text,choices:[['Get back on your feet',()=>{dismiss();updateHud()}]]});return}dismiss();notify('You slip away. The creature remains.')}
+function quickLoot(result){
+ clearTimeout(lootTimer);$('field-loot')?.remove();const owner=hero;
+ const rows=[],refreshRows=()=>{for(const{item,text,equip}of rows){const current=hero.equipment[item.type],equipped=current?.id===item.id,delta=item.power-(current?.power||0);equip.disabled=equipped;equip.textContent=equipped?'Equipped':'Equip';text.querySelector('small').textContent=equipped?'Now equipped':`${item.power} power · ${delta>=0?'+':''}${delta} vs equipped`;text.querySelector('small').className=equipped||delta>0?'upgrade':''}};
+ const ribbon=node('section','field-loot');ribbon.id='field-loot';ribbon.setAttribute('aria-label','Battle rewards');
+ const summary=node('div','field-loot-summary');summary.setAttribute('role','status');summary.append(node('strong','','The road is yours'),node('span','',`+${result.xp} XP · +${result.gold} gold`));ribbon.append(summary);
+ const close=btn('×',()=>ribbon.remove(),'field-loot-close');close.setAttribute('aria-label','Dismiss battle rewards');ribbon.append(close);
+ for(const item of result.items||[result.item].filter(Boolean)){
+  const row=node('div','field-loot-item'),art=node('span','item-art');art.innerHTML=itemArt(item,hero.classId);art.dataset.quality=gearLook(item,hero.classId).quality;
+  const text=node('div'),delta=item.power-(hero.equipment[item.type]?.power||0);text.append(node('strong','',item.name),node('small',delta>0?'upgrade':'',`${item.power} power · ${delta>=0?'+':''}${delta} vs equipped`));
+  const equip=btn('Equip',()=>{if(hero!==owner||hero.combat)return;if(M.equip(hero,item.id)){sound.effect('equip');persist();refreshRows()}},'field-equip');equip.setAttribute('aria-label','Equip '+item.name);row.append(art,text,equip);ribbon.append(row);rows.push({item,text,equip});
+ }
+ $('combat-layer')?.append(ribbon);const expire=()=>{clearTimeout(lootTimer);lootTimer=setTimeout(()=>{if(!ribbon.contains(document.activeElement))ribbon.remove()},12000)};ribbon.onpointerenter=()=>clearTimeout(lootTimer);ribbon.onpointerleave=expire;ribbon.onfocusin=()=>clearTimeout(lootTimer);ribbon.onfocusout=expire;expire();
+}
+function finishCombatResult(result){paintActionUI();if(result.outcome==='round'){combatDialog();return}if(result.outcome==='victory'){
+ if(result.mode==='action'&&!result.boss){quickLoot(result);return}
+ dialog({tag:'VICTORY',title:result.boss?'The guardian falls':'The road is yours',text:result.text+`\n\n+${result.xp} XP · +${result.gold} gold${result.item?'\n'+result.item.name:''}`+(result.boss&&hero.location.townId===0?'\n\n'+hero.campaign.revelation:''),choices:[...(result.item?lootChoices(result.item):[['Continue',()=>{dismiss();updateHud();if(result.boss&&hero.location.townId===0)notify('The artifact waits in the chamber.','quest')}]]),...(result.boss&&M.blessingChoices(hero).length?[['Choose a guardian blessing',blessingDialog,'Claim one power for this campaign. Your loot stays in your satchel.']]:[])]});return}if(result.outcome==='defeat'){dialog({tag:'STILL BREATHING',title:'The infirmary',text:hero.history[0].text,choices:[['Get back on your feet',()=>{dismiss();updateHud()}]]});return}dismiss();notify('You slip away. The creature remains.')}
 
 function actionEnvironment(){return{navigate:(a,b,n)=>realm?realm.navigate(a,b,n):null,lineOfSight:(a,b)=>realm?realm.lineOfSight(a,b):true,canMove:(x,z)=>realm?realm.canMove(x,z):true,dodge:()=>realm?.dodge()}}
 function beginCombat(entity){
  if(!hero||hero.combat||screen!=='world')return;
+ clearTimeout(lootTimer);$('field-loot')?.remove();
  dismiss();disposePreview();panel=null;$('side-panel')?.replaceChildren();
  const target={...entity,x:entity.g?.position.x??entity.x,z:entity.g?.position.z??entity.z};
  if(prefs.combat==='classic'){if(M.startCombat(hero,target)){persist();combatDialog()}return}
  if(!realm){target.x=hero.position.x+2;target.z=hero.position.z}
  const pack=entity.packId?M.entitiesFor(hero).filter(e=>e.packId===entity.packId&&e.id!==entity.id).map((e,i)=>realm?e:{...e,x:hero.position.x+2.8+i*1.2,z:hero.position.z+1}):[];
- if(Action.prepareActionCombat(hero,target,pack)){if(realm)realm.lastCombatIds=Action.combatants(hero).map(c=>c.id);persist();paintActionUI();notify('Watch the wind-up. Move, strike, cast, guard or dodge.','combat')}
+ if(Action.prepareActionCombat(hero,target,pack)){if(realm)realm.lastCombatIds=Action.combatants(hero).map(c=>c.id);persist();paintActionUI()}
 }
 function raiseServant(){if(hero?.combat||modalRoot.children.length||panel)return;const result=hero.companion?Action.rallyCompanion(hero):Action.summonCompanion(hero,actionEnvironment());if(!result.ok){notify(result.reason);return}processCombatEvents(result.events);persist();paintActionUI();paintVitals();notify(servantOf(hero).name+' answers your call.','combat')}
 function combatAction(action){
@@ -218,28 +235,38 @@ function combatAction(action){
 function processCombatEvents(events=[]){
  realm?.combatEvents(events);if(events.some(e=>e.kind==='foeDefeated')){realm?.refresh();persist()}
  for(const event of events){
-  if(event.kind==='hurt'){sound.effect('attack');const game=$('realm')?.closest('.game-screen');game?.classList.add('taking-damage');setTimeout(()=>game?.classList.remove('taking-damage'),240)}
+  if(event.kind==='hurt'){sound.effect(event.blocked?'guard':'attack');if(!event.blocked){const game=$('realm')?.closest('.game-screen');game?.classList.add('taking-damage');setTimeout(()=>game?.classList.remove('taking-damage'),240)}}
   if(event.kind==='hit'||event.kind==='minionStrike')sound.effect('attack');if(event.kind==='projectile'||event.kind==='summon')sound.effect('ability');if(event.kind==='heal')sound.effect('potion');
+  if(event.kind==='parry'){sound.effect('parry');combatFeedback('Perfect parry','Enemy exposed · +35% damage','parry')}
+  if(event.kind==='hit'&&event.finisher){sound.effect('guard');combatFeedback('Finishing strike','Enemy staggered','finisher')}
+  if(event.kind==='enrage')combatFeedback('Phase II','The guardian quickens','enrage');
  }
+}
+function combatFeedback(title,detail,kind){
+ const feedback=$('combat-feedback');if(!feedback)return;clearTimeout(feedbackTimer);feedback.className='combat-feedback '+kind;feedback.replaceChildren(node('strong','',title),node('small','',detail));feedback.hidden=false;feedbackTimer=setTimeout(()=>{feedback.hidden=true},1500);
 }
 function paintVitals(){if(!hero||!$('hp-fill'))return;$('hp-fill').style.width=hero.hp/M.maxHp(hero)*100+'%';$('hp-label').textContent=Math.ceil(hero.hp)+' / '+M.maxHp(hero);$('mp-fill').style.width=hero.mp/M.maxMp(hero)*100+'%';$('mp-label').textContent=Math.floor(hero.mp)+' / '+M.maxMp(hero)}
 function setupActionUI(){
  const layer=$('combat-layer');if(!layer)return;layer.innerHTML='<section id="action-battle" aria-label="Action combat" hidden><div class="battle-vitals"><strong id="battle-target"></strong><div class="battle-enemy-bar" role="progressbar" aria-label="Enemy health"><span id="battle-enemy-fill"></span></div><span id="battle-enemy-numbers"></span><div class="battle-player-bar" role="progressbar" aria-label="Your health"><span id="battle-player-fill"></span></div><strong id="battle-player-numbers"></strong><div id="battle-targets" aria-label="Combat targets"></div><p id="battle-intent"></p><small id="battle-log" aria-live="polite"></small></div><div class="battle-actions" id="battle-actions"></div></section>';
+ const chain=node('div','battle-chain');chain.id='battle-chain';chain.hidden=true;$('battle-intent').before(chain);const feedback=node('div','combat-feedback');feedback.id='combat-feedback';feedback.hidden=true;feedback.setAttribute('role','status');layer.append(feedback);
  for(const[id,hotkey]of[['attack','1'],['ability','2'],['guard','3'],['dodge','4'],['potion','5'],['summon','6'],['flee','7']]){const button=btn('',()=>combatAction(id),'battle-action');button.dataset.action=id;const paths={attack:'M5 19 17 7m-9 9-3-3m10-8 5-1-1 5M3 21l3-3',ability:'m13 2-7 12h6l-1 8 7-13h-6z',guard:'M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6z',dodge:'m13 5 7 7-7 7M4 5l7 7-7 7',potion:'M9 3h6m-5 0v5l-5 9a3 3 0 0 0 3 4h8a3 3 0 0 0 3-4l-5-9V3M8 14h8',summon:'M6 16v-2a8 8 0 1 1 12 0v2l-3 1v4H9v-4zM8 10h1m6 0h1m-4 3v2',flee:'M10 4H4v16h6m4-14 6 6-6 6m-6-6h12'};const icon=node('span','action-icon');icon.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+paths[id]+'"/></svg>';button.append(icon,node('span','battle-key',hotkey),node('strong','action-name'),node('small','action-detail'));$('battle-actions').append(button)}paintActionUI();
 }
 function paintActionUI(){
  const ui=$('action-battle');if(!ui||!hero)return;const c=hero.combat,active=c?.mode==='action';ui.hidden=!active;ui.closest('.game-screen')?.classList.toggle('in-action-combat',active);
  const companion=$('companion-status');if(companion){companion.hidden=!hero.companion;if(hero.companion)companion.textContent='☠ '+servantOf(hero).name+' · '+Math.ceil(hero.companion.hp)+' / '+hero.companion.maxHp+' · '+(active?Math.ceil(hero.companion.remaining)+'s': 'Following')}
  const raise=$('summon-control');if(raise){raise.hidden=active||hero.classId!=='necromancer'||!Action.canSummon(hero);raise.disabled=hero.mp<(hero.companion?5:10)||(hero.summonCooldown||0)>.02;raise.textContent=(hero.summonCooldown||0)>.02?'☠ '+Math.ceil(hero.summonCooldown)+'s':hero.companion?'☠ Rally servant':'☠ Raise Skeleton';raise.setAttribute('aria-label',hero.companion?'Rally servant':'Raise Skeleton');raise.title='Raise '+(SERVANTS.find(s=>s.id===hero.settings?.servant)||SERVANTS[0]).name}
- if(!active)return;
+ if(!active){$('combat-feedback')?.setAttribute('hidden','');return}
  const foes=Action.combatants(hero).sort((a,b)=>a.id.localeCompare(b.id)),targets=$('battle-targets'),signature=foes.map(f=>f.id).join('|');targets.hidden=foes.length<2;
  if(targets.dataset.signature!==signature){targets.replaceChildren();foes.forEach((foe,i)=>{const button=btn('',()=>{if(!panel&&!modalRoot.children.length){Action.selectTarget(hero,foe.id);paintActionUI()}},'target-choice');button.dataset.target=foe.id;button.setAttribute('aria-label','Target '+foe.name+' '+(i+1));targets.append(button)});targets.dataset.signature=signature}
  for(const button of targets.children){const foe=foes.find(f=>f.id===button.dataset.target);button.textContent=foe.name+' · '+Math.max(0,Math.ceil(foe.hp));button.setAttribute('aria-pressed',String(foe.id===c.id))}
  const ability=M.classOf(hero).ability;const hp=Math.ceil(hero.hp),enemyHp=Math.max(0,Math.ceil(c.hp));$('battle-target').textContent=c.name;$('battle-enemy-fill').style.width=enemyHp/c.maxHp*100+'%';$('battle-enemy-numbers').textContent=enemyHp+' / '+c.maxHp+' enemy health';$('battle-player-fill').style.width=hp/M.maxHp(hero)*100+'%';$('battle-player-numbers').textContent='♥ '+hero.name+' · '+hp+' / '+M.maxHp(hero)+' health · '+Math.floor(hero.mp)+' mana';
  const bar=ui.querySelector('.battle-player-bar');bar.setAttribute('aria-valuemin','0');bar.setAttribute('aria-valuemax',String(M.maxHp(hero)));bar.setAttribute('aria-valuenow',String(hp));const enemyBar=ui.querySelector('.battle-enemy-bar');enemyBar.setAttribute('aria-valuemin','0');enemyBar.setAttribute('aria-valuemax',String(c.maxHp));enemyBar.setAttribute('aria-valuenow',String(enemyHp));
  $('battle-intent').textContent=c.windup?(c.windup.intent==='heavy'?'Heavy blow':c.windup.intent==='hex'?'Hex gathering':'Quick strike')+' · '+c.windup.left.toFixed(1)+'s · '+(c.windup.target==='companion'?'aimed at your skeleton':'guard, dodge, or move clear'):c.stunFor>0?'Enemy interrupted':c.guardFor>0?'Guard raised':'Keep moving · '+Math.ceil(Math.hypot(c.x-hero.position.x,c.z-hero.position.z))+' m';const warning=foes.filter(f=>f!==c&&f.windup).map(f=>f.name+' '+f.windup.left.toFixed(1)+'s');$('battle-log').textContent=warning.length?'Incoming: '+warning.join(' · '):c.log[0]||'';if(c.boss)$('battle-target').textContent=c.name+(c.phase===2?' · Phase II':'');
+ const chain=$('battle-chain');if(chain){const count=c.chain?.remaining>0?c.chain.index:0;chain.hidden=!count;chain.dataset.step=String(count);chain.textContent=count===3?'◆ ◆ ◆ · Finisher':count===2?'◆ ◆ ◇ · Finisher ready':'◆ ◇ ◇ · Chain strike'}
+ if(c.exposedFor>0)$('battle-intent').textContent='Exposed · +35% damage · '+c.exposedFor.toFixed(1)+'s';
+ else if(c.parryFor>0)$('battle-intent').textContent='Parry window';
  const names={attack:'Strike',ability:ability.name,guard:'Guard',dodge:'Dodge',potion:'Heal',summon:hero.companion?'Rally skeleton':'Raise Skeleton',flee:'Withdraw'};
- for(const button of ui.querySelectorAll('[data-action]')){const id=button.dataset.action,cooldown=id==='summon'?hero.summonCooldown||0:c.cooldowns[id]||0;button.hidden=id==='summon'&&hero.classId!=='necromancer';const locked=id==='summon'&&!Action.canSummon(hero),noMana=id==='ability'&&hero.mp<M.abilityCost(hero)||id==='summon'&&hero.mp<(hero.companion?5:10),noPotion=id==='potion'&&(!hero.items.some(i=>i.type==='potion'&&i.qty>0)||hero.hp>=M.maxHp(hero));button.disabled=cooldown>.02||locked||noMana||noPotion;button.setAttribute('aria-label',names[id]);button.querySelector('.action-name').textContent=names[id];button.querySelector('.action-detail').textContent=locked?'Unlocks at Lv 2':cooldown>.02?cooldown.toFixed(1)+'s':id==='ability'?M.abilityCost(hero)+' mana':id==='summon'?(hero.companion?'5 mana · heal & empower':'10 mana · 60 combat seconds'):id==='guard'?'Brace · regain mana':id==='dodge'?'Evade the hit':id==='potion'?'Healing draught':id==='flee'?'Leave the fight':'No mana cost';button.dataset.recovering=String(cooldown>.02);button.title=names[id]+' · '+button.querySelector('.action-detail').textContent;button.style.setProperty('--recovery',String(Math.min(1,cooldown/(Action.actionInfo(hero).cooldowns[id]||1))))}
+ for(const button of ui.querySelectorAll('[data-action]')){const id=button.dataset.action,cooldown=id==='summon'?hero.summonCooldown||0:c.cooldowns[id]||0;button.hidden=id==='summon'&&hero.classId!=='necromancer';const locked=id==='summon'&&!Action.canSummon(hero),noMana=id==='ability'&&hero.mp<M.abilityCost(hero)||id==='summon'&&hero.mp<(hero.companion?5:10),noPotion=id==='potion'&&(!hero.items.some(i=>i.type==='potion'&&i.qty>0)||hero.hp>=M.maxHp(hero));button.disabled=cooldown>.02||locked||noMana||noPotion;button.setAttribute('aria-label',names[id]);button.querySelector('.action-name').textContent=names[id];button.querySelector('.action-detail').textContent=locked?'Unlocks at Lv 2':cooldown>.02?cooldown.toFixed(1)+'s':id==='ability'?M.abilityCost(hero)+' mana':id==='summon'?(hero.companion?'5 mana · heal & empower':'10 mana · 60 combat seconds'):id==='guard'?'Time a parry · regain mana':id==='dodge'?'Move + dodge to choose direction':id==='potion'?'Healing draught':id==='flee'?'Leave the fight':'No mana cost';button.dataset.recovering=String(cooldown>.02);button.title=names[id]+' · '+button.querySelector('.action-detail').textContent;button.style.setProperty('--recovery',String(Math.min(1,cooldown/(Action.actionInfo(hero).cooldowns[id]||1))))}
 }
 function startActionLoop(){
  let previous=performance.now();const frame=now=>{const dt=Math.min(.05,Math.max(0,(now-previous)/1000));previous=now;if(screen==='world'&&hero&&!document.hidden&&!modalRoot.children.length&&!panel&&(hero.combat?.mode==='action'||!hero.combat&&(hero.companion||hero.summonCooldown>0))){

@@ -1,18 +1,19 @@
-import {pedestrianRoute} from './town-life.js?v=17';
+import {pedestrianRoute} from './town-life.js?v=18';
 import * as T from '../vendor/three.module.js';
-import {dungeonRoute,trackedTarget,targetDistance,directionTo,isTargetHere} from './navigation.js?v=17';
-import {seeded,entitiesFor,locationId,townOf,visitState,objective,syncRealm} from './model.js?v=17';
-import {loadActor,createActor,animateActor,disposeActor,playActorAction} from './actors.js?v=17';
-import {batchScenery,cameraPosition} from './scene-utils.js?v=17';
-import {buildInterior} from './interiors.js?v=17';
-import {appearanceKey,townWardrobe} from './appearance.js?v=17';
-import {styleActor} from './actor-style.js?v=17';
-import {BOUNDS,regionOf,frontierSites,roadLinks} from './frontier.js?v=17';
-import {buildFrontier,buildOutskirts} from './landscape.js?v=17';
-import {surfaceHeight,navigable,centerOf} from './atlas.js?v=17';
-import {CombatScene} from './combat-scene.js?v=17';
-import {contactEvents} from './gait.js?v=17';
-import {buildOpenWorld,updateOpenWorld} from './overworld.js?v=17';
+import {dungeonRoute,trackedTarget,targetDistance,directionTo,isTargetHere} from './navigation.js?v=18';
+import {seeded,entitiesFor,locationId,townOf,visitState,objective,syncRealm} from './model.js?v=18';
+import {loadActor,createActor,animateActor,disposeActor,playActorAction} from './actors.js?v=18';
+import {batchScenery,cameraPosition} from './scene-utils.js?v=18';
+import {buildInterior} from './interiors.js?v=18';
+import {appearanceKey,townWardrobe} from './appearance.js?v=18';
+import {styleActor} from './actor-style.js?v=18';
+import {BOUNDS,regionOf,frontierSites,roadLinks} from './frontier.js?v=18';
+import {buildFrontier,buildOutskirts} from './landscape.js?v=18';
+import {surfaceHeight,navigable,centerOf} from './atlas.js?v=18';
+import {CombatScene} from './combat-scene.js?v=18';
+import {dodgeDirection} from './combat-rules.js?v=18';
+import {contactEvents} from './gait.js?v=18';
+import {buildOpenWorld,updateOpenWorld} from './overworld.js?v=18';
 const sceneKey=h=>JSON.stringify(Object.entries(h.world.factionQuests||{}).filter(([id,q])=>q.node==='complete').map(([id,q])=>[id,q.townId,q.ending]))+h.world.seed+':'+(h.location.type==='realm'?'realm':locationId(h));
 
 const TAU=Math.PI*2;
@@ -221,7 +222,15 @@ export class Realm {
  }
  updateUnengaged(dt){const fighting=new Set(this.hero.combat?[this.hero.combat.id,...(this.hero.combat.pack||[]).map(e=>e.id)]:[]);for(const e of this.entities)if(['enemy','boss'].includes(e.type)&&!fighting.has(e.id)){if(e.g.userData.rig)animateActor(e.g.userData.rig,dt,0);else if(e.kind==='wolf')e.g.rotation.y+=Math.sin(this.elapsed*.3+e.x)*dt*.06}}
  lineOfSight(a,b){const length=Math.hypot(a.x-b.x,a.z-b.z);for(let d=.4;d<length-.4;d+=.6){const t=d/length,x=a.x+(b.x-a.x)*t,z=a.z+(b.z-a.z)*t;if(!this.canMove(x,z,this.groundAt(x,z)+1.1))return false}return true}
- dodge(){const p=this.hero.position,c=this.hero.combat;const dx=(c?.x??p.x+Math.sin(this.yaw))-p.x,dz=(c?.z??p.z+Math.cos(this.yaw))-p.z,d=Math.hypot(dx,dz)||1;let x=-dz/d,z=dx/d;if(this.keys.has('d')||this.joy.x>0){x=-x;z=-z}if(!this.canMove(p.x+x,p.z+z)){x=-x;z=-z}this.dodgeMotion={x,z,left:.22}}
+ dodge(){
+  const p=this.hero.position,c=this.hero.combat;
+  const forward=(this.keys.has('w')||this.keys.has('arrowup')?1:0)-(this.keys.has('s')||this.keys.has('arrowdown')?1:0)-this.joy.y;
+  const strafe=(this.keys.has('d')||this.keys.has('arrowright')?1:0)-(this.keys.has('a')||this.keys.has('arrowleft')?1:0)+this.joy.x;
+  const dx=(c?.x??p.x+Math.sin(this.yaw))-p.x,dz=(c?.z??p.z+Math.cos(this.yaw))-p.z,d=Math.hypot(dx,dz)||1;
+  const direction=dodgeDirection(this.yaw,forward,strafe)||{x:-dz/d,z:dx/d};
+  // Keep the chosen direction at a wall; per-frame collision stops the dodge.
+  this.dodgeMotion={...direction,left:.22};
+ }
  navigate(actor,goal,step){
   let waypoint=goal;
   if(this.crypt&&!this.lineOfSight(actor,goal)){
