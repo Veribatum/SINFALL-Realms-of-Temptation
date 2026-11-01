@@ -1,6 +1,6 @@
 import * as T from '../vendor/three.module.js';
-import {animateActor,playActorAction} from './actors.js?v=18';
-import {attackPattern} from './combat-rules.js?v=18';
+import {animateActor,playActorAction} from './actors.js?v=19';
+import {attackPattern} from './combat-rules.js?v=19';
 
 export function telegraphGeometry(pattern,inner=0){
  const points=[],arc=pattern.shape==='circle'?Math.PI*2:pattern.arc,segments=48;
@@ -107,7 +107,7 @@ export class CombatScene{
   for(const foe of foes){
    let label=this.labels.get(foe.id);if(!label){label=document.createElement('div');label.className='world-enemy-label';const name=document.createElement('strong'),bar=document.createElement('div'),fill=document.createElement('span'),intent=document.createElement('small');bar.append(fill);label.append(name,bar,intent);layer.append(label);this.labels.set(foe.id,label)}
    label.dataset.selected=String(foe.id===w.hero.combat?.id);label.dataset.exposed=String(foe.exposedFor>0);label.children[0].textContent=foe.name;label.children[1].firstChild.style.width=Math.max(0,foe.hp/foe.maxHp*100)+'%';label.children[2].textContent=foe.exposedFor>0?'EXPOSED':foe.windup?(foe.windup.intent==='hex'?'HEX':foe.windup.intent==='heavy'?'HEAVY':'STRIKE')+' · '+Math.max(0,foe.windup.left).toFixed(1)+'s':'';
-   const point=new T.Vector3(foe.x,w.groundAt(foe.x,foe.z)+2.65,foe.z).project(w.camera);label.hidden=point.z>1||point.z< -1||Math.abs(point.x)>1.15||Math.abs(point.y)>1.15||!w.lineOfSight(w.hero.position,foe);label.style.left=(point.x*.5+.5)*rect.width+'px';label.style.top=(-point.y*.5+.5)*rect.height+'px';
+   const point=new T.Vector3(foe.x,w.groundAt(foe.x,foe.z)+(foe.kind==='wolf'?1.4:2.45),foe.z).project(w.camera);label.hidden=point.z>1||point.z< -1||Math.abs(point.x)>1.15||Math.abs(point.y)>1.15||!w.lineOfSight(w.hero.position,foe);label.style.left=(point.x*.5+.5)*rect.width+'px';label.style.top=(-point.y*.5+.5)*rect.height+'px';
   }
  }
  dispose(){for(const fx of this.effects)fx.element?.remove();for(const label of this.labels.values())label.remove();this.labels.clear();this.telegraphs.clear();this.disposeObject(this.group)}

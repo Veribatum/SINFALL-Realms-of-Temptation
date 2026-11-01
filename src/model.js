@@ -1,12 +1,12 @@
-import {guardianFor} from './encounters.js?v=18';
-import {validPattern,CHAIN_WINDOW,PARRY_WINDOW,EXPOSE_TIME} from './combat-rules.js?v=18';
-import {FACTION_STORIES,factionQuest,factionNode,factionHere,factionChoices,factionSite,factionCombatIds,factionEffects,validFactionQuests} from './faction-quests.js?v=18';
-import {BLESSINGS,SERVANTS,patronage} from './progression.js?v=18';
-import {CLASSES,RACES,ORIGINS,MOTIFS,ENEMIES,SETTLEMENT_PREFIX,SETTLEMENT_SUFFIX,NPC_FIRST,NPC_LAST,QUALITY} from './content.js?v=18';
-import {appearanceOf,APPEARANCE_OPTIONS} from './appearance.js?v=18';
-import {REGION_COUNT,regionOf,roadLinks,frontierSites,siteKey,surveyState} from './frontier.js?v=18';
-import {populationFor} from './population.js?v=18';
-import {centerOf,regionAt,realmArea,realmPoint,realmSites,homePlan} from './atlas.js?v=18';
+import {guardianFor} from './encounters.js?v=19';
+import {validPattern,CHAIN_WINDOW,PARRY_WINDOW,EXPOSE_TIME} from './combat-rules.js?v=19';
+import {FACTION_STORIES,factionQuest,factionNode,factionHere,factionChoices,factionSite,factionCombatIds,factionEffects,validFactionQuests} from './faction-quests.js?v=19';
+import {BLESSINGS,SERVANTS,patronage} from './progression.js?v=19';
+import {CLASSES,RACES,ORIGINS,MOTIFS,ENEMIES,SETTLEMENT_PREFIX,SETTLEMENT_SUFFIX,NPC_FIRST,NPC_LAST,QUALITY} from './content.js?v=19';
+import {appearanceOf,APPEARANCE_OPTIONS} from './appearance.js?v=19';
+import {REGION_COUNT,regionOf,roadLinks,frontierSites,siteKey,surveyState} from './frontier.js?v=19';
+import {populationFor} from './population.js?v=19';
+import {centerOf,regionAt,realmArea,realmPoint,realmSites,homePlan} from './atlas.js?v=19';
 
 export const SCHEMA=4;
 export const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));

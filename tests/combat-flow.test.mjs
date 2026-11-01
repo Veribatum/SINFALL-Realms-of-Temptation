@@ -6,6 +6,7 @@ import {attackPattern,insidePattern,dodgeDirection,EXPOSE_TIME} from '../src/com
 import {telegraphGeometry,CombatScene} from '../src/combat-scene.js';
 import {Realm} from '../src/world.js';
 import * as T from '../vendor/three.module.js';
+import {cameraView} from '../src/scene-utils.js';
 
 const env={rng:()=>.5,lineOfSight:()=>true,canMove:()=>true};
 function make(classId='duelist'){
@@ -135,6 +136,19 @@ test('dodging follows camera-relative movement, keeps its direction at a wall an
  const h=make(),w={hero:h,yaw:0,keys:new Set(['arrowdown']),joy:{x:0,y:0},canMove:()=>false};Realm.prototype.dodge.call(w);assert.equal(w.dodgeMotion.z,-1);assert.equal(w.dodgeMotion.left,.22);
  w.keys.clear();Realm.prototype.dodge.call(w);assert(Math.hypot(w.dodgeMotion.x,w.dodgeMotion.z)>.99);
  w.joy={x:.5,y:-.5};Realm.prototype.dodge.call(w);assert(w.dodgeMotion.x<0&&w.dodgeMotion.z>0);
+});
+
+test('a cramped corridor uses an unobstructed eye view and returns to third person in clear space',()=>{
+ const position={x:25,z:58},options={yaw:Math.PI/2,pitch:.48,enclosed:true,canOccupy:x=>x>24.28};
+ const cramped=cameraView(position,options);assert(cramped.firstPerson);assert.equal(cramped.position.y,1.7);assert(cramped.target.x>position.x);assert(Math.hypot(cramped.position.x-position.x,cramped.position.z-position.z)<.1);
+ const open=cameraView(position,{...options,canOccupy:()=>true});assert(!open.firstPerson);assert(open.position.y<3.3);assert(Math.hypot(open.position.x-position.x,open.position.z-position.z)>4);
+ const chosen=cameraView(position,{...options,firstPerson:true,canOccupy:()=>true});assert(chosen.firstPerson);
+});
+
+test('a wolf overhead label remains in the camera frustum during close corridor combat',()=>{
+ const position={x:25,z:58},view=cameraView(position,{yaw:Math.PI/2,pitch:.48,enclosed:true,canOccupy:x=>x>24.28});
+ const camera=new T.PerspectiveCamera(62,390/844,.12,240);camera.position.copy(view.position);camera.lookAt(view.target);camera.updateMatrixWorld(true);
+ const projected=new T.Vector3(26,1.4,58).project(camera);assert(Math.abs(projected.x)<1&&Math.abs(projected.y)<1&&Math.abs(projected.z)<1);
 });
 
 test('regular pack victories report every awarded item once for the non-pausing reward ribbon',()=>{

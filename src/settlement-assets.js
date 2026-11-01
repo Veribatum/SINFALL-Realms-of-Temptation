@@ -1,5 +1,5 @@
 import * as T from '../vendor/three.module.js';
-import {centerOf,cryptAnchor} from './atlas.js?v=18';
+import {centerOf,cryptAnchor} from './atlas.js?v=19';
 
 // The gate anchor is the open threshold, rather than the center of a solid
 // prop. Side colliders leave the arrival point and the north road passable.

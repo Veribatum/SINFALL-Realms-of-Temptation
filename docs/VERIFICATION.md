@@ -1,14 +1,16 @@
-# Combat flow · 2.5.0 · 2026-11-01
+# Combat flow · 2.5.1 · 2026-11-01
 
-Local verification: 123 passing regression tests, source/import/asset checks and a clean `git diff --check`.
+Local verification: 125 passing regression tests, source/import/asset checks and a clean `git diff --check`.
 
-Thirteen new regressions cover committed frontal attacks; hex targets that stay fixed while the player moves away; renderer/damage footprint agreement; multiple terrain-conforming warning meshes and disposal; late parries versus early guards and hexes; real exposed-target damage; three-hit finishers and interruptions; failed inputs, range and wall checks at melee impact; shared combo/parry state when switching targets; old and mid-combat saves with validation of new optional fields; camera-relative dodges at walls; and complete, single-payment pack loot results.
+Fifteen new regressions cover committed frontal attacks; hex targets that stay fixed while the player moves away; renderer/damage footprint agreement; multiple terrain-conforming warning meshes and disposal; late parries versus early guards and hexes; real exposed-target damage; three-hit finishers and interruptions; failed inputs, range and wall checks at melee impact; shared combo/parry state when switching targets; old and mid-combat saves with validation of new optional fields; camera-relative dodges at walls; and complete, single-payment pack loot results.
 
 The normal phone UI was exercised at 390 × 844 and 844 × 390 through the preview-only combat fixture page. All visible action buttons remained inside the viewport, at least 44 × 44 pixels, and received touches at their centers. A real saved action fight awarded XP, gold and loot without a modal; quick equip updated the save and displayed “Now equipped.” The fixture uses separate QA heroes and preserves the existing save collection.
 
 The GitHub browser regression workflow additionally checks three melee strikes through the actual buttons, finisher feedback, overhead enemy labels, ordinary victory without a modal, phone reward layout, equipping and persistence after reload. Guardian/classic reward handling is preserved separately.
 
-The managed cloud browser cannot create a WebGL context, so this session's interface checks used the existing fallback. Warning geometry was inspected and tested directly against the damage model, including its height over uneven terrain. This does not verify GPU appearance, touch movement feel or iPhone frame rate. The hosted AI connection was not changed.
+The first rendered CI run passed the existing phone flows, reward layout, quick equip and persistence, and melee finisher feedback. Its final label check exposed a wolf label outside the close-range camera frustum. Wolf labels now use the animal's height. Confined third-person cameras also switch to an eye view when a collision would put the camera inside the hero; clear space restores third person. Two regressions cover camera recovery and the exact close-range wolf label projection.
+
+The managed cloud browser cannot create a WebGL context, so this session's interactive checks used the existing fallback. Warning geometry was inspected and tested directly against the damage model, including its height over uneven terrain. GPU rendering is exercised separately by the GitHub phone browser workflow. Touch movement feel and iPhone frame rate remain unverified. The hosted AI connection was not changed.
 
 ---
 

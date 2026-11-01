@@ -1,19 +1,19 @@
-import {pedestrianRoute} from './town-life.js?v=18';
+import {pedestrianRoute} from './town-life.js?v=19';
 import * as T from '../vendor/three.module.js';
-import {dungeonRoute,trackedTarget,targetDistance,directionTo,isTargetHere} from './navigation.js?v=18';
-import {seeded,entitiesFor,locationId,townOf,visitState,objective,syncRealm} from './model.js?v=18';
-import {loadActor,createActor,animateActor,disposeActor,playActorAction} from './actors.js?v=18';
-import {batchScenery,cameraPosition} from './scene-utils.js?v=18';
-import {buildInterior} from './interiors.js?v=18';
-import {appearanceKey,townWardrobe} from './appearance.js?v=18';
-import {styleActor} from './actor-style.js?v=18';
-import {BOUNDS,regionOf,frontierSites,roadLinks} from './frontier.js?v=18';
-import {buildFrontier,buildOutskirts} from './landscape.js?v=18';
-import {surfaceHeight,navigable,centerOf} from './atlas.js?v=18';
-import {CombatScene} from './combat-scene.js?v=18';
-import {dodgeDirection} from './combat-rules.js?v=18';
-import {contactEvents} from './gait.js?v=18';
-import {buildOpenWorld,updateOpenWorld} from './overworld.js?v=18';
+import {dungeonRoute,trackedTarget,targetDistance,directionTo,isTargetHere} from './navigation.js?v=19';
+import {seeded,entitiesFor,locationId,townOf,visitState,objective,syncRealm} from './model.js?v=19';
+import {loadActor,createActor,animateActor,disposeActor,playActorAction} from './actors.js?v=19';
+import {batchScenery,cameraView} from './scene-utils.js?v=19';
+import {buildInterior} from './interiors.js?v=19';
+import {appearanceKey,townWardrobe} from './appearance.js?v=19';
+import {styleActor} from './actor-style.js?v=19';
+import {BOUNDS,regionOf,frontierSites,roadLinks} from './frontier.js?v=19';
+import {buildFrontier,buildOutskirts} from './landscape.js?v=19';
+import {surfaceHeight,navigable,centerOf} from './atlas.js?v=19';
+import {CombatScene} from './combat-scene.js?v=19';
+import {dodgeDirection} from './combat-rules.js?v=19';
+import {contactEvents} from './gait.js?v=19';
+import {buildOpenWorld,updateOpenWorld} from './overworld.js?v=19';
 const sceneKey=h=>JSON.stringify(Object.entries(h.world.factionQuests||{}).filter(([id,q])=>q.node==='complete').map(([id,q])=>[id,q.townId,q.ending]))+h.world.seed+':'+(h.location.type==='realm'?'realm':locationId(h));
 
 const TAU=Math.PI*2;
@@ -171,7 +171,7 @@ export class Realm {
  inputs(){
   this.listen(window,'keydown',e=>{if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName)||this.callbacks.paused())return;const k=e.key.toLowerCase();if(this.hero.combat?.mode==='action'&&['1','2','3','4','5','6','7','8',' '].includes(k)&&!e.repeat){e.preventDefault();this.callbacks.onCombatAction?.({'1':'attack','2':'ability','3':'guard','4':'dodge','5':'potion','6':'summon','7':'flee','8':'target',' ':'attack'}[k]);return}if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright',' ','shift','e','v'].includes(k))e.preventDefault();this.keys.add(k);if(k==='e'&&!e.repeat)this.callbacks.onInteract(this.near);if(k==='v'&&!e.repeat)this.firstPerson=!this.firstPerson});this.listen(window,'keyup',e=>this.keys.delete(e.key.toLowerCase()));this.listen(window,'blur',()=>{this.keys.clear();this.joy={x:0,y:0};this.drag=null});
   this.listen(this.canvas,'pointerdown',e=>{if(this.callbacks.paused())return;this.drag={x:e.clientX,y:e.clientY};this.canvas.setPointerCapture(e.pointerId)});
-  this.listen(this.canvas,'pointermove',e=>{if(!this.drag)return;this.yaw-=(e.clientX-this.drag.x)*.006;this.pitch=lookPitch(this.pitch,e.clientY-this.drag.y,this.firstPerson,this.invertLook);this.drag={x:e.clientX,y:e.clientY}});for(const ev of['pointerup','pointercancel','lostpointercapture'])this.listen(this.canvas,ev,()=>this.drag=null);
+  this.listen(this.canvas,'pointermove',e=>{if(!this.drag)return;this.yaw-=(e.clientX-this.drag.x)*.006;this.pitch=lookPitch(this.pitch,e.clientY-this.drag.y,this.firstPerson||this.cameraFirstPerson,this.invertLook);this.drag={x:e.clientX,y:e.clientY}});for(const ev of['pointerup','pointercancel','lostpointercapture'])this.listen(this.canvas,ev,()=>this.drag=null);
   const stick=document.getElementById('joystick');if(stick){const move=e=>{const b=stick.getBoundingClientRect(),radius=b.width*.32,dx=e.clientX-b.left-b.width/2,dy=e.clientY-b.top-b.height/2,len=Math.hypot(dx,dy)||1,scale=Math.min(1,radius/len);this.joy={x:dx*scale/radius,y:dy*scale/radius};stick.style.setProperty('--stick-x',dx*scale+'px');stick.style.setProperty('--stick-y',dy*scale+'px')};this.listen(stick,'pointerdown',e=>{e.preventDefault();stick.setPointerCapture(e.pointerId);this.stickDown=true;move(e)});this.listen(stick,'pointermove',e=>{if(this.stickDown)move(e)});for(const ev of['pointerup','pointercancel','lostpointercapture'])this.listen(stick,ev,()=>{this.stickDown=false;this.joy={x:0,y:0};stick.style.setProperty('--stick-x','0px');stick.style.setProperty('--stick-y','0px')})}
  }
  groundAt(x,z){return this.open?surfaceHeight(x,z,this.hero.world.seed):0}
@@ -194,7 +194,7 @@ export class Realm {
   this.player.position.set(p.x,this.groundAt(p.x,p.z),p.z);const j=this.player.userData.joints;if(j){j.legL.rotation.x=Math.sin(this.walkTime)*.6*moving;j.legR.rotation.x=-j.legL.rotation.x;j.armL.rotation.x=-j.legL.rotation.x*.7;j.armR.rotation.x=j.legL.rotation.x*.7}if(!paused&&this.dodgeMotion){const d=this.dodgeMotion,step=Math.min(d.left,dt)*12;d.left-=dt;if(this.canMove(p.x+d.x*step,p.z))p.x+=d.x*step;if(this.canMove(p.x,p.z+d.z*step))p.z+=d.z*step;if(d.left<=0)this.dodgeMotion=null;this.player.position.set(p.x,this.groundAt(p.x,p.z),p.z)}
   moving=Math.hypot(p.x-previous.x,p.z-previous.z)>.0001?1:0;
   if(this.player.userData.rig){const actor=this.player.userData.rig,a=actor.userData.animation,oldClip=a?.current,oldTime=a?.actions.get(oldClip)?.time||0;if(a)a.locomotionScale=this.keys.has('shift')?1.5:1.45;animateActor(actor,paused?0:dt,moving*(this.keys.has('shift')?1:.5));const action=a?.actions.get(a.current);if(action)for(const contact of contactEvents(a.current===oldClip?oldTime:-Number.EPSILON,action.time,action.getClip().duration,a.current,{moving:!!moving&&!paused}))this.callbacks.onStep?.(this.crypt||this.indoor?'stone':'grass',a.current==='Running_A',contact.foot);if(h.combat?.mode==='action'&&a?.pose)this.player.rotation.y=Math.atan2(h.combat.x-p.x,h.combat.z-p.z)}
-  const first=this.firstPerson;this.player.visible=!first;const ground=this.groundAt(p.x,p.z),target=new T.Vector3(p.x,ground+(first?1.7:1.35),p.z),distance=first?.06:this.indoor?4.2:5.8,height=first?0:this.indoor?1.6:2.8+this.pitch*2,desired=new T.Vector3(p.x-Math.sin(this.yaw)*distance,target.y+height,p.z-Math.cos(this.yaw)*distance);this.camera.position.copy(first?desired:cameraPosition(target,desired,(x,z,y)=>this.canMove(x,z,y)));this.camera.lookAt(first?new T.Vector3(p.x+Math.sin(this.yaw)*5,ground+1.7+(this.pitch-.48)*5,p.z+Math.cos(this.yaw)*5):target);
+  const ground=this.groundAt(p.x,p.z),view=cameraView(p,{yaw:this.yaw,pitch:this.pitch,ground,enclosed:this.indoor||this.crypt,firstPerson:this.firstPerson,canOccupy:(x,z,y)=>this.canMove(x,z,y)});this.cameraFirstPerson=view.firstPerson;this.player.visible=!view.firstPerson;this.camera.position.copy(view.position);this.camera.lookAt(view.target);
   if(this.torch)this.torch.position.set(p.x,2.5,p.z);
   for(const q of this.people){let walked=false;
    if(!paused&&q.speed){let goal;if(q.approach&&Math.hypot(q.g.position.x-p.x,q.g.position.z-p.z)<10)goal=[p.x,p.z];else if(q.route)goal=q.route[q.waypoint];

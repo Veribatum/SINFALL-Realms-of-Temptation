@@ -1,21 +1,21 @@
-import {itemArt,gearLook} from './gear.js?v=18';
-import {FACTION_STORIES,factionQuest,factionNode,factionHere,factionChoices,activeFactionIds,factionCombatIds} from './faction-quests.js?v=18';
-import {SERVANTS,BLESSINGS,servantOf,patronage,reactionTo} from './progression.js?v=18';
-import {RACES,CLASSES,ORIGINS,OMENS,STAT_LABELS,LORE} from './content.js?v=18';
-import * as M from './model.js?v=18';
-import * as S from './saves.js?v=18';
-import * as AI from './director.js?v=18';
-import {Realm} from './world.js?v=18';
-import {appearanceOf,APPEARANCE_OPTIONS,wardrobeOptions,PALETTES,weaponStyle,armorStyle} from './appearance.js?v=18';
-import {regionOf,frontierSites,surveyState,roadLinks,siteKey} from './frontier.js?v=18';
-import {CharacterPreview} from './preview.js?v=18';
-import {centerOf,realmSites,worldStats} from './atlas.js?v=18';
-import {styleActor} from './actor-style.js?v=18';
-import {Soundscape,audioMode} from './audio.js?v=18';
-import {trackedTarget,trackedQuest,questTarget,targetDistance,directionTo} from './navigation.js?v=18';
-import * as Action from './action-combat.js?v=18';
-import {storyBrief} from './story-guide.js?v=18';
-import {drawAtlas} from './map-view.js?v=18';
+import {itemArt,gearLook} from './gear.js?v=19';
+import {FACTION_STORIES,factionQuest,factionNode,factionHere,factionChoices,activeFactionIds,factionCombatIds} from './faction-quests.js?v=19';
+import {SERVANTS,BLESSINGS,servantOf,patronage,reactionTo} from './progression.js?v=19';
+import {RACES,CLASSES,ORIGINS,OMENS,STAT_LABELS,LORE} from './content.js?v=19';
+import * as M from './model.js?v=19';
+import * as S from './saves.js?v=19';
+import * as AI from './director.js?v=19';
+import {Realm} from './world.js?v=19';
+import {appearanceOf,APPEARANCE_OPTIONS,wardrobeOptions,PALETTES,weaponStyle,armorStyle} from './appearance.js?v=19';
+import {regionOf,frontierSites,surveyState,roadLinks,siteKey} from './frontier.js?v=19';
+import {CharacterPreview} from './preview.js?v=19';
+import {centerOf,realmSites,worldStats} from './atlas.js?v=19';
+import {styleActor} from './actor-style.js?v=19';
+import {Soundscape,audioMode} from './audio.js?v=19';
+import {trackedTarget,trackedQuest,questTarget,targetDistance,directionTo} from './navigation.js?v=19';
+import * as Action from './action-combat.js?v=19';
+import {storyBrief} from './story-guide.js?v=19';
+import {drawAtlas} from './map-view.js?v=19';
 
 let characterTab='overview',inventoryFilter='all';
 const $=id=>document.getElementById(id),app=$('app'),modalRoot=$('modal-root');
@@ -54,7 +54,7 @@ function appearanceDialog(){const copy={...hero,...appearanceOf(hero)};const d=d
 
 function menu(){
  if(hero)persist();disposeWorld();dismiss();screen='menu';sound.setMode('menu');const last=S.lastHero(),heroes=S.listHeroes();
- app.innerHTML='<main class="title-screen"><div class="title-landscape"></div><div class="title-shade"></div><div class="title-top"><span class="seal">✧</span><span>A WORLD THAT REMEMBERS</span></div><section class="title-content"><div class="eyebrow">REALMS OF TEMPTATION</div><h1>SINFALL</h1><p class="title-quote">Every road hides a story.<br>Every choice leaves a scar.</p><nav id="main-menu" aria-label="Main menu"></nav><div id="continue-summary"></div></section><div class="title-footer"><span>THE OPEN REALM · 2.5.0</span><button id="how-to">How to play</button><span>Your legends live on this device</span></div></main>';
+ app.innerHTML='<main class="title-screen"><div class="title-landscape"></div><div class="title-shade"></div><div class="title-top"><span class="seal">✧</span><span>A WORLD THAT REMEMBERS</span></div><section class="title-content"><div class="eyebrow">REALMS OF TEMPTATION</div><h1>SINFALL</h1><p class="title-quote">Every road hides a story.<br>Every choice leaves a scar.</p><nav id="main-menu" aria-label="Main menu"></nav><div id="continue-summary"></div></section><div class="title-footer"><span>THE OPEN REALM · 2.5.1</span><button id="how-to">How to play</button><span>Your legends live on this device</span></div></main>';
  const nav=$('main-menu');if(last){nav.append(btn('Continue',()=>load(last.id),'menu-button primary'));$('continue-summary').textContent=`${last.name} · Level ${last.level} ${M.classOf(last).name} · ${last.campaign.title}`}
  nav.append(btn('New Game',creator,'menu-button '+(!last?'primary':'')),btn('Load Game'+(heroes.length?' · '+heroes.length:''),()=>loadScreen(),'menu-button'),btn('Dungeon Master & Settings',()=>settings(),'menu-button subtle'));
  $('how-to').onclick=howTo;

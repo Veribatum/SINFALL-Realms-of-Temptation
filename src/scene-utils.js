@@ -27,3 +27,14 @@ export function cameraPosition(target,desired,canOccupy){
  let clear=0;for(let d=.2;d<=distance;d+=.2){const p=target.clone().addScaledVector(delta,d/distance);if(!canOccupy(p.x,p.z,p.y))return target.clone().addScaledVector(delta,Math.max(.25,clear-.12)/distance);clear=d}
  return desired.clone();
 }
+
+export function cameraView(position,{yaw,pitch=.48,ground=0,enclosed=false,firstPerson=false,canOccupy}){
+ const target=new T.Vector3(position.x,ground+1.35,position.z),distance=enclosed?4.2:5.8,height=enclosed?.9+pitch*1.5:2.8+pitch*2;
+ const desired=new T.Vector3(position.x-Math.sin(yaw)*distance,target.y+height,position.z-Math.cos(yaw)*distance);
+ const clipped=firstPerson?desired:cameraPosition(target,desired,canOccupy);
+ // A close collision would put the camera inside the hero's head or shoulders.
+ // Use the unobstructed eye view until there is room for third person again.
+ const eyeView=firstPerson||Math.hypot(clipped.x-position.x,clipped.z-position.z)<1.15;
+ if(eyeView)return{firstPerson:true,position:new T.Vector3(position.x-Math.sin(yaw)*.06,ground+1.7,position.z-Math.cos(yaw)*.06),target:new T.Vector3(position.x+Math.sin(yaw)*5,ground+1.7+(pitch-.48)*5,position.z+Math.cos(yaw)*5)};
+ return{firstPerson:false,position:clipped,target};
+}

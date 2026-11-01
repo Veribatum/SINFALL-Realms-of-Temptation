@@ -1,4 +1,4 @@
-# SINFALL · The Open Realm 2.5.0
+# SINFALL · The Open Realm 2.5.1
 
 [Play Sinfall](https://veribatum.github.io/SINFALL-Realms-of-Temptation/)
 
@@ -10,6 +10,7 @@ A browser RPG with persistent characters, a connected countryside, occupied sett
 - Catch a melee blow in the first 0.24 seconds of Guard for a perfect parry: no damage, a brief stagger, four mana and a 2.4-second opening with 35% extra damage from your attacks. An earlier guard still reduces damage; hexes cannot be parried.
 - Connect three basic melee strikes to deliver a stronger finisher that interrupts the enemy. The chain expires after 1.45 seconds between inputs, resets on a missed swing, and shares progress across target switches. Ranged weapons retain their existing shots.
 - Dodge follows your movement input, including the phone joystick. Without movement input, it sidesteps. Walls stop the movement without reversing the selected direction.
+- Confined third-person cameras use an eye view when a wall would push the camera into the hero, then restore third person when clear. Wolf labels sit above their own heads rather than at human height.
 - Ordinary action-combat victories return directly to exploration with a compact XP/gold/loot notice. Equip recovered items from the notice or keep them in your satchel. Guardian victories retain the story and blessing choices. Classic combat retains its victory dialog.
 
 Existing heroes, equipment, quests, servants and mid-combat saves remain compatible. The update adds no controls or account requirements. Hosted live AI remains unconnected.
@@ -113,7 +114,7 @@ Official references: [sign-in](https://developers.openai.com/siwc/token-sharing-
 
 ## Development and verification
 
-`npm test` runs 123 game, save, combat, terrain, road, scene, character, OAuth and streaming checks. `npm run check` verifies syntax, local imports, required assets and source hygiene. [Verification details](docs/VERIFICATION.md).
+`npm test` runs 125 game, save, combat, terrain, road, scene, character, OAuth and streaming checks. `npm run check` verifies syntax, local imports, required assets and source hygiene. [Verification details](docs/VERIFICATION.md).
 
 `npm run dev` starts the local preview with AI authorization disabled. Preview-only pages `/__qa/mobile` and `/__qa/models` check the phone layout and actual model/texture decoding. Production local mode does not expose these diagnostics.
 

@@ -1,7 +1,7 @@
-import {weaponStyle} from './appearance.js?v=18';
-import {servantOf,SERVANTS} from './progression.js?v=18';
-import * as M from './model.js?v=18';
-import {attackPattern,insidePattern,nextChain,CHAIN_WINDOW,PARRY_WINDOW,EXPOSE_TIME} from './combat-rules.js?v=18';
+import {weaponStyle} from './appearance.js?v=19';
+import {servantOf,SERVANTS} from './progression.js?v=19';
+import * as M from './model.js?v=19';
+import {attackPattern,insidePattern,nextChain,CHAIN_WINDOW,PARRY_WINDOW,EXPOSE_TIME} from './combat-rules.js?v=19';
 
 export const SUMMON_LEVEL=2;
 const magicClasses=new Set(['necromancer','spellbinder','druid','bard']);

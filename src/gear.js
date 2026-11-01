@@ -1,5 +1,5 @@
 import * as T from '../vendor/three.module.js';
-import {weaponStyle,armorStyle} from './appearance.js?v=18';
+import {weaponStyle,armorStyle} from './appearance.js?v=19';
 
 const hash=s=>[...String(s)].reduce((n,c)=>(Math.imul(n,31)+c.charCodeAt(0))>>>0,7);
 export function gearLook(item={},kind){
