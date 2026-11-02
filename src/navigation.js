@@ -1,6 +1,7 @@
-import {FACTION_STORIES,factionQuest,factionNode,factionSite,activeFactionIds,factionCombatIds} from './faction-quests.js?v=19';
-import {entitiesFor,BUILDINGS,townOf} from './model.js?v=19';
-import {centerOf,realmPoint} from './atlas.js?v=19';
+import {FACTION_STORIES,factionQuest,factionNode,factionSite,activeFactionIds,factionCombatIds} from './faction-quests.js?v=20';
+import {entitiesFor,BUILDINGS,townOf} from './model.js?v=20';
+import {centerOf,realmPoint} from './atlas.js?v=20';
+import {mainState,mainDestination} from './main-quest.js?v=20';
 const live=q=>q.state==='active'||q.state==='ready';
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 function view(h,townId,type,room){
@@ -34,10 +35,17 @@ export function questTarget(h,questId='main'){
  const stage=h.campaign.stage;
  if(!q){
   if(stage==='complete')return null;
+  if(mainState(h)){
+   const d=mainDestination(h);if(!d)return null;instruction=d.instruction;
+   if(d.scene==='dungeon'){setup=destination(h,0,'gate','dungeon');choose=e=>e.id===d.id}
+   else if(d.room){setup=destination(h,0,'door-'+d.room,'interior',d.room);choose=e=>e.role===d.npc}
+   else setup=destination(h,0,d.npc||d.id);
+  }else{
   if(stage==='arrival'){setup=destination(h,0,'witness');instruction='Speak with '+town.npcs.witness.name}
   if(stage==='trail'){setup=destination(h,0,'clue');instruction='Investigate the strange remains'}
   if(stage==='counsel'){setup=destination(h,0,'door-archive','interior','archive');choose=e=>e.role==='scholar';instruction='Speak with '+town.npcs.scholar.name+' inside the Lantern Archive'}
   if(stage==='descent'||stage==='heart'){setup=destination(h,0,'gate','dungeon');choose=e=>e.type===(stage==='heart'?'artifact':'boss');instruction=stage==='heart'?'Decide the fate of '+h.campaign.artifact:'Find '+h.campaign.enemy+' in the undercrypt'}
+  }
  }else if(q.state==='ready'){
   const role=Object.keys(town.npcs).find(role=>town.npcs[role].name===q.giver)||q.id.split('-').at(-1);
   const building=BUILDINGS.find(b=>b.role===role);

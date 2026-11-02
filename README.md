@@ -1,8 +1,20 @@
-# SINFALL · The Open Realm 2.5.1
+# SINFALL · The Open Realm 2.6.0
 
 [Play Sinfall](https://veribatum.github.io/SINFALL-Realms-of-Temptation/)
 
 A browser RPG with persistent characters, a connected countryside, occupied settlements and branching occult mysteries.
+
+## A person behind the mystery · main quest 2.6
+
+The main plot is now a twelve-step investigation across three acts and a homecoming. Each of the six mysteries has a named missing person, a personal witness account, a last message at the abandoned homestead, an original procedure at the observatory, a warden with a motive and a first keeper whose history explains the guardian.
+
+At the archive, choose between rescuing the captive at Wayfarers’ Camp and recovering the original counter-ritual. The rescue supports fighting three hunters, slipping their ward or buying their silence; defeating the patrol still leaves a person to help across. The record route supports a complete or partial reading, with a forward route after failure. Confront the warden, decide whether the confession becomes public, then choose your allies.
+
+The undercrypt contains a reachable memorial and a physical inner seal. Your rescued witness’s words or recovered notation can open it quietly; forcing it costs health and alerts a stronger guardian. The guardian speaks about its duty before the fight. Final choices explain their human and mechanical costs. A complete counter-ritual can bring the captive home while preserving the ward; an incomplete one can leave them behind. Destruction returns the prisoners and leaves an unbound threat on the road. Binding returns them at a cost to your mana reserve. The preserve/bind build effects last for that campaign.
+
+The story finishes when you return to the witness and see the outcome. A rescued person actually returns to the square, NPCs acknowledge the confession and ending, the Journal retains evidence and decisions, and the epilogue awards the legacy rewards once. Starting another adventure remains a deliberate Journal choice with the same hero.
+
+Unfinished saves join at their existing phase; an ongoing guardian fight continues. Previously completed stories retain their ending, rewards and build without acquiring new costs. The full investigation is available on the next adventure. Imported story packs use a neutral investigator thread while retaining their own premise and ending text.
 
 ## Combat that flows · 2.5
 
@@ -35,7 +47,7 @@ Choose **New Game**, **Load Game** or **Continue**. Each hero has independent au
 
 Desktop: WASD/arrows walk, drag to look, E interacts, Shift runs, V switches camera. C/I/J/M open Character, Satchel, Journal and Map. Escape closes panels or opens Pause. On a phone, use the joystick, drag the view and tap Interact; the run button toggles running.
 
-Follow the gold marker to the witness. Investigate the road evidence, visit the archive scholar, choose an alliance and enter the undercrypt. Encounters, relationships, faction favors, merchant discounts, side quests, equipment, talents and three endings have mechanical effects. After an ending, begin a different campaign with the same stronger hero and retained legacy.
+Follow the gold marker to the witness, road evidence and homestead. Choose a lead at the archive, confront the warden, choose your support and descend. Learn the keeper’s history, answer the inner seal, face the guardian and decide the bargain’s fate. Return to the witness to finish the story. Encounters, relationships, faction favors, merchant discounts, side quests, equipment, talents and endings have mechanical effects. Begin a different campaign afterward with the same stronger hero and retained legacy.
 
 Mark landmarks or settlements in the atlas. Walking discovers regions; reaching a settlement unlocks fast travel. The minimap follows global position and shows destination distance. Synthesized music covers menus, towns, wilderness, interiors, dungeons and combat; effects and ambience have independent volume controls and persistent mute settings.
 
@@ -53,7 +65,7 @@ Journal → **Track faction story on map** follows the next actual contact, land
 
 Scripted blockades have up to **three simultaneous foes**, independent movement and attack wind-ups, clickable target selectors and shared player cooldowns. **8** cycles targets. Class abilities splash 35% damage to nearby opponents. Each kill pays once; surviving opponents keep fighting. Classic combat still handles opponents individually.
 
-The six main mysteries now use distinct guardian patterns and a faster second phase below half health. Enemy rigs walk while pursuing and play attack clips. These additions do not replace the main story’s five-stage framework with an unlimited story generator.
+The six main mysteries use distinct guardian patterns and a faster second phase below half health. Enemy rigs walk while pursuing and play attack clips. The main story is an authored twelve-step investigation with two lead routes and three endings; it is not an unlimited story generator.
 
 Guild halls, trailkeeper lodges and barracks have distinctive furnishings and one-time discoveries. A guild atlas reduces local landmark study difficulty from 11 to 9; lodges provide moonwater and barracks provide a healing draught. Reading a map does not complete the actual landmark survey.
 
@@ -114,7 +126,7 @@ Official references: [sign-in](https://developers.openai.com/siwc/token-sharing-
 
 ## Development and verification
 
-`npm test` runs 125 game, save, combat, terrain, road, scene, character, OAuth and streaming checks. `npm run check` verifies syntax, local imports, required assets and source hygiene. [Verification details](docs/VERIFICATION.md).
+`npm test` runs 141 game, story, save, combat, terrain, road, scene, character, OAuth and streaming checks. `npm run check` verifies syntax, local imports, required assets and source hygiene. [Verification details](docs/VERIFICATION.md).
 
 `npm run dev` starts the local preview with AI authorization disabled. Preview-only pages `/__qa/mobile` and `/__qa/models` check the phone layout and actual model/texture decoding. Production local mode does not expose these diagnostics.
 

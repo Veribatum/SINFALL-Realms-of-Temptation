@@ -1,19 +1,19 @@
-import {pedestrianRoute} from './town-life.js?v=19';
+import {pedestrianRoute} from './town-life.js?v=20';
 import * as T from '../vendor/three.module.js';
-import {dungeonRoute,trackedTarget,targetDistance,directionTo,isTargetHere} from './navigation.js?v=19';
-import {seeded,entitiesFor,locationId,townOf,visitState,objective,syncRealm} from './model.js?v=19';
-import {loadActor,createActor,animateActor,disposeActor,playActorAction} from './actors.js?v=19';
-import {batchScenery,cameraView} from './scene-utils.js?v=19';
-import {buildInterior} from './interiors.js?v=19';
-import {appearanceKey,townWardrobe} from './appearance.js?v=19';
-import {styleActor} from './actor-style.js?v=19';
-import {BOUNDS,regionOf,frontierSites,roadLinks} from './frontier.js?v=19';
-import {buildFrontier,buildOutskirts} from './landscape.js?v=19';
-import {surfaceHeight,navigable,centerOf} from './atlas.js?v=19';
-import {CombatScene} from './combat-scene.js?v=19';
-import {dodgeDirection} from './combat-rules.js?v=19';
-import {contactEvents} from './gait.js?v=19';
-import {buildOpenWorld,updateOpenWorld} from './overworld.js?v=19';
+import {dungeonRoute,trackedTarget,targetDistance,directionTo,isTargetHere} from './navigation.js?v=20';
+import {seeded,entitiesFor,locationId,townOf,visitState,objective,syncRealm} from './model.js?v=20';
+import {loadActor,createActor,animateActor,disposeActor,playActorAction} from './actors.js?v=20';
+import {batchScenery,cameraView} from './scene-utils.js?v=20';
+import {buildInterior} from './interiors.js?v=20';
+import {appearanceKey,townWardrobe} from './appearance.js?v=20';
+import {styleActor} from './actor-style.js?v=20';
+import {BOUNDS,regionOf,frontierSites,roadLinks} from './frontier.js?v=20';
+import {buildFrontier,buildOutskirts} from './landscape.js?v=20';
+import {surfaceHeight,navigable,centerOf} from './atlas.js?v=20';
+import {CombatScene} from './combat-scene.js?v=20';
+import {dodgeDirection} from './combat-rules.js?v=20';
+import {contactEvents} from './gait.js?v=20';
+import {buildOpenWorld,updateOpenWorld} from './overworld.js?v=20';
 const sceneKey=h=>JSON.stringify(Object.entries(h.world.factionQuests||{}).filter(([id,q])=>q.node==='complete').map(([id,q])=>[id,q.townId,q.ending]))+h.world.seed+':'+(h.location.type==='realm'?'realm':locationId(h));
 
 const TAU=Math.PI*2;
@@ -138,6 +138,12 @@ export class Realm {
   else if(e.type==='encounter'){g=this.humanoid('#b99578','#7d6b82','#39312b','human',e.kind);this.people.push({g,home:new T.Vector3(e.x,0,e.z),seed:3,speed:.75,entity:e,approach:true})}
   else if(e.type==='landmark'||e.type==='route'){this.cylinder(.11,.15,2.6,m.wood,g,1,1.3,0,6);this.box(1.4,.5,.1,m.gold,g,1,2.3,0);this.mesh(new T.RingGeometry(.65,.78,20),this.material('#bbd4b4',{side:T.DoubleSide,transparent:true,opacity:.4}),g,0,.06,0).rotation.x=-Math.PI/2}
   else if(e.type==='door'){const plaque=this.box(1.5,.5,.12,m.wood,g,0,2.8,0);g.rotation.y=e.rotation??(e.x<0?Math.PI/2:e.x>0?-Math.PI/2:0);this.box(1.3,.32,.14,m.gold,g,0,2.8,.02);this.mesh(new T.RingGeometry(.65,.8,24),this.material('#bdd6b0',{side:T.DoubleSide,transparent:true,opacity:.5}),g,0,.07,0).rotation.x=-Math.PI/2}
+  else if(e.type==='mainGate'){
+   g.rotation.y=e.rotation||0;
+   this.cylinder(1.35,1.45,.12,m.stone,g,0,.06,0,16);for(const x of[-1.1,1.1]){this.box(.28,2.4,.35,m.stone,g,x,1.2,0);this.box(.42,.18,.48,m.gold,g,x,2.35,0)}this.box(2.5,.25,.4,m.stone,g,0,2.55,0);
+   const glow=this.material(e.mainOpened?'#82bca8':'#8dc7e4',{emissive:e.mainOpened?'#315549':'#366e94',emissiveIntensity:e.mainOpened?.4:1.2});
+   this.mesh(new T.TorusGeometry(.78,.025,6,32),glow,g,0,1.3,0);if(!e.mainOpened){const veil=this.mesh(new T.CircleGeometry(.76,32),this.material('#6baec4',{transparent:true,opacity:.28,side:T.DoubleSide,emissive:'#2b6980',emissiveIntensity:.65}),g,0,1.3,0);veil.name='Unbroken inner seal';for(let i=0;i<6;i++){const angle=i*Math.PI/3;this.mesh(new T.OctahedronGeometry(.09),glow,g,Math.sin(angle)*.78,1.3+Math.cos(angle)*.78,0)}}
+  }
   else if(e.type==='detail'){this.box(.9,.7,.7,m.wood,g,0,.35,-1);this.box(.66,.1,.5,m.gold,g,0,.77,-1);this.box(.57,.05,.44,m.white,g,0,.84,-1)}
   else if(e.type==='enemy'||e.type==='boss'){
    if(e.kind==='wolf'){const fur=this.material('#4c5350');const body=this.sphere(.5,fur,g,0,.62,0);body.scale.set(.7,.75,1.3);this.sphere(.27,fur,g,0,.91,.65);for(const s of[-1,1]){this.mesh(new T.ConeGeometry(.12,.3,5),fur,g,s*.17,1.2,.65);for(const zz of[-.38,.38])this.mesh(new T.CapsuleGeometry(.08,.34,4,7),fur,g,s*.28,.3,zz)}this.sphere(.035,m.glow,g,-.12,.98,.87);this.sphere(.035,m.glow,g,.12,.98,.87)}
@@ -162,7 +168,7 @@ export class Realm {
   const key=sceneKey(this.hero);if(key!==this.staticKey){this.build();return}if(this.open)updateOpenWorld(this);if(this.entityRegion!==this.hero.location.townId){for(const e of this.entities){e.g.removeFromParent();if(e.g.userData.rig)disposeActor(e.g.userData.rig);e.g.traverse(o=>o.geometry?.dispose())}this.entities=[];this.people=[];this.particles=[];this.entityRegion=this.hero.location.townId;this.daySky.set(regionOf(townOf(this.hero)).sky)}const style=appearanceKey(this.hero);if(style!==this.playerStyleKey){if(this.player.userData.rig){styleActor(this.player.userData.rig,this.hero);if(this.player.userData.rig.userData.needsModelReload)this.attachActor(this.player,{hero:this.hero,race:this.hero.raceId,kind:this.hero.classId})}this.playerStyleKey=style}const states=entitiesFor(this.hero),ids=new Set(states.map(e=>e.id));
   for(const entity of this.entities.filter(e=>!ids.has(e.id))){entity.g.removeFromParent();this.people=this.people.filter(p=>p.g!==entity.g);this.particles=this.particles.filter(p=>p.g!==entity.g);if(entity.g.userData.rig){disposeActor(entity.g.userData.rig);this.actors=this.actors.filter(a=>a!==entity.g.userData.rig)}entity.g.traverse(o=>o.geometry?.dispose())}
   this.entities=this.entities.filter(e=>ids.has(e.id));
-  for(const state of states){let e=this.entities.find(v=>v.id===state.id);if(!e){e={...state,g:this.entityModel(state)};this.entities.push(e)}if(state.schedulePhase&&state.schedulePhase!==e.schedulePhase){const person=this.people.find(p=>p.g===e.g);if(person){person.route=state.routine;person.waypoint=0;person.path=null;person.retire=state.retire;person.speed=.85}Object.assign(e,{schedulePhase:state.schedulePhase,activity:state.activity,retire:state.retire})}e.marker=state.marker;if(state.marker&&!e.g.userData.marker)e.g.userData.marker=this.mesh(new T.OctahedronGeometry(.15),this.material('#f5cf79',{emissive:'#977137',emissiveIntensity:.8}),e.g,0,3,0);if(e.g.userData.marker)e.g.userData.marker.visible=!!state.marker}
+  for(const state of states){let e=this.entities.find(v=>v.id===state.id);if(e&&e.type!==state.type){e.g.removeFromParent();this.people=this.people.filter(p=>p.g!==e.g);this.particles=this.particles.filter(p=>p.g!==e.g);if(e.g.userData.rig){disposeActor(e.g.userData.rig);this.actors=this.actors.filter(a=>a!==e.g.userData.rig)}e.g.traverse(o=>o.geometry?.dispose());this.entities=this.entities.filter(v=>v!==e);e=null}if(!e){e={...state,g:this.entityModel(state)};this.entities.push(e)}if(state.schedulePhase&&state.schedulePhase!==e.schedulePhase){const person=this.people.find(p=>p.g===e.g);if(person){person.route=state.routine;person.waypoint=0;person.path=null;person.retire=state.retire;person.speed=.85}Object.assign(e,{schedulePhase:state.schedulePhase,activity:state.activity,retire:state.retire})}e.marker=state.marker;if(state.marker&&!e.g.userData.marker)e.g.userData.marker=this.mesh(new T.OctahedronGeometry(.15),this.material('#f5cf79',{emissive:'#977137',emissiveIntensity:.8}),e.g,0,3,0);if(e.g.userData.marker)e.g.userData.marker.visible=!!state.marker}
   this.syncQuestMarker();
   this.entitySignature=states.map(e=>e.id).join(',');
  }

@@ -1,3 +1,15 @@
+# Main investigation · 2.6.0 · 2026-11-02
+
+The play UI enables a versioned main-quest record within save schema 4. The existing coarse campaign stages remain compatible with older saves and integrations. New play uses twelve steps: witness, road, homestead, archive, rescue/records, confession, alliance, memorial, inner seal, guardian, artifact and homecoming. Each of the six themes has authored motives, discoveries and consequences. Ordinary story choices are applied by the model, with shared destinations for navigation, world interactions and the Journal.
+
+Local verification: 141 regression tests and source/import/asset checks. Sixteen main-story checks exercise all 36 combinations of mystery, lead route and ending; actual pack recovery with partial kills and withdrawal; failed stealth/lore paths; real guardian stat changes; ending build effects and road threat; map transitions; 80 seeded dungeon placements; reachable rendered story actors and props; sentry-to-enemy conversion; old-save migration including an ongoing boss battle; old completed-story preservation; new-campaign reset; invalid choices and state rejection; actual evidence in the Journal/director context; and stable imported story endings.
+
+The preview interface was used to create a hero, meet the witness, recover the road and homestead evidence, choose a lead at the archive, and reach the captive/patrol scene. The existing managed browser has WebGL disabled; geometry and collision checks run independently. The GitHub phone workflow adds a full records-route journey through the real dialogs and action button, checks the final choice before rewards, completes the homecoming, reloads, inspects the evidence journal, and verifies the negotiation/rescue route. Controlled travel between real destinations keeps that UI check focused on story integration. The guardian still dies through an actual combat action.
+
+Legacy completed stories keep their original text, stats and already-paid rewards. Unfinished saves retain their current stage; a saved active guardian stays visible and resumes. Main-story progress, choices, evidence and aftermath are validated and persist per hero. Failed checks advance to a harder route instead of blocking the main quest. Actual iPhone performance and live hosted AI remain unverified; this update does not connect a hosted AI service.
+
+---
+
 # Combat flow · 2.5.1 · 2026-11-01
 
 Local verification: 125 passing regression tests, source/import/asset checks and a clean `git diff --check`.

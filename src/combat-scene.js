@@ -1,6 +1,6 @@
 import * as T from '../vendor/three.module.js';
-import {animateActor,playActorAction} from './actors.js?v=19';
-import {attackPattern} from './combat-rules.js?v=19';
+import {animateActor,playActorAction} from './actors.js?v=20';
+import {attackPattern} from './combat-rules.js?v=20';
 
 export function telegraphGeometry(pattern,inner=0){
  const points=[],arc=pattern.shape==='circle'?Math.PI*2:pattern.arc,segments=48;

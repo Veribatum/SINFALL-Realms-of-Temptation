@@ -1,12 +1,14 @@
-import {guardianFor} from './encounters.js?v=19';
-import {validPattern,CHAIN_WINDOW,PARRY_WINDOW,EXPOSE_TIME} from './combat-rules.js?v=19';
-import {FACTION_STORIES,factionQuest,factionNode,factionHere,factionChoices,factionSite,factionCombatIds,factionEffects,validFactionQuests} from './faction-quests.js?v=19';
-import {BLESSINGS,SERVANTS,patronage} from './progression.js?v=19';
-import {CLASSES,RACES,ORIGINS,MOTIFS,ENEMIES,SETTLEMENT_PREFIX,SETTLEMENT_SUFFIX,NPC_FIRST,NPC_LAST,QUALITY} from './content.js?v=19';
-import {appearanceOf,APPEARANCE_OPTIONS} from './appearance.js?v=19';
-import {REGION_COUNT,regionOf,roadLinks,frontierSites,siteKey,surveyState} from './frontier.js?v=19';
-import {populationFor} from './population.js?v=19';
-import {centerOf,regionAt,realmArea,realmPoint,realmSites,homePlan} from './atlas.js?v=19';
+import {guardianFor} from './encounters.js?v=20';
+import {MAIN_FOES,mainState,mainScene,mainHere,mainExtraEntities,mainNote,mainDestination,endingSummary,validMainQuest,canRestoreCaptive} from './main-quest.js?v=20';
+export {enableMainQuest} from './main-quest.js?v=20';
+import {validPattern,CHAIN_WINDOW,PARRY_WINDOW,EXPOSE_TIME} from './combat-rules.js?v=20';
+import {FACTION_STORIES,factionQuest,factionNode,factionHere,factionChoices,factionSite,factionCombatIds,factionEffects,validFactionQuests} from './faction-quests.js?v=20';
+import {BLESSINGS,SERVANTS,patronage} from './progression.js?v=20';
+import {CLASSES,RACES,ORIGINS,MOTIFS,ENEMIES,SETTLEMENT_PREFIX,SETTLEMENT_SUFFIX,NPC_FIRST,NPC_LAST,QUALITY} from './content.js?v=20';
+import {appearanceOf,APPEARANCE_OPTIONS} from './appearance.js?v=20';
+import {REGION_COUNT,regionOf,roadLinks,frontierSites,siteKey,surveyState} from './frontier.js?v=20';
+import {populationFor} from './population.js?v=20';
+import {centerOf,regionAt,realmArea,realmPoint,realmSites,homePlan} from './atlas.js?v=20';
 
 export const SCHEMA=4;
 export const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
@@ -27,10 +29,10 @@ export const BUILDINGS=[
 export const buildingOf=h=>h.location.room==='home'?{...homePlan(townOf(h))[h.location.homeId],id:'home'}:BUILDINGS.find(b=>b.id===h.location.room);
 export const locationId=h=>h.location.type+'-'+h.location.townId+(h.location.type==='interior'?'-'+h.location.room+(h.location.room==='home'?'-'+h.location.homeId:''):'');
 export function addLog(h,text,kind='story'){h.history.unshift({id:uid(),text:String(text).slice(0,2000),kind,day:h.world?.day||1});h.history=h.history.slice(0,160);h.updatedAt=Date.now();return text}
-export function effects(h){const out={...factionEffects(h)};for(const entry of[...(h.world?.blessings||[]).map(b=>BLESSINGS.find(x=>x.id===b.id)),...patronage(h).filter(p=>p.earned)])if(entry)for(const[k,v]of Object.entries(entry.effect))out[k]=(out[k]||0)+v;for(const id of h.talents){const t=classOf(h).talents.find(t=>t.id===id);if(t)for(const[k,v]of Object.entries(t.effect))out[k]=(out[k]||0)+v}return out}
+export function effects(h){const out={...factionEffects(h)};if(mainState(h)?.node==='complete'&&!mainState(h).legacyCompleted){if(mainState(h).choice==='preserve')out.defense=(out.defense||0)+2;if(mainState(h).choice==='bind')out.spell=(out.spell||0)+3}for(const entry of[...(h.world?.blessings||[]).map(b=>BLESSINGS.find(x=>x.id===b.id)),...patronage(h).filter(p=>p.earned)])if(entry)for(const[k,v]of Object.entries(entry.effect))out[k]=(out[k]||0)+v;for(const id of h.talents){const t=classOf(h).talents.find(t=>t.id===id);if(t)for(const[k,v]of Object.entries(t.effect))out[k]=(out[k]||0)+v}return out}
 export function stats(h){const s={...classOf(h).stats};for(const[k,v]of Object.entries(raceOf(h).stats))s[k]=(s[k]||0)+v;const o=ORIGINS.find(o=>o.id===h.originId);if(o)s[o.stat]++;const e=effects(h);for(const k of Object.keys(s))s[k]+=(e[k]||0)+Math.floor((h.level-1)/3);return s}
 export function maxHp(h){return classOf(h).hp+(h.raceId==='dwarf'?8:0)+(h.level-1)*6+(h.boons?.vitality||0)}
-export function maxMp(h){return classOf(h).mp+(h.raceId==='elf'?6:0)+(h.level-1)*3}
+export function maxMp(h){return classOf(h).mp+(h.raceId==='elf'?6:0)+(h.level-1)*3-(mainState(h)?.node==='complete'&&!mainState(h).legacyCompleted&&mainState(h).choice==='bind'?4:0)}
 export function armor(h){return(h.equipment.armor?.power||0)+(effects(h).defense||0)}
 export function abilityCost(h){return Math.max(2,classOf(h).ability.cost-(effects(h).cost||0)-(h.raceId==='exile'?1:0))}
 export function xpNeeded(h){return 80+(h.level-1)*45}
@@ -79,7 +81,7 @@ export function surveyLandmark(h,id,method='study',rng=Math.random){
  const survey=surveyState(h);if(survey.done===survey.total&&!survey.claimed){h.world.exploration.rewards.push(h.location.townId);gainGold(h,120);gainXp(h,80);text+=' Region surveyed: +120 gold and +80 XP.'}if(roll)text+=` D20 ${roll.roll} + ${roll.bonus} against ${roll.dc}.`;addLog(h,site.name+': '+text,'discovery');return{ok:true,text,item,success};
 }
 export function locationName(h){const t=townOf(h);if(h.location.type==='realm'&&h.location.area==='wilds')return t.name+' · Wilds';return h.location.type==='interior'?buildingOf(h)?.name||t.name:['town','realm'].includes(h.location.type)?t.name:h.location.type==='wilds'?`The ${t.name} Road`:`${t.name} Undercrypt`}
-export function objective(h){const t=h.world.towns[0],c=h.campaign;if(h.combat)return'Defeat your foe or find a way out.';if(c.stage==='arrival')return`Speak with ${t.npcs.witness.name} in ${t.name}’s square.`;if(c.stage==='trail')return`Investigate the strange remains on the road outside ${t.name}.`;if(c.stage==='counsel')return`Bring the evidence to ${t.npcs.scholar.name} at ${t.name}’s archive.`;if(c.stage==='descent')return`Enter the undercrypt outside ${t.name}. Find ${c.enemy}.`;if(c.stage==='heart')return`Return to the final chamber and decide the fate of ${c.artifact}.`;return'Your adventure is complete. Explore, or set out on a new story.'}
+export function objective(h){const t=h.world.towns[0],c=h.campaign;if(h.combat)return'Defeat your foe or find a way out.';const main=mainDestination(h);if(main)return main.instruction;if(c.stage==='arrival')return`Speak with ${t.npcs.witness.name} in ${t.name}’s square.`;if(c.stage==='trail')return`Investigate the strange remains on the road outside ${t.name}.`;if(c.stage==='counsel')return`Bring the evidence to ${t.npcs.scholar.name} at ${t.name}’s archive.`;if(c.stage==='descent')return`Enter the undercrypt outside ${t.name}. Find ${c.enemy}.`;if(c.stage==='heart')return`Return to the final chamber and decide the fate of ${c.artifact}.`;return'Your adventure is complete. Explore, or set out on a new story.'}
 export function visitState(h){const id=locationId(h);return h.world.visits[id]??={resolved:[],discovered:[],searched:false}}
 export function resolveEntity(h,id){const v=visitState(h);if(!v.resolved.includes(id))v.resolved.push(id)}
 export function isResolved(h,id){return visitState(h).resolved.includes(id)}
@@ -170,6 +172,9 @@ export function entitiesFor(h){
  }
  if(type==='town'||type==='wilds'){const encounter=encounterFor(h);if(encounter)a.push(encounter)}
  if(type==='wilds')a.push(...factionEnemies(h));
+ if(mainState(h)&&h.location.townId===0&&type==='dungeon')a=a.filter(e=>e.type!=='boss'||mainState(h).node==='guardian').filter(e=>e.type!=='artifact'||['artifact','complete'].includes(mainState(h).node));
+ a.push(...mainExtraEntities(h));
+ if(mainState(h))for(const e of a){if(mainHere(h,e))e.marker='main';else if(e.marker==='main')e.marker=null}
  return a.filter(e=>!v.resolved.includes(e.id)||['exit','npc','gate','travel','board','door','landmark','route'].includes(e.type));
 }
 export function changeLocation(h,type,townId=h.location.townId,room,homeId){
@@ -201,15 +206,57 @@ function realmEntities(h){
  const c=centerOf(town.id);for(const home of homePlan(town))out.push({id:'home-'+home.id,type:'door',name:'Enter '+home.name,room:'home',homeId:home.id,rotation:home.rotation,x:c.x+home.doorX,z:c.z+home.doorZ,regionId:town.id});
  out.push(...factionEnemies(h,true));const watch=h.world.factionQuests?.wardens;return out.filter(e=>!(watch?.node==='complete'&&watch.townId===h.location.townId&&e.id==='road-bandit')&&(!resolved.includes(e.id)||['npc','door','gate','board','landmark'].includes(e.type)));
 }
-export function acceptMain(h){if(h.campaign.stage!=='arrival')return false;h.campaign.stage='trail';addLog(h,`${townOf(h).npcs.witness.name} asks you to investigate. ${h.campaign.witness}`);gainXp(h,15);return true}
-export function collectClue(h){if(h.location.townId!==0||h.campaign.stage!=='trail')return false;h.campaign.stage='counsel';resolveEntity(h,'clue');gainXp(h,35);h.items.push({id:uid(),type:'quest',name:'Evidence: '+h.campaign.artifact});addLog(h,h.campaign.clue);return true}
-export function chooseAlliance(h,choice){if(h.campaign.stage!=='counsel')return false;if(!['wardens','scholars','veil'].includes(choice))return false;if(choice==='veil'&&h.gold<25)return false;h.campaign.flags.alliance=choice;h.campaign.decisions.push({choice,stage:'counsel'});h.campaign.stage='descent';h.factions[choice==='wardens'?'town':choice]+=2;
- if(choice==='wardens'){h.items.push({id:uid(),type:'armor',name:'Warden’s Brigandine',power:5+h.level,quality:1});addLog(h,'You tell the watch everything. A warden lends you armor. The stranger at the inn will remember this.')}
- if(choice==='scholars'){h.campaign.flags.weakenBoss=4;h.items.push({id:uid(),type:'mana',name:'Moonwater',qty:2});addLog(h,'You trust the archive. A counter-ritual weakens the guardian, but the watch has been kept in the dark.')}
+export function acceptMain(h){if(h.campaign.stage!=='arrival')return false;const report=mainState(h)?mainScene(h).text:null;h.campaign.stage='trail';if(mainState(h)){mainState(h).node='road';mainNote(h,'witness','A person, not an anomaly',report)}addLog(h,report||`${townOf(h).npcs.witness.name} asks you to investigate. ${h.campaign.witness}`);gainXp(h,15);return true}
+export function collectClue(h){if(h.location.townId!==0||h.campaign.stage!=='trail'||mainState(h)&&mainState(h).node!=='road')return false;h.campaign.stage=mainState(h)?'trail':'counsel';if(mainState(h)){mainState(h).node='home';mainState(h).evidence.push('road');mainNote(h,'road','The road evidence',h.campaign.clue)}resolveEntity(h,'clue');gainXp(h,35);h.items.push({id:uid(),type:'quest',name:'Evidence: '+h.campaign.artifact});addLog(h,h.campaign.clue);return true}
+export function chooseAlliance(h,choice){if(h.campaign.stage!=='counsel'||mainState(h)&&mainState(h).node!=='alliance')return false;if(!['wardens','scholars','veil'].includes(choice))return false;if(choice==='veil'&&h.gold<25)return false;h.campaign.flags.alliance=choice;h.campaign.decisions.push({choice,stage:'counsel'});h.campaign.stage='descent';if(mainState(h)){mainState(h).node='memorial';mainNote(h,'alliance','A plan for the crypt','You chose '+choice+' to support your descent. The first keeper’s memorial may explain what the bargain was meant to do.')}h.factions[choice==='wardens'?'town':choice]+=2;
+ if(choice==='wardens'){h.items.push({id:uid(),type:'armor',name:'Warden’s Brigandine',power:5+h.level,quality:1});addLog(h,mainState(h)?'The watch supplies brigandine for your descent. Its support does not erase the confession. The stranger will remember your alliance.':'You tell the watch everything. A warden lends you armor. The stranger at the inn will remember this.')}
+ if(choice==='scholars'){h.campaign.flags.weakenBoss=(h.campaign.flags.weakenBoss||0)+4;h.items.push({id:uid(),type:'mana',name:'Moonwater',qty:2});addLog(h,mainState(h)?'The archive commits its counter-ritual and moonwater to your descent. The guardian is weakened; the warden’s confession remains '+(mainState(h).accusation==='expose'?'a public record.':'a private debt.'):'You trust the archive. A counter-ritual weakens the guardian, but the watch has been kept in the dark.')}
  if(choice==='veil'){h.gold-=25;h.campaign.flags.veilPact=true;h.boons.vitality=(h.boons.vitality||0)+5;h.hp=Math.min(maxHp(h),h.hp+5);addLog(h,'You pay the stranger’s price. The Veil grants you 5 permanent vitality. Something has learned your name.')}
  gainXp(h,45);return true;
 }
-export function finishCampaign(h,ending){if(h.campaign.stage!=='heart'||!['preserve','destroy','bind'].includes(ending))return false;const c=h.campaign;c.stage='complete';c.ending=ending;c.decisions.push({choice:ending,stage:'ending'});h.completed++;h.legacy.push({id:c.id,motifId:c.motifId,title:c.title,ending,decisions:structuredClone(c.decisions),factions:structuredClone(h.world.factionQuests||{}),day:h.world.day,text:c[ending]});h.factions[ending==='preserve'?'scholars':ending==='destroy'?'town':'veil']+=3;h.talentPoints++;gainGold(h,100+h.level*15);gainXp(h,150);const item=loot(h,true);item.name=ending==='bind'?'Bound '+c.artifact.replace(/^the /i,''):ending==='preserve'?'Custodian’s Starweave':'Dawnbreaker’s Oath';if(ending==='destroy')item.type='weapon';if(ending==='preserve'){item.type='armor';item.power+=2}if(ending==='bind'){item.type='trinket';item.power+=3}addLog(h,c[ending]);return item}
+export function resolveMainChoice(h,choice,entityId,rng=Math.random){
+ const s=mainState(h),scene=s&&mainScene(h),option=scene?.choices.find(o=>o.id===choice),entity=entitiesFor(h).find(e=>e.id===entityId);
+ if(h.combat||!option||!entity||!mainHere(h,entity))return{ok:false,text:'Follow the current main-quest destination first.'};
+ if(h.gold<(option.cost||0)||h.mp<(option.mana||0))return{ok:false,text:'You do not have the required supplies.'};
+ const before=s.node,c=h.campaign;let text=scene.text,fight=false,item=null,complete=false;
+ if(choice==='accept'){if(!acceptMain(h))return{ok:false};text='You promised to find the person behind the disappearance. The road evidence is your first lead.'}
+ else if(choice==='take-clue'){if(!collectClue(h))return{ok:false};text=c.clue+'\n\nThe address leads to the abandoned homestead. The watch seal ties this evidence to a person’s last known home.'}
+ else if(['wardens','scholars','veil'].includes(choice)){if(!chooseAlliance(h,choice))return{ok:false};text='Your support is settled. Follow the undercrypt stairs to the first keeper’s memorial before confronting the guardian.'}
+ else if(['preserve','destroy','bind'].includes(choice)){
+  s.choice=choice;s.rescue=choice==='preserve'?(canRestoreCaptive(h)?'saved':'lost'):'saved';s.node='homecoming';c.ending=choice;s.outcomeText=endingSummary(h,choice);c[choice]=s.outcomeText;text=c[choice]+'\n\nThe story is not finished at the artifact. Return to the witness in the starting town.';h.world.hour=6;h.world.weather=choice==='destroy'?'mist':'clear';
+ }else if(choice==='close-case'){
+  item=finishCampaign(h,s.choice);if(!item)return{ok:false};complete=true;text=c[s.choice];
+ }else{
+  h.gold-=option.cost||0;h.mp-=option.mana||0;const roll=option.stat?check(h,option.stat,option.dc,rng):null;
+  if(choice==='read-table'){s.evidence.push('house');s.node='archive';c.stage='counsel';h.items.push({id:'main-keepsake-'+c.id,type:'quest',name:'The missing person’s keepsake'});gainXp(h,25);text=scene.text}
+  if(choice==='rescue-first'||choice==='records-first'){s.route=choice==='rescue-first'?'rescue':'records';s.node=s.route;gainXp(h,20);text=choice==='rescue-first'?'You choose the living person over the record. The trail leads to Wayfarers’ Camp; the watch’s retrieval patrol is already searching it.':'You choose to understand the mechanism before confronting it. The Lost Observatory holds the original procedure. The missing person must wait.'}
+  if(choice==='fight-hunters'||choice==='face-hunters'){s.encounter='active';fight=true;text='The hunters close ranks. Break their hold, then return to the captive.'}
+  if(choice==='slip-the-ward'){s.encounter=roll.success?'cleared':'active';fight=!roll.success;text=roll.success?'You turn the ward against its own signatures. The hunters are searching an empty road. The captive’s hand is within reach.':'The ward answers in your voice. The hunters turn toward you. Your way forward is still open, but you will have to fight for it.'}
+  if(choice==='bribe-hunters'){s.encounter='cleared';text='The patrol takes the money and tears up its order. You still have to help the captive cross back into the world.'}
+  if(choice==='free-captive'){s.rescue='saved';s.evidence.push('rescue');s.node='confession';const keepsake=h.items.find(i=>i.id==='main-keepsake-'+c.id);if(keepsake)keepsake.name='The captive’s remembered words';gainXp(h,45);h.factions.town++;text='You take the offered hand. For a moment the whole world tries to forget it. You hold on.\n\nThe rescued witness takes the keepsake home, leaving you the words that can answer the crypt’s seal. Confront the warden in the chapel.'}
+  if(choice==='decode-record'||choice==='trace-record'){s.lead=!roll||roll.success?'complete':'fragment';s.evidence.push('record');s.node='confession';if(s.lead==='complete')c.flags.weakenBoss=(c.flags.weakenBoss||0)+2;gainXp(h,s.lead==='complete'?40:20);text=scene.text+'\n\n'+(s.lead==='complete'?'You recover the complete notation. It will weaken the guardian and open the inner seal safely.':'The final line refuses to settle. You keep a fragment that may still answer the inner seal. Failure has not closed the investigation.')+'\n\nThe warden’s signature is on the order. Take the record to the Watch Chapel.'}
+  if(choice==='expose'||choice==='mercy'){s.accusation=choice;s.evidence.push('confession');s.node='alliance';if(choice==='expose')h.factions.town+=2;else{const name=h.world.towns[0].npcs.warden.name;h.relationships[name]=(h.relationships[name]||0)+15}gainXp(h,30);text=scene.text+'\n\n'+(choice==='expose'?'You make a copy for the chapel’s public record. The bargain will not be hidden again.':'You accept the warden’s help, without promising forgiveness. The confession remains a debt to the people it harmed.')+'\n\nReturn to the archive and decide who supports your descent.'}
+  if(choice==='read-memorial'){s.evidence.push('memorial');s.node='seal';if(s.route==='legacy'&&!s.lead)s.lead='fragment';h.hp=Math.min(maxHp(h),h.hp+8);h.mp=Math.min(maxMp(h),h.mp+8);gainXp(h,20);text=scene.text}
+  if(['name-seal','ritual-seal','force-seal'].includes(choice)){
+   const quiet=choice!=='force-seal'&&(!roll||roll.success);s.seal=quiet?'quiet':'force';s.evidence.push('seal');if(quiet)c.flags.weakenBoss=(c.flags.weakenBoss||0)+2;else h.hp=Math.max(1,h.hp-8);
+   const defeated=h.world.visits['dungeon-0']?.resolved?.includes('boss');s.node=defeated?'artifact':'guardian';if(defeated)c.stage='heart';gainXp(h,30);text=(quiet?'The seal recognizes a duty freely answered. It opens without sounding the guardian’s alarm.':'The stone breaks. You are wounded by the backlash, and the guardian hears you coming.')+'\n\n'+(defeated?c.revelation:'The keeper’s final chamber lies ahead. You know why it is waiting now.');
+  }
+  if(roll)text+=`\n\nD20 ${roll.roll} + ${roll.bonus} against ${roll.dc}.`;
+ }
+ if(!c.decisions.some(d=>d.stage===before&&d.choice===choice))c.decisions.push({stage:before,choice});mainNote(h,before+'-'+choice,scene.title,text);addLog(h,text,'main-quest');
+ return{ok:true,text,fight,complete,item,next:mainDestination(h)};
+}
+function progressMainCombat(h){
+ const s=mainState(h);if(!s||h.location.townId!==0||s.node!=='rescue'||s.encounter!=='active')return;
+ if(MAIN_FOES.every(id=>isResolved(h,id))){s.encounter='cleared';mainNote(h,'hunters','The retrieval patrol falls','The captive is no longer guarded. Return to their side at Wayfarers’ Camp and take their hand.');addLog(h,'The hunters are gone. The captive still needs your help to cross.','main-quest')}
+}
+export function finishCampaign(h,ending){
+ const s=mainState(h);if(h.campaign.stage!=='heart'||!['preserve','destroy','bind'].includes(ending)||s&&(s.node!=='homecoming'||s.choice!==ending||h.location.townId!==0||!['realm','town'].includes(h.location.type)))return false;
+ const c=h.campaign;c.stage='complete';c.ending=ending;if(s)s.node='complete';c.decisions.push({choice:ending,stage:'ending'});h.completed++;
+ h.legacy.push({id:c.id,motifId:c.motifId,title:c.title,ending,decisions:structuredClone(c.decisions),factions:structuredClone(h.world.factionQuests||{}),...(s?{main:{route:s.route,rescue:s.rescue,accusation:s.accusation,seal:s.seal}}:{}),day:h.world.day,text:c[ending]});
+ h.factions[ending==='preserve'?'scholars':ending==='destroy'?'town':'veil']+=3;h.talentPoints++;gainGold(h,100+h.level*15);gainXp(h,150);h.mp=Math.min(h.mp,maxMp(h));
+ const item=loot(h,true);item.name=ending==='bind'?'Bound '+c.artifact.replace(/^the /i,''):ending==='preserve'?'Custodian’s Starweave':'Dawnbreaker’s Oath';if(ending==='destroy')item.type='weapon';if(ending==='preserve'){item.type='armor';item.power+=2}if(ending==='bind'){item.type='trinket';item.power+=3}addLog(h,c[ending]);return item;
+}
 export function discoverRumor(h,source='innkeeper'){
  const t=townOf(h),id=`side-${t.id}-${source}`;let q=h.world.quests.find(q=>q.id===id);if(q)return q;
  const types={innkeeper:'relic',healer:'herbs',smith:'hunt',warden:'hunt',stranger:'courier'};const kind=types[source]||'relic';
@@ -226,8 +273,8 @@ export function respecCost(h){return 25+h.level*5}
 export function respecTalents(h){if(h.combat||!h.talents.length||h.gold<respecCost(h))return false;h.gold-=respecCost(h);h.talentPoints+=h.talents.length;h.talents=[];delete h.companion;h.summonCooldown=0;addLog(h,'Retrained your talents. All spent points were returned.','talent');return true}
 export function unlock(h,id){const t=classOf(h).talents.find(t=>t.id===id);if(!t||h.talents.includes(id)||h.talentPoints<1||h.level<(t.level||1)||t.requires&&!h.talents.includes(t.requires))return false;h.talents.push(id);h.talentPoints--;addLog(h,'Learned '+t.name+'.','talent');return true}
 export function rest(h){const cost=8+Math.floor(h.level/3);if(h.gold<cost)return false;h.gold-=cost;h.hp=maxHp(h);h.mp=maxMp(h);h.world.hour=8;h.world.day++;addLog(h,'You sleep at the inn. Morning comes, and the world feels ordinary for a moment.','rest');return true}
-export function startCombat(h,entity,rng=Math.random){if(h.combat)return false;const boss=entity.type==='boss',guardian=boss?guardianFor(h):null,base=ENEMIES.find(e=>e.kind===(guardian?.kind||entity.kind))||pick(ENEMIES,rng),lv=Math.max(1,h.level+Math.min(3,h.completed)),weak=boss&&h.location.townId===0?(h.campaign.flags.weakenBoss||0):0;
- h.combat={id:entity.id,kind:base.kind,name:entity.name||base.name,boss,...(guardian?{guardian:guardian.id,tactic:guardian.tactic,phase:1}:{}),hp:base.hp+lv*7+(boss?30:0)-weak*2,maxHp:base.hp+lv*7+(boss?30:0)-weak*2,attack:base.attack+lv*1.5+(boss?3:0)-weak,armor:base.armor+(boss?2:0),intents:guardian?.intents||base.intents,round:0,poison:0,weaken:0,log:[guardian?.tactic||'Your foe circles. Read its intention before committing.'],color:base.color,location:locationId(h)};return true}
+export function startCombat(h,entity,rng=Math.random){if(h.combat||entity.type==='boss'&&h.location.townId===0&&mainState(h)&&mainState(h).node!=='guardian')return false;const boss=entity.type==='boss',guardian=boss?guardianFor(h):null,base=ENEMIES.find(e=>e.kind===(guardian?.kind||entity.kind))||pick(ENEMIES,rng),lv=Math.max(1,h.level+Math.min(3,h.completed)),weak=boss&&h.location.townId===0?(h.campaign.flags.weakenBoss||0):0;
+ h.combat={id:entity.id,kind:base.kind,name:entity.name||base.name,boss,...(guardian?{guardian:guardian.id,tactic:guardian.tactic,phase:1}:{}),hp:Math.max(15,base.hp+lv*7+(boss?30:0)-weak*2),maxHp:Math.max(15,base.hp+lv*7+(boss?30:0)-weak*2),attack:Math.max(2,base.attack+lv*1.5+(boss?3:0)-weak+(boss&&h.location.townId===0&&mainState(h)?.seal==='force'?2:0)),armor:base.armor+(boss?2:0),intents:guardian?.intents||base.intents,round:0,poison:0,weaken:0,log:[guardian?.tactic||'Your foe circles. Read its intention before committing.'],color:base.color,location:locationId(h)};return true}
 export function combatIntent(h){const c=h.combat;if(!c)return null;return c.intents[c.round%c.intents.length]}
 export function combatTurn(h,action,rng=Math.random){
  const c=h.combat;if(!c||!['attack','ability','guard','potion','flee'].includes(action))return{ok:false};const s=stats(h),ef=effects(h),ab=classOf(h).ability,intent=combatIntent(h);let text=[],ward=0,stun=false,damage=0,rolled=null;
@@ -250,7 +297,7 @@ export function combatTurn(h,action,rng=Math.random){
  return{ok:true,outcome:'round',text:text.join(' '),damage,roll:rolled};
 }
 export function winCombat(h,text='',rng=Math.random){const c=h.combat,ef=effects(h);if(!c||c.hp>0)return{ok:false};
-  resolveEntity(h,c.id);progressFactionCombat(h);h.kills++;progressSide(h,'hunt');if(c.boss&&h.location.townId===0&&h.campaign.stage==='descent'){h.campaign.stage='heart';addLog(h,h.campaign.revelation)}
+  resolveEntity(h,c.id);progressFactionCombat(h);progressMainCombat(h);h.kills++;progressSide(h,'hunt');if(c.boss&&h.location.townId===0&&h.campaign.stage==='descent'){h.campaign.stage='heart';if(mainState(h)){mainState(h).node='artifact';mainNote(h,'guardian','The bargain laid bare',h.campaign.revelation)}addLog(h,h.campaign.revelation)}
   const gold=10+Math.floor(rng()*16)+(c.boss?35:0),xp=c.boss?90:30;gainGold(h,gold);gainXp(h,xp);h.hp=Math.min(maxHp(h),h.hp+(ef.healOnKill||0)+(h.raceId==='hollow'?3:0));const item=c.boss||rng()<.4?loot(h,c.boss,rng):null;h.combat=null;addLog(h,`Defeated ${c.name}. +${xp} XP · +${gold} gold${item?' · '+item.name:''}.`,'combat');return{ok:true,outcome:'victory',text,gold,xp,item,boss:c.boss};
 }
 export function blessingChoices(h){
@@ -276,6 +323,7 @@ export function validateHero(h){
  if(!['level','xp','gold','hp','mp','talentPoints','completed'].every(k=>Number.isFinite(h[k])&&h[k]>=0)||h.level<1||h.level>1000||h.items?.length>500||!Array.isArray(h.items)||!Array.isArray(h.talents)||!Array.isArray(h.history)||!Array.isArray(h.legacy)||!h.equipment?.weapon||!h.equipment?.armor||!h.factions||!h.relationships||!h.world||!h.campaign||!h.location||!h.position)return false;
  if(!Array.isArray(h.world.towns)||![3,REGION_COUNT].includes(h.world.towns.length)||!Array.isArray(h.world.quests)||!h.world.visits||!Array.isArray(h.world.discovered)||!['town','wilds','realm','dungeon','interior'].includes(h.location.type)||h.location.type==='interior'&&!(BUILDINGS.some(b=>b.id===h.location.room)||h.location.room==='home'&&Number.isInteger(h.location.homeId)&&h.location.homeId>=0&&h.location.homeId<20)||!Number.isInteger(h.location.townId)||h.location.townId<0||h.location.townId>=h.world.towns.length||!Number.isFinite(h.position.x)||!Number.isFinite(h.position.z))return false;
  if(!['arrival','trail','counsel','descent','heart','complete'].includes(h.campaign.stage)||!h.campaign.flags||!Array.isArray(h.campaign.decisions))return false;
+ if(!validMainQuest(h))return false;
  if(!['title','artifact','enemy','witness','clue','revelation','demand','preserve','destroy','bind'].every(k=>typeof h.campaign[k]==='string'&&h.campaign[k].length<5000))return false;
  if(!h.world.towns.every(t=>typeof t.name==='string'&&t.npcs&&t.dungeon?.grid?.length===17&&t.dungeon.grid.every(row=>Array.isArray(row)&&row.length===17&&row.every(v=>v===0||v===1))&&Array.isArray(t.dungeon.entities)&&t.dungeon.end?.length===2))return false;
  if(!h.items.every(i=>i&&typeof i.id==='string'&&typeof i.name==='string'&&['weapon','armor','trinket','potion','mana','quest'].includes(i.type)))return false;

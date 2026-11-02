@@ -23,6 +23,8 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Phone UI and save verification
         run: node scripts/check-browser.mjs
+      - name: Main quest story and ending verification
+        run: node scripts/check-main-story-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -1,8 +1,8 @@
 // Loaded only by the preview server's /__qa/combat page. It adds separate QA
 // heroes through the normal save API, never replaces an existing collection.
-import * as M from './model.js?v=19';
-import * as A from './action-combat.js?v=19';
-import * as S from './saves.js?v=19';
+import * as M from './model.js?v=20';
+import * as A from './action-combat.js?v=20';
+import * as S from './saves.js?v=20';
 
 if(location.pathname==='/__qa/combat'){
  const frame=document.getElementById('combat-preview'),status=document.getElementById('qa-status');

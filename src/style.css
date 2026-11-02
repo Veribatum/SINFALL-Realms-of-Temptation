@@ -62,3 +62,5 @@
 @media(max-width:480px){.skill-paths{gap:6px}.talent-node{padding:10px 6px}.talent-node h4{font-size:11px}.talent-node p{font-size:10px}.talent-node button{font-size:9px}.gear-card{gap:9px}.item-copy strong{font-size:12px}}
 
 .side-panel{animation:none}#panel-body .talent-node p{font:11px/1.5 system-ui}#panel-body .skill-summary p{font:12px/1.6 system-ui}
+
+.main-evidence{margin-top:16px;border-top:1px solid #bdb17d44;padding-top:12px}.main-evidence>summary{cursor:pointer;min-height:34px;color:#dfc78f;font:12px/1.6 system-ui}.main-evidence-entry{padding:12px 0;border-bottom:1px solid #bdb17d33}.main-evidence-entry>strong{font:600 12px/1.5 system-ui;color:#e2d7b8}.main-evidence-entry>p{font:12px/1.7 system-ui!important;white-space:pre-line;color:#bccbc4;margin:7px 0 0}.story-steps li{line-height:1.6}
